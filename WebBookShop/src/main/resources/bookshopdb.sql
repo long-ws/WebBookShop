@@ -15,6 +15,7 @@ CREATE TABLE bookshopdb.user
     gender      BIT          NOT NULL,
     address     VARCHAR(200) NOT NULL,
     role        VARCHAR(10)  NOT NULL,
+    isDeleted   BIT          NOT NULL DEFAULT 0,
     PRIMARY KEY (id),
     UNIQUE INDEX uq_username (username),
     UNIQUE INDEX uq_email (email),
