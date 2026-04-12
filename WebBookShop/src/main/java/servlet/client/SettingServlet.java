@@ -76,7 +76,8 @@ public class SettingServlet extends HttpServlet {
             updatedUser.setPhoneNumber(phoneNumber);
             updatedUser.setGender(gender);
             updatedUser.setAddress(address);
-            updatedUser.setRole("CUSTOMER"); // giữ role
+            updatedUser.setRole(currentUser.getRole()); // Giữ nguyên role hiện tại của người dùng
+            //updatedUser.setRole("CUSTOMER"); // giữ role
 
             try {
                 userService.update(updatedUser);
