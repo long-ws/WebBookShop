@@ -4,6 +4,7 @@ public final class ConstantUtils {
 	private ConstantUtils() {
 	}
 
+	// Cấu hình cho kết nối database
 	public static final int DB_PORT = 3306;
 	public static final String SERVER_NAME = "localhost";
 	public static final String DB_NAME = "bookshopdb";
