@@ -13,32 +13,37 @@ public class DBConnection {
 	private static final HikariDataSource dataSource;
 
 	static {
-		HikariConfig config = new HikariConfig();
+		try {
+			HikariConfig config = new HikariConfig();
 
-		// Cấu hình database
-		config.setJdbcUrl("jdbc:mysql://" + ConstantUtils.SERVER_NAME + ":" + ConstantUtils.DB_PORT + "/"
-				+ ConstantUtils.DB_NAME + "?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true");
-		config.setUsername(ConstantUtils.DB_USERNAME);
-		config.setPassword(ConstantUtils.DB_PASSWORD);
-		config.setDriverClassName("com.mysql.cj.jdbc.Driver");
+			// Cấu hình database
+			String url = "jdbc:mysql://" + ConstantUtils.SERVER_NAME + ":" + ConstantUtils.DB_PORT + "/"
+					+ ConstantUtils.DB_NAME + "?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
+			config.setJdbcUrl(url);
+			config.setUsername(ConstantUtils.DB_USERNAME);
+			config.setPassword(ConstantUtils.DB_PASSWORD);
+			config.setDriverClassName("com.mysql.cj.jdbc.Driver");
 
-		// Cấu hình pool
-		config.setMaximumPoolSize(20); // Tối đa 20 connection
-		config.setMinimumIdle(5); // Tối thiểu 5 connection rảnh
-		config.setConnectionTimeout(5000); // Chờ tối đa 5 giây
-		config.setIdleTimeout(300000); // Connection rảnh tối đa 5 phút
-		config.setMaxLifetime(1800000); // Connection sống tối đa 30 phút
+			config.setMaximumPoolSize(20); // Tối đa 20 connection
+			config.setMinimumIdle(5); // Tối thiểu 5 connection rảnh
+			config.setConnectionTimeout(5000); // Chờ tối đa 5 giây
+			config.setIdleTimeout(300000); // Connection rảnh tối đa 5 phút
+			config.setMaxLifetime(1800000); // Connection sống tối đa 30 phút
 
-		// Đặt tên cho pool
-		config.setPoolName("DBConnectionPool");
+			// Đặt tên cho pool
+			config.setPoolName("DBConnectionPool");
 
-		// Tối ưu hiệu năng
-		config.addDataSourceProperty("cachePrepStmts", "true"); //Bật tính năng bộ nhớ đệm cho Prepared Statements 
-		config.addDataSourceProperty("prepStmtCacheSize", "250"); // Giới hạn số câu lệnh lưu trữ trong bộ nhớ đệm
-		config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048"); // Kích thức giới hạn của câu lệnh để lưu vào bộ nhớ đệm
+			// Tối ưu hiệu năng
+			config.addDataSourceProperty("cachePrepStmts", "true"); // Bật tính năng bộ nhớ đệm cho Prepared Statements
+			config.addDataSourceProperty("prepStmtCacheSize", "250"); // Giới hạn số câu lệnh lưu trữ trong bộ nhớ đệm
+			config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048"); // Kích thức giới hạn của câu lệnh để lưu vào
+																			// bộ nhớ đệm
 
-		dataSource = new HikariDataSource(config);
-		System.out.println("[DBConnection] Khởi tạo connection pool");
+			dataSource = new HikariDataSource(config);
+			System.out.println("[DBConnection] Khởi tạo connection pool");
+		} catch (Exception e) {
+			throw new RuntimeException("[DBConnection] Không thể khởi tạo connection pool", e);
+		}
 	}
 
 	/**
@@ -69,7 +74,7 @@ public class DBConnection {
 	 */
 	public static void closeAll() {
 		dataSource.close();
-		System.out.println("[DBConnection] HikariCP pool closed");
+		System.out.println("[DBConnection] Đóng connection pool");
 	}
 
 	/**
