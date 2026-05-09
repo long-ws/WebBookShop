@@ -54,19 +54,41 @@
 												<td>${order.name}</td>
 												<td><fmt:formatNumber pattern="#,##0"
 														value="${order.total}" />₫</td>
-												<td><c:choose>
-														<c:when test="${order.status == 1}">
-															<span class="badge bg-warning text-dark">Đang giao
-																hàng</span>
+											<td>
+											<c:choose>
+												<c:when test="${order.status == 1}">
+													<c:choose>
+														<c:when test="${order.shippingStatus == 'WAITING_PICKUP'}">
+															<span class="badge bg-secondary">Cho lay hang</span>
 														</c:when>
-														<c:when test="${order.status == 2}">
-															<span class="badge bg-success">Giao hàng thành
-																công</span>
+														<c:when test="${order.shippingStatus == 'PICKED_UP'}">
+															<span class="badge bg-info">Da lay hang</span>
 														</c:when>
-														<c:when test="${order.status == 3}">
-															<span class="badge bg-danger">Hủy đơn hàng</span>
+														<c:when test="${order.shippingStatus == 'IN_TRANSIT'}">
+															<span class="badge bg-primary">Dang van chuyen</span>
 														</c:when>
-													</c:choose></td>
+														<c:when test="${order.shippingStatus == 'OUT_FOR_DELIVERY'}">
+															<span class="badge bg-warning text-dark">Dang giao hang</span>
+														</c:when>
+														<c:when test="${order.shippingStatus == 'DELIVERED'}">
+															<span class="badge bg-success">Da giao hang</span>
+														</c:when>
+														<c:when test="${order.shippingStatus == 'FAILED'}">
+															<span class="badge bg-danger">Giao that bai</span>
+														</c:when>
+														<c:otherwise>
+															<span class="badge bg-warning text-dark">Dang xu ly</span>
+														</c:otherwise>
+													</c:choose>
+												</c:when>
+												<c:when test="${requestScope.order.status == 2}">
+													<span class="badge bg-success">Giao hang thanh cong</span>
+												</c:when>
+												<c:when test="${requestScope.order.status == 3}">
+													<span class="badge bg-danger">Huy don hang</span>
+												</c:when>
+											</c:choose>
+										</td>
 												<td class="text-center text-nowrap"><a
 													class="btn btn-primary me-2"
 													href="${pageContext.request.contextPath}/orderDetail?id=${order.id}"

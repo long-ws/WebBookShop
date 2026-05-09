@@ -17,5 +17,6 @@ public class HashingUtils {
 		} catch (Exception e) {
 			return false;
 		}
+
 	}
 }

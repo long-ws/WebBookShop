@@ -5,6 +5,7 @@ import java.util.List;
 
 import beans.Order;
 import beans.OrderItem;
+import beans.OrderNote;
 import beans.Product;
 import beans.User;
 import jakarta.servlet.ServletException;
@@ -13,6 +14,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import service.OrderItemService;
+import service.OrderNoteService;
 import service.OrderService;
 import service.ProductService;
 import service.UserService;
@@ -25,6 +27,7 @@ public class OrderManagerDetailServlet extends HttpServlet {
 	private final UserService userService = new UserService();
 	private final OrderItemService orderItemService = new OrderItemService();
 	private final ProductService productService = new ProductService();
+	private final OrderNoteService orderNoteService = new OrderNoteService();
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -82,6 +85,36 @@ public class OrderManagerDetailServlet extends HttpServlet {
 
 		order.setOrderItems(orderItems);
 		order.setTotalPrice(orderService.calculateTotalPrice(orderItems, order.getDeliveryPrice()));
+
+		// Load order notes
+		List<OrderNote> orderNotes;
+		try {
+			orderNotes = orderNoteService.getNotesByOrderId(order.getId());
+			// Load sender names
+			for (OrderNote note : orderNotes) {
+				if (note.getUserId() != null) {
+					try {
+						User sender = userService.getById(note.getUserId());
+						if (sender != null) {
+							note.setSenderName(sender.getFullname());
+						}
+					} catch (Exception e) {
+						// ignore
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			orderNotes = List.of();
+		}
+		request.setAttribute("orderNotes", orderNotes);
+
+		// Mark all notes as read when admin views
+		try {
+			orderNoteService.markAllRead(order.getId());
+		} catch (Exception e) {
+			// ignore
+		}
 
 		request.setAttribute("order", order);
 		request.getRequestDispatcher("/WEB-INF/views/orderManagerDetailView.jsp").forward(request, response);

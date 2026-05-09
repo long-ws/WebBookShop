@@ -7,6 +7,7 @@ import java.util.List;
 
 import beans.Order;
 import beans.OrderItem;
+import beans.Shipment;
 import beans.User;
 import dto.OrderResponse;
 import jakarta.servlet.ServletException;
@@ -17,6 +18,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import service.OrderItemService;
 import service.OrderService;
+import service.ShipmentService;
 
 @WebServlet(name = "OrderServlet", value = "/order")
 public class OrderServlet extends HttpServlet {
@@ -24,6 +26,7 @@ public class OrderServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
     private final OrderService orderService = new OrderService();
     private final OrderItemService orderItemService = new OrderItemService();
+    private final ShipmentService shipmentService = new ShipmentService();
 
     private static final int ORDERS_PER_PAGE = 3;
 
@@ -75,7 +78,7 @@ public class OrderServlet extends HttpServlet {
             e.printStackTrace();
         }
 
-        List<OrderResponse> orderResponses = new ArrayList<>();
+            List<OrderResponse> orderResponses = new ArrayList<>();
 
         for (Order order : orders) {
             List<OrderItem> orderItems = new ArrayList<>();
@@ -101,12 +104,24 @@ public class OrderServlet extends HttpServlet {
                 e.printStackTrace();
             }
 
+            // Get shipment status for this order
+            String shippingStatus = null;
+            try {
+                Shipment shipment = shipmentService.getByOrderId(order.getId());
+                if (shipment != null) {
+                    shippingStatus = shipment.getShippingStatus();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
             OrderResponse orderResponse = new OrderResponse(
                     order.getId(),
                     order.getCreatedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
                     formatProductNames(productNames),
                     order.getStatus(),
-                    total + order.getDeliveryPrice()
+                    total + order.getDeliveryPrice(),
+                    shippingStatus
             );
 
             orderResponses.add(orderResponse);

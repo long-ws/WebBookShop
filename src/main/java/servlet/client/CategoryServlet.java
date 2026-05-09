@@ -17,7 +17,7 @@ import service.ProductService;
 
 @WebServlet(name = "CategoryServlet", value = "/category")
 public class CategoryServlet extends HttpServlet {
-	
+
 	private static final long serialVersionUID = 1L;
     private final CategoryService categoryService = new CategoryService();
     private final ProductService productService = new ProductService();
@@ -40,15 +40,21 @@ public class CategoryServlet extends HttpServlet {
             return;
         }
 
-        // Lọc nhà xuất bản
         String[] checkedPublishersParam = request.getParameterValues("checkedPublishers");
         List<String> checkedPublishers = (checkedPublishersParam != null) ? Arrays.asList(checkedPublishersParam) : new ArrayList<>();
 
-        // Lọc khoảng giá
         String[] priceRangesParam = request.getParameterValues("priceRanges");
         List<String> priceRanges = (priceRangesParam != null) ? Arrays.asList(priceRangesParam) : new ArrayList<>();
 
-        // Sắp xếp
+        String minYearParam = request.getParameter("minYear");
+        String maxYearParam = request.getParameter("maxYear");
+        int minYear = 0;
+        int maxYear = 0;
+        try {
+            if (minYearParam != null && !minYearParam.trim().isEmpty()) minYear = Integer.parseInt(minYearParam.trim());
+            if (maxYearParam != null && !maxYearParam.trim().isEmpty()) maxYear = Integer.parseInt(maxYearParam.trim());
+        } catch (NumberFormatException ignored) {}
+
         String orderParam = request.getParameter("order");
         String orderBy = "totalBuy";
         String orderDir = "DESC";
@@ -58,7 +64,6 @@ public class CategoryServlet extends HttpServlet {
             orderDir = parts[1];
         }
 
-        // Tổng hợp tiêu chí lọc
         List<String> filters = new ArrayList<>();
         if (!checkedPublishers.isEmpty()) {
             filters.add(productService.filterByPublishers(checkedPublishers));
@@ -66,9 +71,12 @@ public class CategoryServlet extends HttpServlet {
         if (!priceRanges.isEmpty()) {
             filters.add(productService.filterByPriceRanges(priceRanges));
         }
+        String yearFilter = productService.filterByYearRange(minYear, maxYear);
+        if (!yearFilter.isEmpty()) {
+            filters.add(yearFilter);
+        }
         String filtersQuery = productService.createFiltersQuery(filters);
 
-        // Tổng số sản phẩm
         int totalProducts = 0;
         if (filters.isEmpty()) {
             totalProducts = productService.countByCategoryId(id);
@@ -76,13 +84,11 @@ public class CategoryServlet extends HttpServlet {
             totalProducts = productService.countByCategoryIdAndFilters(id, filtersQuery);
         }
 
-        // Tổng số trang
         int totalPages = totalProducts / PRODUCTS_PER_PAGE;
         if (totalProducts % PRODUCTS_PER_PAGE != 0) {
             totalPages++;
         }
 
-        // Trang hiện tại
         int page = 1;
         try {
             page = Integer.parseInt(request.getParameter("page"));
@@ -93,7 +99,6 @@ public class CategoryServlet extends HttpServlet {
 
         int offset = (page - 1) * PRODUCTS_PER_PAGE;
 
-        // Danh sách sản phẩm
         List<Product> products;
         if (filters.isEmpty()) {
             products = productService.getOrderedPartByCategoryId(PRODUCTS_PER_PAGE, offset, orderBy, orderDir, id);
@@ -104,21 +109,27 @@ public class CategoryServlet extends HttpServlet {
             products = new ArrayList<>();
         }
 
-        // Danh sách nhà xuất bản
         List<String> publishers = productService.getPublishersByCategoryId(id);
         if (publishers == null) {
             publishers = new ArrayList<>();
         }
 
-        // Thiết lập attributes
+        List<Integer> years = productService.getYearsByCategoryId(id);
+        if (years == null) {
+            years = new ArrayList<>();
+        }
+
         request.setAttribute("category", category);
         request.setAttribute("totalProducts", totalProducts);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("page", page);
         request.setAttribute("products", products);
         request.setAttribute("publishers", publishers);
+        request.setAttribute("years", years);
         request.setAttribute("checkedPublishers", checkedPublishers);
         request.setAttribute("priceRanges", priceRanges);
+        request.setAttribute("minYear", minYear > 0 ? String.valueOf(minYear) : "");
+        request.setAttribute("maxYear", maxYear > 0 ? String.valueOf(maxYear) : "");
         request.setAttribute("order", orderParam != null ? orderParam : "totalBuy-DESC");
 
         String filterQueryString = request.getQueryString();

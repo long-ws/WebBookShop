@@ -8,6 +8,7 @@ public class CartItem {
 	private long cartId;
 	private long productId;
 	private int quantity;
+	private boolean selected;
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
 	private Product product;
@@ -15,12 +16,13 @@ public class CartItem {
 	public CartItem() {
 	}
 
-	public CartItem(long id, long cartId, long productId, int quantity, LocalDateTime createdAt,
+	public CartItem(long id, long cartId, long productId, int quantity, boolean selected, LocalDateTime createdAt,
 			LocalDateTime updatedAt) {
 		this.id = id;
 		this.cartId = cartId;
 		this.productId = productId;
 		this.quantity = quantity;
+		this.selected = selected;
 		this.createdAt = createdAt;
 		this.updatedAt = updatedAt;
 	}
@@ -55,6 +57,14 @@ public class CartItem {
 
 	public void setQuantity(int quantity) {
 		this.quantity = quantity;
+	}
+
+	public boolean isSelected() {
+		return selected;
+	}
+
+	public void setSelected(boolean selected) {
+		this.selected = selected;
 	}
 
 	public LocalDateTime getCreatedAt() {

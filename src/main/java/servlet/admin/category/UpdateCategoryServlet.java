@@ -133,7 +133,7 @@ public class UpdateCategoryServlet extends HttpServlet {
                     category.setImageName(null);
                 }
 
-                String newImageName = ImageUtils.upload(request);
+                String newImageName = ImageUtils.uploadSingle(request);
                 if (newImageName != null) {
                     if (oldImageName != null) {
                         ImageUtils.delete(oldImageName);

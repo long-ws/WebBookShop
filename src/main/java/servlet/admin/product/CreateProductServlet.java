@@ -102,13 +102,18 @@ public class CreateProductServlet extends HttpServlet {
 
 		/* ===== XỬ LÝ ===== */
 		if (errorCount == 0) {
-			String imageName = ImageUtils.upload(request);
+			String imageName = ImageUtils.uploadSingle(request);
+			System.out.println("[CreateProductServlet] uploadSingle returned: " + imageName);
 			if (imageName != null) {
 				product.setImageName(imageName);
+				System.out.println("[CreateProductServlet] product.imageName SET to: " + imageName);
+			} else {
+				System.out.println("[CreateProductServlet] WARNING: uploadSingle returned null - image will be null");
 			}
 
 			try {
 				long productId = productService.insert(product);
+				System.out.println("[CreateProductServlet] Product inserted with ID: " + productId + ", imageName: " + product.getImageName());
 				productService.insertProductCategory(productId, categoryId);
 				request.setAttribute("successMessage", "Thêm sản phẩm thành công!");
 			} catch (Exception e) {

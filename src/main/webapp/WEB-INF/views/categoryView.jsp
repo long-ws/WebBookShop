@@ -68,6 +68,27 @@
 								</div>
 							</article>
 
+							<!-- Năm xuất bản -->
+							<article class="filter-group">
+								<header class="card-header my-1">
+									<h6 class="title fw-bold">Năm xuất bản</h6>
+								</header>
+								<div class="card-body pt-0">
+									<div class="row g-2">
+										<div class="col-6">
+											<input type="number" class="form-control" name="minYear"
+												placeholder="Từ năm" min="1900" max="2100"
+												value="${requestScope.minYear}">
+										</div>
+										<div class="col-6">
+											<input type="number" class="form-control" name="maxYear"
+												placeholder="Đến năm" min="1900" max="2100"
+												value="${requestScope.maxYear}">
+										</div>
+									</div>
+								</div>
+							</article>
+
 							<!-- Giá bán -->
 							<article class="filter-group">
 								<header class="card-header my-1">
@@ -125,6 +146,27 @@
 											${requestScope.order=='price-ASC' ? 'checked' : '' }>
 										<label class="form-check-label" for="radio_order_3">
 											Giá thấp nhất </label>
+									</div>
+									<div class="form-check">
+										<input class="form-check-input" type="radio" value="price-DESC"
+											name="order" id="radio_order_4"
+											${requestScope.order=='price-DESC' ? 'checked' : '' }>
+										<label class="form-check-label" for="radio_order_4">
+											Giá cao nhất </label>
+									</div>
+									<div class="form-check">
+										<input class="form-check-input" type="radio" value="name-ASC"
+											name="order" id="radio_order_5"
+											${requestScope.order=='name-ASC' ? 'checked' : '' }>
+										<label class="form-check-label" for="radio_order_5">
+											Tên A - Z </label>
+									</div>
+									<div class="form-check">
+										<input class="form-check-input" type="radio" value="name-DESC"
+											name="order" id="radio_order_6"
+											${requestScope.order=='name-DESC' ? 'checked' : '' }>
+										<label class="form-check-label" for="radio_order_6">
+											Tên Z - A </label>
 									</div>
 								</div>
 							</article>

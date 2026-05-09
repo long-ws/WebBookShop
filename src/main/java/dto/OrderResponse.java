@@ -8,6 +8,7 @@ public class OrderResponse {
     private String name;
     private int status;
     private double total;
+    private String shippingStatus;
 
     public OrderResponse(long id, String createdAt, String name, int status, double total) {
         this.id = id;
@@ -15,6 +16,16 @@ public class OrderResponse {
         this.name = name;
         this.status = status;
         this.total = total;
+        this.shippingStatus = null;
+    }
+
+    public OrderResponse(long id, String createdAt, String name, int status, double total, String shippingStatus) {
+        this.id = id;
+        this.createdAt = createdAt;
+        this.name = name;
+        this.status = status;
+        this.total = total;
+        this.shippingStatus = shippingStatus;
     }
 
     public long getId() {
@@ -57,6 +68,14 @@ public class OrderResponse {
         this.total = total;
     }
 
+    public String getShippingStatus() {
+        return shippingStatus;
+    }
+
+    public void setShippingStatus(String shippingStatus) {
+        this.shippingStatus = shippingStatus;
+    }
+
     @Override
     public String toString() {
         return new StringJoiner(", ", OrderResponse.class.getSimpleName() + "[", "]")
@@ -65,6 +84,7 @@ public class OrderResponse {
                 .add("name='" + name + "'")
                 .add("status=" + status)
                 .add("total=" + total)
+                .add("shippingStatus=" + shippingStatus)
                 .toString();
     }
 }

@@ -10,6 +10,8 @@ public class ProductReview {
 	private int ratingScore;
 	private String content;
 	private int isShow;
+	private int helpfulCount;
+	private int reportCount;
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
 
@@ -77,6 +79,22 @@ public class ProductReview {
 
 	public void setIsShow(int isShow) {
 		this.isShow = isShow;
+	}
+
+	public int getHelpfulCount() {
+		return helpfulCount;
+	}
+
+	public void setHelpfulCount(int helpfulCount) {
+		this.helpfulCount = helpfulCount;
+	}
+
+	public int getReportCount() {
+		return reportCount;
+	}
+
+	public void setReportCount(int reportCount) {
+		this.reportCount = reportCount;
 	}
 
 	public LocalDateTime getCreatedAt() {

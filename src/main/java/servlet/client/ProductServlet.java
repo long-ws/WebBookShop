@@ -52,6 +52,7 @@ public class ProductServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/");
             return;
         }
+        System.out.println("[ProductServlet] Loaded product ID=" + id + ", imageName=" + product.getImageName());
 
         // Lấy danh mục
         Category category = categoryService.getByProductId(id);

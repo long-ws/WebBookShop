@@ -1,11 +1,15 @@
 package service;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 import beans.Product;
 import dao.ProductDAO;
+import utils.DBConnection;
 
 public class ProductService {
 
@@ -60,6 +64,37 @@ public class ProductService {
         return productDAO.getPublishersByCategoryId(categoryId);
     }
 
+    public List<String> getAllPublishers() {
+        return productDAO.getAllPublishers();
+    }
+
+    public List<Integer> getYearsByCategoryId(long categoryId) {
+        return productDAO.getYearsByCategoryId(categoryId);
+    }
+
+    public List<Integer> getAllYears() {
+        return productDAO.getAllYears();
+    }
+
+    public int countByFilters(String filters) {
+        return productDAO.countByFilters(filters);
+    }
+
+    public List<Product> getOrderedPartByFilters(int limit, int offset, String orderBy, String orderDir, String filters) {
+        return productDAO.getOrderedPartByFilters(limit, offset, orderBy, orderDir, filters);
+    }
+
+    public String filterByYearRange(int minYear, int maxYear) {
+        if (minYear > 0 && maxYear > 0) {
+            return "yearPublishing BETWEEN " + minYear + " AND " + maxYear;
+        } else if (minYear > 0) {
+            return "yearPublishing >= " + minYear;
+        } else if (maxYear > 0) {
+            return "yearPublishing <= " + maxYear;
+        }
+        return "";
+    }
+
     public int countByCategoryIdAndFilters(long categoryId, String filters) {
         return productDAO.countByCategoryIdAndFilters(categoryId, filters);
     }
@@ -90,6 +125,60 @@ public class ProductService {
 
     public int countByQuery(String query) {
         return productDAO.countByQuery(query);
+    }
+
+    public List<Product> getByAdvancedQuery(String query, int limit, int offset) {
+        return productDAO.getByAdvancedQuery(query, limit, offset);
+    }
+
+    public int countByAdvancedQuery(String query) {
+        return productDAO.countByAdvancedQuery(query);
+    }
+
+    public int countByAdvancedSearch(String whereClause, List<Object> params) {
+        String baseSql = "SELECT COUNT(p.id) FROM product p WHERE " + whereClause;
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(baseSql)) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next())
+                    return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public List<Product> getAdvancedSearch(String whereClause, List<Object> params, String sortBy, String sortDir, int limit, int offset) {
+        List<Product> list = new ArrayList<>();
+        String sortColumn = switch (sortBy) {
+            case "name" -> "p.name";
+            case "price" -> "p.price";
+            case "yearPublishing" -> "p.yearPublishing";
+            case "totalBuy" -> "p.totalBuy";
+            default -> "p.totalBuy";
+        };
+        String sortDirection = "ASC".equalsIgnoreCase(sortDir) ? "ASC" : "DESC";
+        String sql = "SELECT p.* FROM product p WHERE " + whereClause + " ORDER BY " + sortColumn + " " + sortDirection + " LIMIT ? OFFSET ?";
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            ps.setInt(params.size() + 1, limit);
+            ps.setInt(params.size() + 2, offset);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(productDAO.mapResultSetToProduct(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 
     // ================== Các helper xử lý filter ==================
@@ -145,5 +234,9 @@ public class ProductService {
 
     public String createFiltersQuery(List<String> filters) {
         return String.join(" AND ", filters);
+    }
+
+    public List<dao.ProductDAO.ProductSuggestion> getSearchSuggestions(String query, int limit) {
+        return productDAO.getSearchSuggestions(query, limit);
     }
 }

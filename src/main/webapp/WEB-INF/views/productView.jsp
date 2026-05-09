@@ -141,20 +141,19 @@
 						<!-- Form Thêm vào giỏ hàng + số lượng -->
 						<form action="${pageContext.request.contextPath}/cartItem"
 							method="post" class="d-flex align-items-center gap-2">
-							<input type="hidden" name="action" value="add"> <input
-								type="hidden" name="userId"
-								value="${sessionScope.currentUser.id}"> <input
-								type="hidden" name="productId"
+							<input type="hidden" name="action" value="add"> 
+							<input type="hidden" name="productId"
 								value="${requestScope.product.id}">
 
 							<!-- Input số lượng -->
 							<input type="number" name="quantity" class="form-control w-auto"
 								value="1" min="1" max="${requestScope.product.quantity}"
-								step="1">
+								step="1" required>
 
 							<!-- Nút Thêm vào giỏ hàng -->
-							<button type="submit" class="btn btn-primary">Thêm vào
-								giỏ hàng</button>
+							<button type="submit" class="btn btn-primary">
+								<i class="bi bi-cart-plus"></i> Thêm vào giỏ hàng
+							</button>
 						</form>
 
 					</div>

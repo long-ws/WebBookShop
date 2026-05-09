@@ -40,7 +40,6 @@
 		</div>
 	</div>
 </header>
-
 <!-- Navbar -->
 <nav class="navbar navbar-main border-bottom">
 	<div class="container">
@@ -85,6 +84,11 @@
 					style="text-decoration:none; color:${fn:startsWith(servletPath, '/admin/reviewManager') ? 'white' : 'black'};">
 						<i class="bi bi-star"></i> Quản lý đánh giá
 				</a></td>
+				<td><a
+					href="${pageContext.request.contextPath}/admin/voucherManager"
+					style="text-decoration: none; color: black;"> <i
+						class="bi bi-inboxes"></i> Quản lý voucher
+				</a></td>
 
 				<!-- Quản lý đơn hàng -->
 				<td
@@ -94,10 +98,19 @@
 					style="text-decoration:none; color:${fn:startsWith(servletPath, '/admin/orderManager') ? 'white' : 'black'};">
 						<i class="bi bi-inboxes"></i> Quản lý đơn hàng
 				</a></td>
+
+				<!-- Quản lý vận chuyển -->
+				<td
+					bgcolor="${fn:startsWith(servletPath, '/admin/shipment') || fn:startsWith(servletPath, '/admin/shipping') ? '#0d6efd' : ''}"
+					align="center"><a
+					href="${pageContext.request.contextPath}/admin/shipmentManager"
+					style="text-decoration:none; color:${fn:startsWith(servletPath, '/admin/shipment') || fn:startsWith(servletPath, '/admin/shipping') ? 'white' : 'black'};">
+						<i class="bi bi-truck"></i> Quản lý vận chuyển
+				</a></td>
 			</tr>
 		</table>
 
 
-
 	</div>
 </nav>
+

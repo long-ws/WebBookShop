@@ -27,6 +27,18 @@
 			<version>4.13.1</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>4.11.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-inline</artifactId>
+			<version>4.11.0</version>
+			<scope>test</scope>
+		</dependency>
 
 		<!-- MySQL (driver) -->
 		<dependency>
@@ -74,6 +86,20 @@
 			<groupId>org.mindrot</groupId>
 			<artifactId>jbcrypt</artifactId>
 			<version>0.4</version>
+		</dependency>
+		
+		<!-- ScribeJava OAuth -->
+		<dependency>
+			<groupId>com.github.scribejava</groupId>
+			<artifactId>scribejava-apis</artifactId>
+			<version>8.3.3</version>
+		</dependency>
+
+		<!-- JSON -->
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.10.1</version>
 		</dependency>
 		
 		<dependency>

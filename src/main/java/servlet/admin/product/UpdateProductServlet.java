@@ -77,11 +77,17 @@ public class UpdateProductServlet extends HttpServlet {
         }
         product.setId(id);
 
+        Product existingProduct = productService.getById(id);
+        if (existingProduct == null) {
+            response.sendRedirect(request.getContextPath() + "/admin/productManager");
+            return;
+        }
+        String existingImageName = existingProduct.getImageName();
+
         product.setName(request.getParameter("name"));
         product.setAuthor(request.getParameter("author"));
         product.setPublisher(request.getParameter("publisher"));
         product.setDescription(emptyToNull(request.getParameter("description")));
-        product.setImageName(emptyToNull(request.getParameter("imageName")));
         product.setUpdatedAt(LocalDateTime.now());
 
         product.setPrice(parseDouble(request.getParameter("price")));
@@ -117,20 +123,22 @@ public class UpdateProductServlet extends HttpServlet {
         String deleteImage = request.getParameter("deleteImage");
 
         if (violations.isEmpty()) {
-            String currentImage = product.getImageName();
+            String currentImage = existingImageName;
 
             if (deleteImage != null && currentImage != null) {
                 ImageUtils.delete(currentImage);
-                product.setImageName(null);
+                currentImage = null;
             }
 
-            String newImage = ImageUtils.upload(request);
+            String newImage = ImageUtils.uploadSingle(request);
             if (newImage != null) {
                 if (currentImage != null) {
                     ImageUtils.delete(currentImage);
                 }
-                product.setImageName(newImage);
+                currentImage = newImage;
             }
+
+            product.setImageName(currentImage);
 
             try {
                 productService.update(product);

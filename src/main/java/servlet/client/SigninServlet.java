@@ -12,7 +12,9 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import service.UserService;
+import utils.CartUtils;
 import utils.HashingUtils;
 
 @WebServlet(name = "SigninServlet", value = "/signin")
@@ -80,8 +82,20 @@ public class SigninServlet extends HttpServlet {
         }
 
         if (!hasErrors) {
-            request.getSession().setAttribute("currentUser", userFromServer);
-            response.sendRedirect(request.getContextPath() + "/");
+            HttpSession session = request.getSession();
+            session.setAttribute("currentUser", userFromServer);
+            
+            CartUtils.mergeGuestCartToDb(session);
+            CartUtils.updateCartBadgeFromDb(userFromServer.getId(), session);
+            
+            String redirectUrl = (String) session.getAttribute("redirectAfterLogin");
+            session.removeAttribute("redirectAfterLogin");
+            
+            if (redirectUrl != null && !redirectUrl.isEmpty()) {
+                response.sendRedirect(request.getContextPath() + redirectUrl);
+            } else {
+                response.sendRedirect(request.getContextPath() + "/");
+            }
         } else {
             request.setAttribute("values", values);
             request.setAttribute("violations", violations);

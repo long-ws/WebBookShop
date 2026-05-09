@@ -219,6 +219,23 @@ public class ProductReviewDAO implements DAO<ProductReview> {
 		return 0;
 	}
 
+	public ProductReview getByUserAndProduct(long userId, long productId) {
+		String sql = "SELECT * FROM product_review WHERE userId = ? AND productId = ?";
+		try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+			ps.setLong(1, userId);
+			ps.setLong(2, productId);
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next())
+					return mapResultSetToProductReview(rs);
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 	public boolean hide(long id) {
 		return setShow(id, false);
 	}
@@ -256,10 +273,18 @@ public class ProductReviewDAO implements DAO<ProductReview> {
 		review.setRatingScore(rs.getInt("ratingScore"));
 		review.setContent(rs.getString("content"));
 		review.setIsShow(rs.getInt("isShow"));
-		review.setCreatedAt(rs.getTimestamp("createdAt").toLocalDateTime());
+		Timestamp createdAt = rs.getTimestamp("createdAt");
+		if (createdAt != null)
+			review.setCreatedAt(createdAt.toLocalDateTime());
 		Timestamp updatedAt = rs.getTimestamp("updatedAt");
 		if (updatedAt != null)
 			review.setUpdatedAt(updatedAt.toLocalDateTime());
+		try {
+			review.setHelpfulCount(rs.getInt("helpful_count"));
+		} catch (SQLException e) { }
+		try {
+			review.setReportCount(rs.getInt("report_count"));
+		} catch (SQLException e) { }
 		return review;
 	}
 }

@@ -143,5 +143,4 @@
 	</c:if>
 	<jsp:include page="_footerAdmin.jsp" />
 </body>
-
 </html>

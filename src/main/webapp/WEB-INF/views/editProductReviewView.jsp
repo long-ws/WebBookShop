@@ -101,5 +101,4 @@
 
 	<jsp:include page="_footer.jsp" />
 </body>
-
 </html>

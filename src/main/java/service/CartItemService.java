@@ -53,4 +53,24 @@ public class CartItemService {
     public int sumQuantityByUserId(long userId) {
         return cartItemDAO.sumQuantityByUserId(userId);
     }
+
+    public List<CartItem> getSelectedByCartId(long cartId) {
+        return cartItemDAO.getSelectedByCartId(cartId);
+    }
+
+    public void updateSelected(long cartItemId, boolean selected) {
+        cartItemDAO.updateSelected(cartItemId, selected);
+    }
+
+    public void updateSelectedByCartId(long cartId, boolean selected) {
+        cartItemDAO.updateSelectedByCartId(cartId, selected);
+    }
+
+    public int getSelectedCountByCartId(long cartId) {
+        return cartItemDAO.getSelectedCountByCartId(cartId);
+    }
+
+    public int getSelectedQuantityByCartId(long cartId) {
+        return cartItemDAO.getSelectedQuantityByCartId(cartId);
+    }
 }

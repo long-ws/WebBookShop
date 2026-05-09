@@ -50,6 +50,10 @@ public class ProductReviewService {
         return dao.count();
     }
 
+    public ProductReview getByUserAndProduct(long userId, long productId) {
+        return dao.getByUserAndProduct(userId, productId);
+    }
+
     public void hide(long id) {
         dao.hide(id);
     }

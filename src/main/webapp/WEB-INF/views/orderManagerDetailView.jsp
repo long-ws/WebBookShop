@@ -2,6 +2,7 @@
 <%@ page import="java.time.format.DateTimeFormatter"%>
 <%@ taglib uri="jakarta.tags.core" prefix="c"%>
 <%@ taglib uri="jakarta.tags.fmt" prefix="fmt"%>
+<%@ taglib uri="jakarta.tags.functions" prefix="fn"%>
 <fmt:setLocale value="vi_VN" />
 <!DOCTYPE html>
 <html lang="vi">
@@ -156,6 +157,70 @@
 				</div>
 			</div>
 			<!-- card.// -->
+
+			<!-- Order Notes Section -->
+			<div class="card mb-5">
+				<div class="card-header d-flex justify-content-between align-items-center">
+					<strong><i class="bi bi-chat-left-text me-2"></i>Ghi chú đơn hàng</strong>
+					<c:if test="${not empty requestScope.orderNotes && fn:length(requestScope.orderNotes) > 0}">
+						<span class="badge bg-secondary">${fn:length(requestScope.orderNotes)} ghi chú</span>
+					</c:if>
+				</div>
+				<div class="card-body p-0">
+					<div style="max-height: 300px; overflow-y: auto;">
+						<c:forEach var="note" items="${requestScope.orderNotes}">
+							<div class="p-3 border-bottom ${note.noteType == 'CUSTOMER' ? 'bg-light' : ''}">
+								<div class="d-flex justify-content-between align-items-start">
+									<div>
+										<strong class="${note.noteType == 'ADMIN' ? 'text-danger' : note.noteType == 'SYSTEM' ? 'text-secondary' : 'text-primary'}">
+											${note.noteType == 'ADMIN' ? 'Quản trị viên' : note.noteType == 'SYSTEM' ? 'Hệ thống' : 'Khách hàng'}
+										</strong>
+										<c:if test="${not empty note.senderName}">
+											<span class="text-muted ms-1">(${note.senderName})</span>
+										</c:if>
+									</div>
+									<div class="text-end">
+										<small class="text-muted">${note.createdAt.format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy"))}</small>
+										<c:if test="${note.noteType == 'CUSTOMER'}">
+											<form action="${pageContext.request.contextPath}/admin/orderNote" method="post" class="d-inline ms-2">
+												<input type="hidden" name="action" value="deleteNote">
+												<input type="hidden" name="orderId" value="${requestScope.order.id}">
+												<input type="hidden" name="noteId" value="${note.id}">
+												<button type="submit" class="btn btn-link text-danger p-0 ms-1" 
+														onclick="return confirm('Xóa ghi chú này?')">
+													<i class="bi bi-trash"></i>
+												</button>
+											</form>
+										</c:if>
+									</div>
+								</div>
+								<p class="mb-0 mt-1">${fn:escapeXml(note.content)}</p>
+								<c:if test="${note.isRead}">
+									<small class="text-success"><i class="bi bi-check-circle"></i> Đã xem</small>
+								</c:if>
+							</div>
+						</c:forEach>
+						<c:if test="${empty requestScope.orderNotes}">
+							<div class="p-4 text-center text-muted">Chưa có ghi chú nào cho đơn hàng này</div>
+						</c:if>
+					</div>
+					<div class="p-3 border-top">
+						<form action="${pageContext.request.contextPath}/admin/orderNote" method="post">
+							<input type="hidden" name="action" value="addNote">
+							<input type="hidden" name="orderId" value="${requestScope.order.id}">
+							<div class="input-group">
+								<input type="text" name="content" class="form-control" 
+									   placeholder="Thêm ghi chú cho khách hàng..." required>
+								<button type="submit" class="btn btn-primary">
+									<i class="bi bi-reply"></i> Trả lời
+								</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+			<!-- card.// -->
+
 		</div>
 		<!-- container.// -->
 	</section>
@@ -163,5 +228,4 @@
 
 	<jsp:include page="_footerAdmin.jsp" />
 </body>
-
 </html>
