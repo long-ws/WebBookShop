@@ -61,33 +61,19 @@
 			<version>6.0.0</version>
 			<scope>provided</scope>
 		</dependency>
-
+		
 		<!-- HikariCP cho Connection Pool -->
 		<dependency>
 			<groupId>com.zaxxer</groupId>
 			<artifactId>HikariCP</artifactId>
 			<version>5.1.0</version>
 		</dependency>
-
+		
 		<!-- BCrypt -->
 		<dependency>
 			<groupId>org.mindrot</groupId>
 			<artifactId>jbcrypt</artifactId>
 			<version>0.4</version>
-		</dependency>
-
-		<!-- ScribeJava OAuth -->
-		<dependency>
-			<groupId>com.github.scribejava</groupId>
-			<artifactId>scribejava-apis</artifactId>
-			<version>8.3.3</version>
-		</dependency>
-
-		<!-- JSON -->
-		<dependency>
-			<groupId>com.google.code.gson</groupId>
-			<artifactId>gson</artifactId>
-			<version>2.10.1</version>
 		</dependency>
 	</dependencies>
 
