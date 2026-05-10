@@ -107,7 +107,7 @@ public class CategoryDAO implements DAO<Category> {
 
 	public List<Category> getAll() {
 		List<Category> list = new ArrayList<>();
-		String sql = "SELECT * FROM category";
+		String sql = "SELECT * FROM category WHERE isDeleted = 0";
 		try (Connection conn = DBConnection.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql);
 				ResultSet rs = ps.executeQuery()) {
@@ -124,7 +124,7 @@ public class CategoryDAO implements DAO<Category> {
 
 	public List<Category> getPart(int limit, int offset) {
 		List<Category> list = new ArrayList<>();
-		String sql = "SELECT * FROM category LIMIT ? OFFSET ?";
+		String sql = "SELECT * FROM category WHERE isDeleted = 0 LIMIT ? OFFSET ?";
 		try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
 			ps.setInt(1, limit);
