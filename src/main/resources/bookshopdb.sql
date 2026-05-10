@@ -388,6 +388,11 @@ CREATE TABLE wishlist_item
             ON UPDATE NO ACTION
 );
 
+ALTER TABLE product
+ADD isDeleted BIT NOT NULL DEFAULT 0;
+ALTER TABLE category
+ADD isDeleted BIT NOT NULL DEFAULT 0;
+
 
 -- insert data
 
