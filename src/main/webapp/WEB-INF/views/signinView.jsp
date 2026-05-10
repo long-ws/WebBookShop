@@ -57,6 +57,15 @@
 							nhập</button>
 					</form>
 
+					<!-- Nút đăng nhập Google -->
+					<div class="mt-3">
+						<a
+							href="${pageContext.request.contextPath}/oauth-login?provider=google"
+							class="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center">
+							<i class="bi bi-google me-2"></i> Đăng nhập bằng Google
+						</a>
+					</div>
+
 					<!-- Link dành cho nhà phát triển -->
 					<div class="mt-3 text-center">
 						<a href="${pageContext.request.contextPath}/admin/signin"
