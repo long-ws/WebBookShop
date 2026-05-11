@@ -145,25 +145,6 @@
 							</div>
 						</c:if>
 					</div>
-					<div class="mb-3">
-						<label for="inputAddress" class="form-label">Địa chỉ</label> <input
-							type="text"
-							class="form-control ${not empty requestScope.violations.addressViolations
-                   ? 'is-invalid' : (not empty requestScope.values.address ? 'is-valid' : '')}"
-							id="inputAddress" name="address"
-							value="${requestScope.values.address}">
-						<c:if
-							test="${not empty requestScope.violations.addressViolations}">
-							<div class="invalid-feedback">
-								<ul class="list-unstyled">
-									<c:forEach var="violation"
-										items="${requestScope.violations.addressViolations}">
-										<li>${violation}</li>
-									</c:forEach>
-								</ul>
-							</div>
-						</c:if>
-					</div>
 					<div class="mb-3 form-check">
 						<input
 							class="form-check-input ${not empty requestScope.violations.policyViolations
