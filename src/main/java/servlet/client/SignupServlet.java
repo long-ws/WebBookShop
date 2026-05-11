@@ -116,11 +116,11 @@ public class SignupServlet extends HttpServlet {
 
 			e.printStackTrace();
 
-			String errorMessage = "Đăng ký thất bại, vui lòng thử lại!";
+			String errorMessage = "Đăng ký thất bại, vui lòng thử lại!" + e.getMessage();
 			String dbMessage = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
 
 			if (dbMessage.contains("duplicate") || dbMessage.contains("username")) {
-				errorMessage = "Tên đăng nhập đã tồn tại!";
+				errorMessage = "Tên đăng nhập hoặc sdt đã tồn tại!";
 			} else if (dbMessage.contains("email")) {
 				errorMessage = "Email đã được sử dụng!";
 			}

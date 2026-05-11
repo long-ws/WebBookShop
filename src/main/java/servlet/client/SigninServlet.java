@@ -65,8 +65,9 @@ public class SigninServlet extends HttpServlet {
         if (userFromServer == null) {
             violations.get("usernameViolations").add("Tên đăng nhập không tồn tại");
         } else {
-            String hashedPassword = HashingUtils.hash(password);
-            if (!hashedPassword.equals(userFromServer.getPassword())) {
+            boolean isMatched = HashingUtils.verify(password, userFromServer.getPassword());
+
+            if (!isMatched) {
                 violations.get("passwordViolations").add("Mật khẩu không đúng");
             }
         }
