@@ -6,7 +6,7 @@ import dao.VoucherDao;
 import java.sql.SQLException;
 import java.util.List;
 
-public class VoucherService {
+public class VoucherService{
     private final VoucherDao voucherDao;
 
     public VoucherService() {

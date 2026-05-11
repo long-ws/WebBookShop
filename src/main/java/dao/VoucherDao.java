@@ -12,9 +12,9 @@ public class VoucherDao implements DAO<Voucher> {
 
     @Override
     public long insert(Voucher voucher) throws SQLException {
-        String sql = "INSERT INTO vouchers (code, name, description, calculation_method, apply_scope, apply_to, " +
+        String sql = "INSERT INTO vouchers (code, name, description, calculation_method, apply_to, " +
                 "start_date, end_date, value, min_purchase, max_discount, usage_limit, per_user_limit, used_count, is_active) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -23,17 +23,16 @@ public class VoucherDao implements DAO<Voucher> {
             ps.setString(2, voucher.getName());
             ps.setString(3, voucher.getDescription());
             ps.setString(4, voucher.getCalculationMethod());
-            ps.setString(5, voucher.getApplyScope());
-            ps.setString(6, voucher.getApplyTo());
-            ps.setTimestamp(7, Timestamp.valueOf(voucher.getStartDate()));
-            ps.setTimestamp(8, Timestamp.valueOf(voucher.getEndDate()));
-            ps.setDouble(9, voucher.getValue());
-            ps.setDouble(10, voucher.getMinPurchase());
-            ps.setDouble(11, voucher.getMaxDiscount());
-            ps.setInt(12, voucher.getUsageLimit());
-            ps.setInt(13, voucher.getPerUserLimit());
-            ps.setInt(14, voucher.getUsedCount());
-            ps.setBoolean(15, voucher.getIsActive());
+            ps.setString(5, voucher.getApplyTo());
+            ps.setTimestamp(6, Timestamp.valueOf(voucher.getStartDate()));
+            ps.setTimestamp(7, Timestamp.valueOf(voucher.getEndDate()));
+            ps.setDouble(8, voucher.getValue());
+            ps.setDouble(9, voucher.getMinPurchase());
+            ps.setDouble(10, voucher.getMaxDiscount());
+            ps.setInt(11, voucher.getUsageLimit());
+            ps.setInt(12, voucher.getPerUserLimit());
+            ps.setInt(13, voucher.getUsedCount());
+            ps.setBoolean(14, voucher.getIsActive());
 
             int rows = ps.executeUpdate();
             if (rows == 0) throw new SQLException("Insert voucher failed, no rows affected");
@@ -47,7 +46,7 @@ public class VoucherDao implements DAO<Voucher> {
 
     @Override
     public void update(Voucher voucher) throws SQLException {
-        String sql = "UPDATE vouchers SET code=?, name=?, description=?, calculation_method=?, apply_scope=?, " +
+        String sql = "UPDATE vouchers SET code=?, name=?, description=?, calculation_method=?, " +
                 "apply_to=?, start_date=?, end_date=?, value=?, min_purchase=?, max_discount=?, usage_limit=?, " +
                 "per_user_limit=?, used_count=?, is_active=? WHERE id=?";
 
@@ -58,18 +57,17 @@ public class VoucherDao implements DAO<Voucher> {
             ps.setString(2, voucher.getName());
             ps.setString(3, voucher.getDescription());
             ps.setString(4, voucher.getCalculationMethod());
-            ps.setString(5, voucher.getApplyScope());
-            ps.setString(6, voucher.getApplyTo());
-            ps.setTimestamp(7, Timestamp.valueOf(voucher.getStartDate()));
-            ps.setTimestamp(8, Timestamp.valueOf(voucher.getEndDate()));
-            ps.setDouble(9, voucher.getValue());
-            ps.setDouble(10, voucher.getMinPurchase());
-            ps.setDouble(11, voucher.getMaxDiscount());
-            ps.setInt(12, voucher.getUsageLimit());
-            ps.setInt(13, voucher.getPerUserLimit());
-            ps.setInt(14, voucher.getUsedCount());
-            ps.setBoolean(15, voucher.getIsActive());
-            ps.setInt(16, voucher.getId());
+            ps.setString(5, voucher.getApplyTo());
+            ps.setTimestamp(6, Timestamp.valueOf(voucher.getStartDate()));
+            ps.setTimestamp(7, Timestamp.valueOf(voucher.getEndDate()));
+            ps.setDouble(8, voucher.getValue());
+            ps.setDouble(9, voucher.getMinPurchase());
+            ps.setDouble(10, voucher.getMaxDiscount());
+            ps.setInt(11, voucher.getUsageLimit());
+            ps.setInt(12, voucher.getPerUserLimit());
+            ps.setInt(13, voucher.getUsedCount());
+            ps.setBoolean(14, voucher.getIsActive());
+            ps.setInt(15, voucher.getId());
 
             ps.executeUpdate();
         }
@@ -123,7 +121,6 @@ public class VoucherDao implements DAO<Voucher> {
         v.setName(rs.getString("name"));
         v.setDescription(rs.getString("description"));
         v.setCalculationMethod(rs.getString("calculation_method"));
-        v.setApplyScope(rs.getString("apply_scope"));
         v.setApplyTo(rs.getString("apply_to"));
         v.setStartDate(rs.getTimestamp("start_date").toLocalDateTime());
         v.setEndDate(rs.getTimestamp("end_date").toLocalDateTime());

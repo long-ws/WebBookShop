@@ -9,7 +9,6 @@ public class Voucher implements Serializable {
     private String name;
     private String description;
     private String calculationMethod;
-    private String applyScope;
     private String applyTo;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
@@ -62,14 +61,6 @@ public class Voucher implements Serializable {
 
     public void setCalculationMethod(String caculationMethod) {
         this.calculationMethod = caculationMethod;
-    }
-
-    public String getApplyScope() {
-        return applyScope;
-    }
-
-    public void setApplyScope(String applyScope) {
-        this.applyScope = applyScope;
     }
 
     public String getApplyTo() {

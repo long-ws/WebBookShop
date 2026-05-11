@@ -49,4 +49,7 @@ public class CategoryService {
     public int count() {
         return categoryDAO.count();
     }
+    public List<Category> searchByName(String keyword) {
+        return categoryDAO.searchByName(keyword);
+    }
 }

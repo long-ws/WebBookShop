@@ -14,11 +14,8 @@ import service.VoucherService;
 
 @WebServlet(name = "VoucherManagerServlet", value = "/admin/voucherManager")
 public class VoucherManagerServlet extends HttpServlet {
-
-    private static final long serialVersionUID = 1L;
     private final VoucherService voucherService = new VoucherService();
-
-    private static final int VOUCHERS_PER_PAGE = 2;
+    private static final int VOUCHERS_PER_PAGE = 5;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -60,32 +57,5 @@ public class VoucherManagerServlet extends HttpServlet {
         request.setAttribute("vouchers", vouchers);
 
         request.getRequestDispatcher("/WEB-INF/views/admin/voucherManagerView.jsp").forward(request, response);
-    }
-
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
-        String action = request.getParameter("action");
-
-        if ("delete".equals(action)) {
-            String idParam = request.getParameter("id");
-            String pageParam = request.getParameter("page");
-
-            if (pageParam == null || pageParam.isEmpty()) {
-                pageParam = "1";
-            }
-
-            try {
-                int id = Integer.parseInt(idParam);
-                voucherService.delete(id);
-                request.getSession().setAttribute("successMessage", "Đã xóa voucher thành công!");
-            } catch (Exception e) {
-                e.printStackTrace();
-                request.getSession().setAttribute("errorMessage", "Lỗi: Không thể xóa voucher này.");
-            }
-
-            response.sendRedirect(request.getContextPath() + "/admin/voucherManager?page=" + pageParam);
-        }
     }
 }

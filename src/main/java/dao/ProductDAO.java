@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import beans.Product;
+import dto.ProductDTO;
 import utils.DBConnection;
 
 public class ProductDAO implements DAO<Product> {
@@ -455,4 +456,27 @@ public class ProductDAO implements DAO<Product> {
 			p.setEndsAt(endsAt.toLocalDateTime());
 		return p;
 	}
+    public List<ProductDTO> searchByName(String keyword) {
+        List<ProductDTO> list = new ArrayList<>();
+        String sql = "SELECT id, name, imageName FROM product WHERE name LIKE ? LIMIT 5";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, "%" + keyword + "%");
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    ProductDTO dto = new ProductDTO();
+                    dto.setId(rs.getLong("id"));
+                    dto.setName(rs.getString("name"));
+                    dto.setImageName(rs.getString("imageName"));
+                    list.add(dto);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 }

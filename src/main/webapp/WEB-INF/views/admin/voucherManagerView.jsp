@@ -31,7 +31,7 @@
                role="button" style="height: fit-content;"> Thêm voucher </a>
         </header>
 
-        <main class="table-responsive-xl mb-5">
+        <main id="voucherTableContainer" class="table-responsive-xl mb-5">
             <table class="table table-bordered table-striped table-hover align-middle">
                 <thead>
                 <tr>
@@ -65,8 +65,7 @@
                             </c:choose>
                         </td>
                         <td>
-                            <span class="small">Scope: <b>${v.applyScope}</b></span><br>
-                            <span class="small">To: <b>${v.applyTo}</b></span>
+                            <b>${v.applyTo}</b>
                         </td>
                         <td class="small">
                             Từ: <fmt:parseDate value="${v.startDate}" pattern="yyyy-MM-dd'T'HH:mm" var="sDate" type="both" />
@@ -97,11 +96,11 @@
                                    class="btn btn-sm btn-outline-primary">
                                     <i class="bi bi-pencil"></i> Sửa
                                 </a>
-                                <form action="${pageContext.request.contextPath}/admin/voucherManager" method="post"
-                                      onsubmit="return confirm('Bạn có chắc chắn muốn xóa voucher này?')">
-                                    <input type="hidden" name="action" value="delete">
+                                <form action="${pageContext.request.contextPath}/admin/deleteVoucher" method="post"
+                                      style="display:inline;"
+                                      onsubmit="return confirm('Xóa voucher ID: ${v.id}?')">
                                     <input type="hidden" name="id" value="${v.id}">
-                                    <input type="hidden" name="page" value="${requestScope.currentPage}">
+                                    <input type="hidden" name="currentPage" value="${requestScope.currentPage}">
                                     <button type="submit" class="btn btn-sm btn-outline-danger">
                                         <i class="bi bi-trash"></i> Xóa
                                     </button>
@@ -121,34 +120,50 @@
 <c:if test="${requestScope.totalPages > 1}">
     <nav class="mt-4 mb-4">
         <ul class="pagination justify-content-center">
-
+            <c:if test="${requestScope.currentPage > 3}">
+                <li class="page-item">
+                    <a class="page-link" href="${pageContext.request.contextPath}/admin/voucherManager?page=1">
+                        Trang đầu
+                    </a>
+                </li>
+            </c:if>
             <li class="page-item ${requestScope.currentPage == 1 ? 'disabled' : ''}">
                 <a class="page-link"
-                   href="${requestScope.currentPage == 1 ? '#' : pageContext.request.contextPath.concat('/admin/voucherManager?page=').concat(requestScope.currentPage - 1)}">
+                   href="${pageContext.request.contextPath}/admin/voucherManager?page=${requestScope.currentPage - 1}">
                     <i class="bi bi-chevron-left"></i>
                 </a>
             </li>
-
-            <c:forEach begin="1" end="${requestScope.totalPages}" var="i">
+            <c:set var="begin" value="${requestScope.currentPage - 2}" />
+            <c:set var="end" value="${requestScope.currentPage + 2}" />
+            <c:if test="${begin < 1}">
+                <c:set var="begin" value="1" />
+                <c:set var="end" value="5" />
+            </c:if>
+            <c:if test="${end > requestScope.totalPages}">
+                <c:set var="end" value="${requestScope.totalPages}" />
+                <c:set var="begin" value="${requestScope.totalPages - 4}" />
+                <c:if test="${begin < 1}">
+                    <c:set var="begin" value="1" />
+                </c:if>
+            </c:if>
+            <c:forEach begin="${begin}" end="${end}" var="i">
                 <li class="page-item ${requestScope.currentPage == i ? 'active' : ''}">
-                    <c:choose>
-                        <c:when test="${requestScope.currentPage == i}">
-                            <span class="page-link">${i}</span>
-                        </c:when>
-                        <c:otherwise>
-                            <a class="page-link"
-                               href="${pageContext.request.contextPath}/admin/voucherManager?page=${i}">${i}</a>
-                        </c:otherwise>
-                    </c:choose>
+                    <a class="page-link" href="${pageContext.request.contextPath}/admin/voucherManager?page=${i}">${i}</a>
                 </li>
             </c:forEach>
-
             <li class="page-item ${requestScope.currentPage == requestScope.totalPages ? 'disabled' : ''}">
                 <a class="page-link"
-                   href="${requestScope.currentPage == requestScope.totalPages ? '#' : pageContext.request.contextPath.concat('/admin/voucherManager?page=').concat(requestScope.currentPage + 1)}">
+                   href="${pageContext.request.contextPath}/admin/voucherManager?page=${requestScope.currentPage + 1}">
                     <i class="bi bi-chevron-right"></i>
                 </a>
             </li>
+            <c:if test="${requestScope.currentPage < requestScope.totalPages - 2}">
+                <li class="page-item">
+                    <a class="page-link" href="${pageContext.request.contextPath}/admin/voucherManager?page=${requestScope.totalPages}">
+                        Trang cuối
+                    </a>
+                </li>
+            </c:if>
 
         </ul>
     </nav>
