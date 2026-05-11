@@ -4,8 +4,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import beans.Category;
 import beans.Product;
 import dao.ProductDAO;
+import dto.ProductDTO;
 
 public class ProductService {
 
@@ -145,5 +147,8 @@ public class ProductService {
 
     public String createFiltersQuery(List<String> filters) {
         return String.join(" AND ", filters);
+    }
+    public List<ProductDTO> searchByName(String keyword) {
+        return productDAO.searchByName(keyword);
     }
 }

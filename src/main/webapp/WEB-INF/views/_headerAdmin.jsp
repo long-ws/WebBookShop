@@ -94,6 +94,13 @@
 					style="text-decoration:none; color:${fn:startsWith(servletPath, '/admin/orderManager') ? 'white' : 'black'};">
 						<i class="bi bi-inboxes"></i> Quản lý đơn hàng
 				</a></td>
+
+                <td><a
+                        href="${pageContext.request.contextPath}/admin/voucherManager"
+                        style="text-decoration:none; color: black;">
+                    <i class="bi bi-inboxes"></i> Quản lý voucher
+                </a>
+                </td>
 			</tr>
 		</table>
 

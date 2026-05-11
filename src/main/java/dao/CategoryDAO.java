@@ -201,4 +201,27 @@ public class CategoryDAO implements DAO<Category> {
 		category.setImageName(rs.getString("imageName"));
 		return category;
 	}
+    public List<Category> searchByName(String keyword){
+        List<Category> list = new ArrayList<>();
+        String sql = "SELECT id, name, imageName FROM category WHERE name LIKE ? AND isDeleted = 0 LIMIT 5";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, "%" + keyword + "%");
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Category cat = new Category();
+                    cat.setId(rs.getInt("id"));
+                    cat.setName(rs.getString("name"));
+                    cat.setImageName(rs.getString("imageName"));
+                    list.add(cat);
+                }
+            }
+        }catch (SQLException e) {
+           e.printStackTrace();
+        }
+        return list;
+    }
 }
