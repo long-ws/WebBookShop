@@ -1,28 +1,214 @@
--- create database and tables
-
 CREATE DATABASE bookshopdb;
 
 USE bookshopdb;
 
-CREATE TABLE bookshopdb.user
-(
-    id          BIGINT       NOT NULL AUTO_INCREMENT,
-    username    VARCHAR(25)  NOT NULL,
-    password    VARCHAR(32)  NOT NULL,
-    fullname    VARCHAR(50)  NOT NULL,
-    email       VARCHAR(50)  NOT NULL,
-    phoneNumber VARCHAR(11)  NOT NULL,
-    gender      BIT          NOT NULL,
-    address     VARCHAR(200) NOT NULL,
-    role        VARCHAR(10)  NOT NULL,
-    isDeleted   BIT          NOT NULL DEFAULT 0,
-    PRIMARY KEY (id),
-    UNIQUE INDEX uq_username (username),
-    UNIQUE INDEX uq_email (email),
-    UNIQUE INDEX uq_phoneNumber (phoneNumber)
+CREATE TABLE user_account_status (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(30) NOT NULL UNIQUE, -- Mã code cho status
+    name VARCHAR(50) NOT NULL,
+    description VARCHAR(255), -- Mô tả trạng thái tài khoản
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active TINYINT DEFAULT 1
 );
 
-CREATE TABLE bookshopdb.product
+CREATE TABLE email_verify_status (
+    id TINYINT PRIMARY KEY,
+    code VARCHAR(20) NOT NULL UNIQUE, -- Mã code cho status
+    name VARCHAR(50) NOT NULL,
+    description VARCHAR(255), -- Mô tả trạng thái cho việc xác nhận
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active TINYINT DEFAULT 1
+);
+
+CREATE TABLE oauth_provider (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(30) NOT NULL UNIQUE, -- Mã code cho provider
+    name VARCHAR(50) NOT NULL,
+    description VARCHAR(100), -- Mô tả provider
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active TINYINT DEFAULT 1
+);
+
+CREATE TABLE token_type (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(50) NOT NULL UNIQUE, -- Mã code cho kiểu dữ liệu của token
+    name VARCHAR(50) NOT NULL,
+    description VARCHAR(255), -- Mô tả kiểu dữ liệu
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active TINYINT DEFAULT 1
+);
+
+CREATE TABLE token_status (
+    id INT AUTO_INCREMENT PRIMARY KEY, 
+    code VARCHAR(30) NOT NULL UNIQUE, -- Mã code cho trạng thái token 
+    name VARCHAR(50) NOT NULL,
+    description VARCHAR(255), -- Mô tả trạng thải token
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active TINYINT DEFAULT 1
+);
+
+CREATE TABLE gender (
+    id TINYINT PRIMARY KEY,
+    code VARCHAR(20) NOT NULL UNIQUE, -- Mã code cho giới tính
+    name VARCHAR(50) NOT NULL,
+    description VARCHAR(255), -- Mô tả giới tính
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active TINYINT DEFAULT 1
+);
+
+CREATE TABLE language_registry (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(10) NOT NULL UNIQUE, -- Mã code cho ngôn ngữ
+    name VARCHAR(50) NOT NULL,
+    description VARCHAR(50) NOT NULL, -- Mô tả ngôn ngữ
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active TINYINT DEFAULT 1
+);
+
+
+CREATE TABLE role_registry (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(30) NOT NULL UNIQUE, -- Mã code cho role
+    name VARCHAR(50) NOT NULL,
+    description VARCHAR(255), -- Mô tả cho role
+    is_active TINYINT DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE permission_registry (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(100) NOT NULL UNIQUE, -- Mã code cho permission
+    name VARCHAR(50) NOT NULL,
+    description VARCHAR(255), -- Mô tả permission làm gì
+    module VARCHAR(50), -- Đánh dấu phân theo module
+    is_system TINYINT DEFAULT 0,
+    is_active TINYINT DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE role_permission_assignment (
+    role_id INT NOT NULL,
+    permission_id INT NOT NULL,
+	is_active TINYINT DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    PRIMARY KEY (role_id, permission_id),
+    CONSTRAINT fk_rp_role FOREIGN KEY (role_id) REFERENCES role_registry(id) ON DELETE CASCADE,
+    CONSTRAINT fk_rp_permission FOREIGN KEY (permission_id) REFERENCES permission_registry(id) ON DELETE CASCADE
+);
+
+CREATE TABLE user_account (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    status_id INT NOT NULL,
+    
+    token_version INT NOT NULL DEFAULT 0,
+    last_login_at TIMESTAMP NULL,
+    
+    remember_token VARCHAR(255) NULL,
+    remember_expires_at TIMESTAMP NULL,
+    
+    deleted_at TIMESTAMP NULL,
+    deleted_by BIGINT NULL,
+    deletion_scheduled_at TIMESTAMP NULL,
+    
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_user_status FOREIGN KEY (status_id) REFERENCES user_account_status(id),
+    
+    INDEX idx_status (status_id),
+    INDEX idx_deleted (deleted_at)
+);
+
+CREATE TABLE user_role_registry (
+    user_id BIGINT NOT NULL,
+    role_id INT NOT NULL,
+    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    assigned_by BIGINT NULL,
+    
+    PRIMARY KEY (user_id, role_id),
+    CONSTRAINT fk_ur_user FOREIGN KEY (user_id) REFERENCES user_account(id) ON DELETE CASCADE,
+    CONSTRAINT fk_ur_role FOREIGN KEY (role_id) REFERENCES role_registry(id) ON DELETE CASCADE,
+    INDEX idx_user (user_id)
+);
+
+CREATE TABLE user_local (
+    user_id BIGINT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    
+    email VARCHAR(100) NOT NULL UNIQUE,
+    
+    email_verify_status_id TINYINT NOT NULL DEFAULT 1,
+    
+    failed_attempts INT NOT NULL DEFAULT 0,
+    locked_until TIMESTAMP NULL,
+    
+    CHECK (failed_attempts >= 0),
+    
+    CONSTRAINT fk_local_user FOREIGN KEY (user_id) REFERENCES user_account(id) ON DELETE CASCADE,
+    CONSTRAINT fk_email_verify_status FOREIGN KEY (email_verify_status_id) REFERENCES email_verify_status(id)
+);
+
+CREATE TABLE user_oauth (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    provider_id INT NOT NULL,
+    provider_user_id VARCHAR(255) NOT NULL,
+    
+    email VARCHAR(100),
+    display_name VARCHAR(100),
+    avatar_url TEXT,
+    
+    UNIQUE KEY uq_provider_user (provider_id, provider_user_id),
+    UNIQUE KEY uq_user_provider (user_id, provider_id),
+    
+    CONSTRAINT fk_oauth_user FOREIGN KEY (user_id) REFERENCES user_account(id) ON DELETE CASCADE,
+    CONSTRAINT fk_oauth_provider FOREIGN KEY (provider_id) REFERENCES oauth_provider(id),
+    
+    INDEX idx_provider (provider_id)
+);
+
+CREATE TABLE user_token (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    
+    token_hash VARCHAR(255) NOT NULL UNIQUE,
+    type_id INT NOT NULL,
+    status_id INT NOT NULL,
+    
+    used_at TIMESTAMP NULL,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_token_user FOREIGN KEY (user_id) REFERENCES user_account(id) ON DELETE CASCADE,
+    CONSTRAINT fk_token_type FOREIGN KEY (type_id) REFERENCES token_type(id),
+    CONSTRAINT fk_token_status FOREIGN KEY (status_id) REFERENCES token_status(id),
+    
+    CHECK (expires_at > created_at),
+    
+    INDEX idx_user (user_id),
+    INDEX idx_type (type_id),
+    INDEX idx_status (status_id)
+);
+
+CREATE TABLE user_profile (
+    user_id BIGINT PRIMARY KEY,
+    fullname VARCHAR(100),
+    phone_number VARCHAR(20),
+    gender_id TINYINT,
+    avatar_url TEXT,
+    preferred_language_id INT NOT NULL DEFAULT 1,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_profile_user FOREIGN KEY (user_id) REFERENCES user_account(id) ON DELETE CASCADE,
+    CONSTRAINT fk_gender FOREIGN KEY (gender_id) REFERENCES gender(id),
+    CONSTRAINT fk_profile_language FOREIGN KEY (preferred_language_id) REFERENCES language_registry(id)
+);
+
+
+CREATE TABLE product
 (
     id             BIGINT       NOT NULL AUTO_INCREMENT,
     name           VARCHAR(100) NOT NULL,
@@ -37,6 +223,7 @@ CREATE TABLE bookshopdb.product
     description    TEXT         NULL,
     imageName      VARCHAR(35)  NULL,
     shop           BIT          NOT NULL,
+    isDeleted      BIT          NOT NULL DEFAULT 0,
     createdAt      DATETIME     NOT NULL,
     updatedAt      DATETIME     NULL,
     startsAt       DATETIME     NULL,
@@ -44,10 +231,10 @@ CREATE TABLE bookshopdb.product
     PRIMARY KEY (id)
 );
 
-CREATE TABLE bookshopdb.product_review
+CREATE TABLE product_review
 (
     id          BIGINT   NOT NULL AUTO_INCREMENT,
-    userId      BIGINT   NOT NULL,
+    userId      BIGINT   NULL,
     productId   BIGINT   NOT NULL,
     ratingScore TINYINT  NOT NULL,
     content     TEXT     NOT NULL,
@@ -59,17 +246,17 @@ CREATE TABLE bookshopdb.product_review
     INDEX idx_product_review_product (productId),
     CONSTRAINT fk_product_review_user
         FOREIGN KEY (userId)
-            REFERENCES bookshopdb.user (id)
-            ON DELETE NO ACTION
+            REFERENCES user_account (id)
+            ON DELETE SET NULL
             ON UPDATE NO ACTION,
     CONSTRAINT fk_product_review_product
         FOREIGN KEY (productId)
-            REFERENCES bookshopdb.product (id)
+            REFERENCES product (id)
             ON DELETE NO ACTION
             ON UPDATE NO ACTION
 );
 
-CREATE TABLE bookshopdb.category
+CREATE TABLE category
 (
     id          BIGINT       NOT NULL AUTO_INCREMENT,
     name        VARCHAR(100) NOT NULL,
@@ -78,7 +265,7 @@ CREATE TABLE bookshopdb.category
     PRIMARY KEY (id)
 );
 
-CREATE TABLE bookshopdb.product_category
+CREATE TABLE product_category
 (
     productId  BIGINT NOT NULL,
     categoryId BIGINT NOT NULL,
@@ -87,17 +274,17 @@ CREATE TABLE bookshopdb.product_category
     INDEX idx_product_category_category (categoryId),
     CONSTRAINT fk_product_category_product
         FOREIGN KEY (productId)
-            REFERENCES bookshopdb.product (id)
+            REFERENCES product (id)
             ON DELETE NO ACTION
             ON UPDATE NO ACTION,
     CONSTRAINT fk_product_category_category
         FOREIGN KEY (categoryId)
-            REFERENCES bookshopdb.category (id)
+            REFERENCES category (id)
             ON DELETE NO ACTION
             ON UPDATE NO ACTION
 );
 
-CREATE TABLE bookshopdb.cart
+CREATE TABLE cart
 (
     id        BIGINT   NOT NULL AUTO_INCREMENT,
     userId    BIGINT   NOT NULL,
@@ -107,12 +294,12 @@ CREATE TABLE bookshopdb.cart
     INDEX idx_cart_user (userId),
     CONSTRAINT fk_cart_user
         FOREIGN KEY (userId)
-            REFERENCES bookshopdb.user (id)
-            ON DELETE NO ACTION
+            REFERENCES user_account (id)
+            ON DELETE CASCADE
             ON UPDATE NO ACTION
 );
 
-CREATE TABLE bookshopdb.cart_item
+CREATE TABLE cart_item
 (
     id        BIGINT   NOT NULL AUTO_INCREMENT,
     cartId    BIGINT   NOT NULL,
@@ -126,20 +313,20 @@ CREATE TABLE bookshopdb.cart_item
     INDEX idx_cart_item_product (productId),
     CONSTRAINT fk_cart_item_cart
         FOREIGN KEY (cartId)
-            REFERENCES bookshopdb.cart (id)
+            REFERENCES cart (id)
             ON DELETE CASCADE
             ON UPDATE NO ACTION,
     CONSTRAINT fk_cart_item_product
         FOREIGN KEY (productId)
-            REFERENCES bookshopdb.product (id)
+            REFERENCES product (id)
             ON DELETE NO ACTION
             ON UPDATE NO ACTION
 );
 
-CREATE TABLE bookshopdb.orders
+CREATE TABLE orders
 (
     id             BIGINT   NOT NULL AUTO_INCREMENT,
-    userId         BIGINT   NOT NULL,
+    userId         BIGINT   NULL,
     status         TINYINT  NOT NULL,
     deliveryMethod TINYINT  NOT NULL,
     deliveryPrice  FLOAT    NOT NULL,
@@ -149,12 +336,12 @@ CREATE TABLE bookshopdb.orders
     INDEX idx_orders_user (userId),
     CONSTRAINT fk_orders_user
         FOREIGN KEY (userId)
-            REFERENCES bookshopdb.user (id)
-            ON DELETE NO ACTION
+            REFERENCES user_account (id)
+            ON DELETE SET NULL
             ON UPDATE NO ACTION
 );
 
-CREATE TABLE bookshopdb.order_item
+CREATE TABLE order_item
 (
     id        BIGINT   NOT NULL AUTO_INCREMENT,
     orderId   BIGINT   NOT NULL,
@@ -169,17 +356,17 @@ CREATE TABLE bookshopdb.order_item
     INDEX idx_order_item_product (productId),
     CONSTRAINT fk_order_item_orders
         FOREIGN KEY (orderId)
-            REFERENCES bookshopdb.orders (id)
+            REFERENCES orders (id)
             ON DELETE NO ACTION
             ON UPDATE NO ACTION,
     CONSTRAINT fk_order_item_product
         FOREIGN KEY (productId)
-            REFERENCES bookshopdb.product (id)
+            REFERENCES product (id)
             ON DELETE NO ACTION
             ON UPDATE NO ACTION
 );
 
-CREATE TABLE bookshopdb.wishlist_item
+CREATE TABLE wishlist_item
 (
     id        BIGINT   NOT NULL AUTO_INCREMENT,
     userId    BIGINT   NOT NULL,
@@ -191,32 +378,191 @@ CREATE TABLE bookshopdb.wishlist_item
     INDEX idx_wishlist_item_product (productId),
     CONSTRAINT fk_wishlist_item_user
         FOREIGN KEY (userId)
-            REFERENCES bookshopdb.user (id)
-            ON DELETE NO ACTION
-            ON UPDATE NO ACTION,
+            REFERENCES user_account (id)
+            ON DELETE CASCADE
+        ON UPDATE NO ACTION,
     CONSTRAINT fk_wishlist_item_product
         FOREIGN KEY (productId)
-            REFERENCES bookshopdb.product (id)
+            REFERENCES product (id)
             ON DELETE NO ACTION
             ON UPDATE NO ACTION
 );
 
-
-ALTER TABLE user
-ADD isDeleted BIT NOT NULL DEFAULT 0;
 ALTER TABLE product
 ADD isDeleted BIT NOT NULL DEFAULT 0;
 ALTER TABLE category
 ADD isDeleted BIT NOT NULL DEFAULT 0;
 
+
 -- insert data
 
--- user
-INSERT INTO bookshopdb.user(`username`,`password`,`fullname`,`email`,`phoneNumber`,`gender`,`address`,`role`) VALUES ('user1','202CB962AC59075B964B07152D234B70','Dunn Mcpherson','dunnmcpherson@recrisys.com','0989894900',0,'8 Virginia Place, Troy, Norway','ADMIN');
-INSERT INTO bookshopdb.user(`username`,`password`,`fullname`,`email`,`phoneNumber`,`gender`,`address`,`role`) VALUES ('user2','202CB962AC59075B964B07152D234B70','Foreman Carter','foremancarter@recrisys.com','0993194154',0,'28 Richardson Street, Layhill, Netherlands','EMPLOYEE');
-INSERT INTO bookshopdb.user(`username`,`password`,`fullname`,`email`,`phoneNumber`,`gender`,`address`,`role`) VALUES ('user3','202CB962AC59075B964B07152D234B70','Felecia Cabrera','feleciacabrera@recrisys.com','0930174351',1,'41 Linden Street, Slovan, S. Georgia and S. Sandwich Isls.','EMPLOYEE');
-INSERT INTO bookshopdb.user(`username`,`password`,`fullname`,`email`,`phoneNumber`,`gender`,`address`,`role`) VALUES ('user4','202CB962AC59075B964B07152D234B70','Juliette Mcdowell','juliettemcdowell@recrisys.com','0911925643',1,'5 Schenck Court, Dana, Cyprus','CUSTOMER');
-INSERT INTO bookshopdb.user(`username`,`password`,`fullname`,`email`,`phoneNumber`,`gender`,`address`,`role`) VALUES ('user5','202CB962AC59075B964B07152D234B70','Vilma Spencer','vilmaspencer@recrisys.com','0987509391',1,'5 Pooles Lane, Allentown, Zambia','CUSTOMER');
+-- 1. Trạng thái tài khoản
+INSERT INTO user_account_status (code, name, description) VALUES
+('ACTIVE', 'Hoạt động', 'Tài khoản đang hoạt động bình thường'),
+('LOCKED', 'Bị khóa', 'Tài khoản tạm thời bị khóa do vi phạm hoặc bảo mật'),
+('DELETED', 'Đã xóa', 'Tài khoản đã bị xóa khỏi hệ thống'),
+('PENDING', 'Chờ xác thực', 'Tài khoản mới đăng ký, chưa xác thực email');
+
+-- 2. Trạng thái xác thực Email
+INSERT INTO email_verify_status (id, code, name, description) VALUES
+(0, 'UNVERIFIED', 'Chưa xác thực', 'Email chưa được xác nhận'),
+(1, 'VERIFIED', 'Đã xác thực', 'Email đã được xác nhận thành công');
+
+-- 3. Cổng đăng nhập OAuth
+INSERT INTO oauth_provider (code, name, description) VALUES
+('GOOGLE', 'Google', 'Đăng nhập thông qua Google Account'),
+('FACEBOOK', 'Facebook', 'Đăng nhập thông qua Facebook Account');
+
+-- 4. Loại Token
+INSERT INTO token_type (code, name, description) VALUES
+('VERIFY_EMAIL', 'Mã xác thực email', 'Token dùng để xác nhận sở hữu email'),
+('RESET_PASSWORD', 'Mã đặt lại mật khẩu', 'Token dùng để khôi phục mật khẩu');
+
+-- 5. Trạng thái Token
+INSERT INTO token_status (code, name, description) VALUES
+('ACTIVE', 'Đang hiệu lực', 'Token còn trong thời gian sử dụng'),
+('USED', 'Đã sử dụng', 'Token đã được thực hiện thành công'),
+('EXPIRED', 'Hết hạn', 'Token đã quá thời gian hiệu lực');
+
+-- 6. Giới tính
+INSERT INTO gender (id, code, name, description) VALUES
+(0, 'MALE', 'Nam', 'Giới tính Nam'),
+(1, 'FEMALE', 'Nữ', 'Giới tính Nữ');
+
+-- 7. Ngôn ngữ
+INSERT INTO language_registry (code, name, description) VALUES
+('vi', 'Vietnamese', 'Tiếng Việt'),
+('en', 'English', 'Tiếng Anh'),
+('ja', 'Japanese', 'Tiếng Nhật'),
+('ko', 'Korean', 'Tiếng Hàn');
+
+-- 8. Vai trò (Roles)
+INSERT INTO role_registry (id, code, name, description) VALUES
+(1, 'SUPER_ADMIN', 'Quản trị tối cao', 'Toàn quyền hệ thống'),
+(2, 'ADMIN', 'Quản lý', 'Quản lý trong phạm vi chi nhánh'),
+(3, 'STAFF', 'Nhân viên', 'Người dùng vận hành hệ thống'),
+(4, 'CUSTOMER', 'Khách hàng', 'Người mua sắm trực tuyến');
+
+-- 9. Quyền hạn (Permissions)
+INSERT INTO permission_registry (code, name, description, module, is_system) VALUES
+-- Role Module
+('role.view', 'Xem role', 'Xem danh sách role', 'ROLE', 1),
+('role.create', 'Tạo role', 'Tạo role mới', 'ROLE', 1),
+('role.edit', 'Sửa role', 'Sửa thông tin role', 'ROLE', 1),
+('role.delete', 'Xóa role', 'Xóa role', 'ROLE', 1),
+('role.manage', 'Quản lý role', 'Quản lý toàn bộ role', 'ROLE', 1),
+('role.assign_permission', 'Gán permission', 'Gán permission cho role', 'ROLE', 1),
+
+-- Permission Module
+('permission.view', 'Xem permission', 'Xem danh sách permission', 'PERMISSION', 1),
+('permission.manage', 'Quản lý permission', 'Quản lý toàn bộ permission', 'PERMISSION', 1),
+
+-- Category Module
+('category.view', 'Xem thể loại', 'Xem danh sách thể loại', 'CATEGORY', 1),
+('category.create', 'Tạo thể loại', 'Tạo thể loại mới', 'CATEGORY', 1),
+('category.edit', 'Sửa thể loại', 'Sửa thông tin thể loại', 'CATEGORY', 1),
+('category.delete', 'Xóa thể loại', 'Xóa thể loại', 'CATEGORY', 1),
+('category.manage', 'Quản lý thể loại', 'Quản lý toàn bộ thể loại', 'CATEGORY', 1),
+
+-- User Module
+('user.view', 'Xem user', 'Xem thông tin user', 'USER', 1),
+('user.create', 'Tạo user', 'Tạo user mới', 'USER', 1),
+('user.edit', 'Sửa user', 'Sửa thông tin user', 'USER', 1),
+('user.delete', 'Xóa user', 'Xóa user', 'USER', 1),
+('user.manage', 'Quản lý user', 'Quản lý toàn bộ user', 'USER', 1),
+('user.assign_role', 'Gán role', 'Gán role cho user', 'USER', 1),
+
+-- Product Module
+('product.view', 'Xem sản phẩm', 'Xem thông tin sản phẩm', 'PRODUCT', 1),
+('product.create', 'Tạo sản phẩm', 'Tạo sản phẩm mới', 'PRODUCT', 1),
+('product.edit', 'Sửa sản phẩm', 'Sửa thông tin sản phẩm', 'PRODUCT', 1),
+('product.delete', 'Xóa sản phẩm', 'Xóa sản phẩm', 'PRODUCT', 1),
+('product.manage', 'Quản lý sản phẩm', 'Quản lý toàn bộ sản phẩm', 'PRODUCT', 1),
+
+-- Order Module
+('order.view', 'Xem đơn hàng', 'Xem thông tin đơn hàng', 'ORDER', 1),
+('order.create', 'Tạo đơn hàng', 'Tạo đơn hàng mới', 'ORDER', 1),
+('order.edit', 'Sửa đơn hàng', 'Sửa thông tin đơn hàng', 'ORDER', 1),
+('order.delete', 'Xóa đơn hàng', 'Xóa đơn hàng', 'ORDER', 1),
+('order.manage', 'Quản lý đơn hàng', 'Quản lý toàn bộ đơn hàng', 'ORDER', 1),
+('order.view_all', 'Xem tất cả đơn hàng', 'Xem đơn hàng của tất cả user', 'ORDER', 1),
+
+-- Cart Module
+('cart.view', 'Xem giỏ hàng', 'Xem giỏ hàng', 'CART', 1),
+('cart.manage', 'Quản lý giỏ hàng', 'Quản lý giỏ hàng', 'CART', 1),
+
+-- Review Module
+('review.view', 'Xem review', 'Xem review sản phẩm', 'REVIEW', 1),
+('review.create', 'Tạo review', 'Tạo review mới', 'REVIEW', 1),
+('review.edit', 'Sửa review', 'Sửa review', 'REVIEW', 1),
+('review.delete', 'Xóa review', 'Xóa review', 'REVIEW', 1),
+('review.manage', 'Quản lý review', 'Quản lý toàn bộ review', 'REVIEW', 1),
+('review.moderate', 'Moderate review', 'Duyệt/xóa review', 'REVIEW', 1),
+
+-- Voucher Module
+('voucher.view', 'Xem voucher', 'Xem thông tin voucher', 'VOUCHER', 1),
+('voucher.create', 'Tạo voucher', 'Tạo voucher mới', 'VOUCHER', 1),
+('voucher.edit', 'Sửa voucher', 'Sửa thông tin voucher', 'VOUCHER', 1),
+('voucher.delete', 'Xóa voucher', 'Xóa voucher', 'VOUCHER', 1),
+('voucher.manage', 'Quản lý voucher', 'Quản lý toàn bộ voucher', 'VOUCHER', 1),
+
+-- Report Module
+('report.view', 'Xem báo cáo', 'Xem báo cáo thống kê', 'REPORT', 1),
+('report.export', 'Xuất báo cáo', 'Xuất báo cáo', 'REPORT', 1),
+
+-- Settings Module
+('settings.view', 'Xem cài đặt', 'Xem cài đặt hệ thống', 'SETTINGS', 1),
+('settings.edit', 'Sửa cài đặt', 'Sửa cài đặt hệ thống', 'SETTINGS', 1);
+
+-- 10. Gán quyền cho Role (Role Permissions)
+-- SUPER_ADMIN (Gán tất cả quyền)
+INSERT INTO role_permission_assignment (role_id, permission_id)
+SELECT 1, id FROM permission_registry;
+
+-- ADMIN (Quản lý User, Product, Order, Report, Category)
+INSERT INTO role_permission_assignment (role_id, permission_id)
+SELECT 2, id FROM permission_registry WHERE module IN ('USER', 'PRODUCT', 'ORDER', 'REPORT', 'CATEGORY');
+
+-- CUSTOMER
+INSERT INTO role_permission_assignment (role_id, permission_id)
+SELECT 4, id FROM permission_registry WHERE code IN ('order.create');
+
+
+-- 15. USER ACCOUNTS (Tài khoản người dùng)
+-- Thứ tự insert quan trọng: 
+-- 1. user_account (bảng cha) -> 2. user_profile -> 3. user_local -> 4. user_role_registry
+
+-- BƯỚC 1: Tạo tài khoản gốc trong user_account (TẤT CẢ users trước)
+INSERT INTO user_account (id, status_id) VALUES 
+(1, 1), (2, 1), (3, 1), (4, 1), (5, 1), (6, 1);
+
+-- BƯỚC 2: Thêm thông tin cá nhân vào user_profile
+INSERT INTO user_profile (user_id, fullname, phone_number, gender_id, preferred_language_id) VALUES
+(1, 'Dunn Mcpherson', '0989894900', 0, 1),
+(2, 'Foreman Carter', '0993194154', 0, 1),
+(3, 'Felecia Cabrera', '0930174351', 1, 1),
+(4, 'Juliette Mcdowell', '0911925643', 1, 1),
+(5, 'Vilma Spencer', '0987509391', 1, 1),
+(6, 'System Administrator', '0912345678', 0, 1);
+
+-- BƯỚC 3: Thêm thông tin đăng nhập vào user_local
+-- Password hash: $2a$12$UllaLd399u9rzzFCvwLK8Of5vL1l9MxyC1OCMR1cyfCd4jxoyBqf2
+INSERT INTO user_local (user_id, username, password_hash, email, email_verify_status_id) VALUES
+(1, 'user1', '$2a$12$UllaLd399u9rzzFCvwLK8Of5vL1l9MxyC1OCMR1cyfCd4jxoyBqf2', 'dunnmcpherson@recrisys.com', 1),
+(2, 'user2', '$2a$12$UllaLd399u9rzzFCvwLK8Of5vL1l9MxyC1OCMR1cyfCd4jxoyBqf2', 'foremancarter@recrisys.com', 1),
+(3, 'user3', '$2a$12$UllaLd399u9rzzFCvwLK8Of5vL1l9MxyC1OCMR1cyfCd4jxoyBqf2', 'feleciacabrera@recrisys.com', 1),
+(4, 'user4', '$2a$12$UllaLd399u9rzzFCvwLK8Of5vL1l9MxyC1OCMR1cyfCd4jxoyBqf2', 'juliettemcdowell@recrisys.com', 1),
+(5, 'user5', '$2a$12$UllaLd399u9rzzFCvwLK8Of5vL1l9MxyC1OCMR1cyfCd4jxoyBqf2', 'vilmaspencer@recrisys.com', 1),
+(6, 'admin', '$2a$12$UllaLd399u9rzzFCvwLK8Of5vL1l9MxyC1OCMR1cyfCd4jxoyBqf2', 'admin@webbookshop.com', 1);
+
+-- BƯỚC 4: Phân quyền (Role Assignment) - PHẢI SAU user_account
+INSERT INTO user_role_registry (user_id, role_id) VALUES
+(1, 2), -- user1: ADMIN
+(2, 3), -- user2: STAFF (EMPLOYEE)
+(3, 3), -- user3: STAFF (EMPLOYEE)
+(4, 4), -- user4: CUSTOMER
+(5, 4), -- user5: CUSTOMER
+(6, 1); -- admin: SUPER_ADMIN (System Account)
 
 -- product
 INSERT INTO bookshopdb.product(`name`,`price`,`discount`,`quantity`,`totalBuy`,`author`,`pages`,`publisher`,`yearPublishing`,`description`,`imageName`,`shop`,`createdAt`,`updatedAt`,`startsAt`,`endsAt`) VALUES ('Sách Toyletry',466183,0,86,86,'Stafford Hayden',250,'NXB Giáo dục',2013,'Consequat cupidatat magna nostrud ullamco non commodo esse. Veniam anim ipsum duis cillum cillum exercitation deserunt irure sint eiusmod. Duis consectetur adipisicing aliquip magna eiusmod ullamco ut ad ipsum nostrud dolore id. Ex ullamco nulla Lorem consequat sunt exercitation cillum adipisicing.\r\nProident labore ut qui esse cupidatat deserunt occaecat dolor in. Ad nulla reprehenderit pariatur esse enim ullamco do incididunt anim do excepteur est dolore excepteur. Laboris voluptate cupidatat anim dolore eiusmod in id fugiat est cupidatat pariatur mollit. Mollit irure proident enim consequat irure ipsum proident amet aliqua. Irure ad dolore laboris elit reprehenderit officia ex.\r\n','temp-10075522682831764585.jpg',0,'2021-03-23 08:22:50',NULL,NULL,NULL);
