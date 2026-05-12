@@ -1,6 +1,6 @@
 package service;
 
-import java.sql.Connection;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -9,12 +9,13 @@ import beans.CartItem;
 import beans.Order;
 import beans.OrderItem;
 import beans.Product;
+import beans.vnpay.Payment;
 import dao.CartDAO;
 import dao.CartItemDAO;
 import dao.OrderDAO;
 import dao.OrderItemDAO;
 import dao.ProductDAO;
-import utils.DBConnection;
+import servlet.vnpay.VNPConfig;
 
 public class CheckoutService {
 
@@ -38,27 +39,46 @@ public class CheckoutService {
 		return cart;
 	}
 
-	public void checkoutFromCart(long userId, long cartId, int deliveryMethod, double deliveryPrice) {
-		try (Connection conn = DBConnection.getConnection()) {
-			conn.setAutoCommit(false);
+    public Payment checkoutFromCart(long userId, long cartId, int deliveryMethod, double deliveryPrice) {
+        Cart cart = cartDAO.getById(cartId);
+        if (cart == null) throw new RuntimeException("Giỏ hàng không tồn tại");
 
-			long orderId = orderDAO.insert(conn,
-					new Order(0L, userId, 1, deliveryMethod, deliveryPrice, LocalDateTime.now(), null));
+        List<CartItem> items = cartItemDAO.getByCartId(cartId);
+        for (CartItem ci : items) {
+            Product p = productDAO.getById(ci.getProductId());
+            ci.setProduct(p);
+        }
+        cart.setCartItems(items);
 
-			List<CartItem> items = cartItemDAO.getByCartId(conn, cartId);
+        double totalPrice = cart.getTotalPrice() + deliveryPrice;
 
-			for (CartItem ci : items) {
-				Product p = productDAO.getById(conn, ci.getProductId());
+        Order o = new Order();
+        o.setUserId(userId);
+        o.setStatus(1);
+        o.setDeliveryMethod(deliveryMethod);
+        o.setDeliveryPrice(deliveryPrice);
+        o.setTotalPrice(totalPrice);
+        o.setCreatedAt(LocalDateTime.now());
 
-				orderItemDAO.insert(conn, new OrderItem(0L, orderId, p.getId(), p.getPrice(), p.getDiscount(),
-						ci.getQuantity(), LocalDateTime.now(), null));
-			}
+        long orderId = orderDAO.insert(o);
 
-			cartDAO.delete(conn, cartId);
+        for (CartItem ci : items) {
+            orderItemDAO.insert(new OrderItem(0L, orderId, ci.getProduct().getId(),
+                    ci.getProduct().getPrice(), ci.getProduct().getDiscount(),
+                    ci.getQuantity(), LocalDateTime.now(), null));
+        }
 
-			conn.commit();
-		} catch (Exception e) {
-			throw new RuntimeException("Checkout failed", e);
-		}
-	}
+        cartDAO.delete(cartId);
+
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+        Payment p = new Payment();
+        p.setOrderId(orderId);
+        p.setUserId(userId);
+        p.setStatus(0);
+        p.setCreatedAt(now);
+        p.setAmount(totalPrice);
+        p.setVnpTxnRef(VNPConfig.getRandomCode(orderId, userId, now));
+
+        return p;
+    }
 }

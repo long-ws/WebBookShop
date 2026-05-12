@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import beans.Cart;
 import beans.User;
+import beans.vnpay.Payment;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -11,13 +12,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import service.CheckoutService;
+import service.PaymentService;
 
 @WebServlet(name = "CartServlet", value = "/cart")
 public class CartServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
 	private final CheckoutService checkoutService = new CheckoutService();
-
+    private final PaymentService  paymentService = new PaymentService();
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
@@ -59,11 +61,12 @@ public class CartServlet extends HttpServlet {
 			int deliveryMethod = Integer.parseInt(request.getParameter("deliveryMethod"));
 			double deliveryPrice = Double.parseDouble(request.getParameter("deliveryPrice"));
 
-			checkoutService.checkoutFromCart(user.getId(), cartId, deliveryMethod, deliveryPrice);
+			Payment p = checkoutService.checkoutFromCart(user.getId(), cartId, deliveryMethod, deliveryPrice);
+            paymentService.createPayment(p);
+            session.setAttribute("latestPayment", p);
 
-			response.sendRedirect(request.getContextPath() + "/order?success=1");
-
-		} catch (Exception e) {
+            response.sendRedirect(request.getContextPath() + "/checkoutSuccess");
+        } catch (Exception e) {
 			e.printStackTrace();
 			session.setAttribute("errorMessage", "Đặt hàng thất bại, vui lòng thử lại");
 			response.sendRedirect(request.getContextPath() + "/cart");

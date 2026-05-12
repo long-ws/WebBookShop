@@ -87,4 +87,7 @@ public class CartItem {
 				.add("productId=" + productId).add("quantity=" + quantity).add("createdAt=" + createdAt)
 				.add("updatedAt=" + updatedAt).add("product=" + product).toString();
 	}
+    public double getTotalPrice(){
+        return product.getPrice() * quantity;
+    }
 }

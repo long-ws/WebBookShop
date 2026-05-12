@@ -66,4 +66,11 @@ public class Cart {
 		return new StringJoiner(", ", Cart.class.getSimpleName() + "[", "]").add("id=" + id).add("userId=" + userId)
 				.add("createdAt=" + createdAt).add("updatedAt=" + updatedAt).toString();
 	}
+    public double getTotalPrice(){
+        double total = 0;
+        for(CartItem cartItem : cartItems){
+            total += cartItem.getTotalPrice();
+        }
+        return total;
+    }
 }
