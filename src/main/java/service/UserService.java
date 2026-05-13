@@ -1,64 +1,42 @@
 package service;
 
-import java.sql.SQLException;
 import java.util.List;
 
 import beans.User;
-import dao.UserDAO;
+import dto.AdminUserDetailDTO;
+import dto.UserCreateUpdateFormDTO;
+import dto.AdminUserListDTO;
 
-public class UserService {
+public interface UserService {
+	UserCreateUpdateFormDTO createUser(UserCreateUpdateFormDTO dto);
 
-	private final UserDAO userDAO;
+	UserCreateUpdateFormDTO updateUser(UserCreateUpdateFormDTO dto);
 
-	public UserService() {
-		this.userDAO = new UserDAO();
-	}
+	boolean deleteUser(long id);
 
-	public long insert(User user) throws SQLException {
-		return userDAO.insert(user);
-	}
+	AdminUserDetailDTO getUserById(long id);
 
-	public void update(User user) throws SQLException {
-		userDAO.update(user);
-	}
+	User getById(long id);
 
-	public void delete(long id) throws SQLException {
-		userDAO.delete(id);
-	}
+	List<AdminUserListDTO> getUsers(int page, int pageSize, String orderBy, String orderDir);
 
-	public User getById(long id) {
-		return userDAO.getById(id);
-	}
+	long countUsers();
 
-	public List<User> getAll() {
-		return userDAO.getAll();
-	}
+	boolean isUsernameExists(String username);
 
-	public List<User> getPart(int limit, int offset) {
-		return userDAO.getPart(limit, offset);
-	}
+	boolean isUsernameExists(String username, long excludeId);
 
-	public List<User> getOrderedPart(int limit, int offset, String orderBy, String orderDir) {
-		return userDAO.getOrderedPart(limit, offset, orderBy, orderDir);
-	}
+	boolean isEmailExists(String email);
 
-	public User getByUsername(String username) {
-		return userDAO.getByUsername(username);
-	}
+	boolean isEmailExists(String email, long excludeId);
 
-	public void changePassword(long userId, String newPassword) {
-		userDAO.changePassword(userId, newPassword);
-	}
+	User getUserEntityByUsername(String username);
 
-	public User getByEmail(String email) {
-		return userDAO.getByEmail(email);
-	}
+	void changePassword(long userId, String newPassword);
 
-	public User getByPhoneNumber(String phoneNumber) {
-		return userDAO.getByPhoneNumber(phoneNumber);
-	}
+	boolean incrementTokenVersion(long userId);
 
-	public int count() {
-		return userDAO.count();
-	}
+	int getTokenVersion(long userId);
+
+	UserCreateUpdateFormDTO toFormDTO(AdminUserDetailDTO detail);
 }

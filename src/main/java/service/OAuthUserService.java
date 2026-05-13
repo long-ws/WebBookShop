@@ -1,9 +1,9 @@
 package service;
 
 import beans.oauth.OAuthUser;
-import beans.user.User;
 import beans.user.UserOAuthAuth;
 import beans.user.UserProfile;
+import beans.User;
 import beans.common.Role;
 import repository.OAuthAuthRepository;
 import repository.UserRepository;
@@ -48,7 +48,7 @@ public class OAuthUserService {
 
 		// Chưa có
 		User newUser = createUserFromOAuth(oauthUser);
-		long newUserId = userRepository.save(newUser);
+		long newUserId = userRepository.insert(newUser);
 
 		if (newUserId <= 0) {
 			throw new SQLException("Không thể tạo user từ thông tin OAuth.");

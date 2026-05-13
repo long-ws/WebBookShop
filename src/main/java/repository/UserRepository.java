@@ -1,15 +1,23 @@
 package repository;
 
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Optional;
-import beans.user.User;
+
+import beans.User;
 
 public interface UserRepository {
 
 	/**
 	 * Lưu user mới.
 	 */
-	long save(User user) throws SQLException;
+	long insert(User user) throws SQLException;
+
+	void update(User user) throws SQLException;
+
+	void delete(long id) throws SQLException;
+
+	List<User> findAll(int limit, int offset, String orderBy, String orderDir);
 
 	/**
 	 * Tìm user theo ID
@@ -35,4 +43,12 @@ public interface UserRepository {
 	 * Kiểm tra xem Email đã tồn tại chưa.
 	 */
 	boolean existsByEmail(String email);
+
+	long count();
+
+	void changePassword(long userId, String hashedPassword);
+
+	boolean incrementTokenVersion(long userId);
+
+	int getTokenVersion(long userId);
 }
