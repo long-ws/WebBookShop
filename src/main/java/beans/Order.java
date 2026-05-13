@@ -20,7 +20,7 @@ public class Order {
 	}
 
 	public Order(long id, long userId, int status, int deliveryMethod, double deliveryPrice, LocalDateTime createdAt,
-			 LocalDateTime updatedAt) {
+			LocalDateTime updatedAt) {
 		this.id = id;
 		this.userId = userId;
 		this.status = status;
@@ -78,30 +78,27 @@ public class Order {
 		this.createdAt = createdAt;
 	}
 
-	
 	public LocalDateTime getUpdatedAt() {
 		return updatedAt;
 	}
 
-	public void setUpdatedAt( LocalDateTime updatedAt) {
+	public void setUpdatedAt(LocalDateTime updatedAt) {
 		this.updatedAt = updatedAt;
 	}
 
-	
 	public User getUser() {
 		return user;
 	}
 
-	public void setUser( User user) {
+	public void setUser(User user) {
 		this.user = user;
 	}
 
-	
 	public List<OrderItem> getOrderItems() {
 		return orderItems;
 	}
 
-	public void setOrderItems( List<OrderItem> orderItems) {
+	public void setOrderItems(List<OrderItem> orderItems) {
 		this.orderItems = orderItems;
 	}
 
