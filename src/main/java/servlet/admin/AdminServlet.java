@@ -11,12 +11,13 @@ import service.CategoryService;
 import service.OrderService;
 import service.ProductService;
 import service.UserService;
+import service.UserServiceImpl;
 
 @WebServlet(name = "AdminServlet", value = "/admin")
 public class AdminServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
-	private final UserService userService = new UserService();
+	private final UserService userService = new UserServiceImpl();
 	private final CategoryService categoryService = new CategoryService();
 	private final ProductService productService = new ProductService();
 	private final OrderService orderService = new OrderService();
@@ -25,13 +26,13 @@ public class AdminServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
-		int totalUsers = 0;
+		long totalUsers = 0;
 		int totalCategories = 0;
 		int totalProducts = 0;
 		int totalOrders = 0;
 
 		try {
-			totalUsers = userService.count();
+			totalUsers = userService.countUsers();
 			totalCategories = categoryService.count();
 			totalProducts = productService.count();
 			totalOrders = orderService.count();

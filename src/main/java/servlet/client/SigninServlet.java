@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import beans.user.User;
+import beans.User;
 import constants.SessionConstants;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -14,8 +14,8 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import service.user.UserService;
-import service.user.impl.UserServiceImpl;
+import service.UserService;
+import service.UserServiceImpl;
 import utils.HashingUtils;
 
 @WebServlet(name = "SigninServlet", value = "/signin")

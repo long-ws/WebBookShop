@@ -15,13 +15,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import service.OrderItemService;
 import service.OrderService;
 import service.UserService;
+import service.UserServiceImpl;
 
 @WebServlet(name = "OrderManagerServlet", value = "/admin/orderManager")
 public class OrderManagerServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
 	private final OrderService orderService = new OrderService();
-	private final UserService userService = new UserService();
+	private final UserService userService = new UserServiceImpl();
 	private final OrderItemService orderItemService = new OrderItemService();
 
 	private static final int ORDERS_PER_PAGE = 5;

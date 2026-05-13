@@ -9,13 +9,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import service.UserService;
+import service.UserServiceImpl;
 import utils.HashingUtils;
 
 @WebServlet(name = "ChangePassword", value = "/changePassword")
 public class ChangePasswordServlet extends HomeServlet {
 
 	private static final long serialVersionUID = 1L;
-    private final UserService userService = new UserService();
+    private final UserService userService = new UserServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -39,14 +40,10 @@ public class ChangePasswordServlet extends HomeServlet {
         boolean success = false;
 
         if (currentPassword != null && newPassword != null && newPasswordAgain != null) {
-            String hashedCurrent = HashingUtils.hash(currentPassword);
-
-            if (hashedCurrent.equals(user.getPassword()) && newPassword.equals(newPasswordAgain)) {
-                String hashedNew = HashingUtils.hash(newPassword);
+            String userPasswordHash = user.getPasswordHash();
+            if (userPasswordHash != null && HashingUtils.verify(currentPassword, userPasswordHash) && newPassword.equals(newPasswordAgain)) {
                 try {
-                    userService.changePassword(user.getId(), hashedNew);
-                    user.setPassword(hashedNew); // Cập nhật luôn trong session
-                    session.setAttribute("currentUser", user);
+                    userService.changePassword(user.getId(), newPassword);
                     success = true;
                 } catch (Exception e) {
                     e.printStackTrace();
