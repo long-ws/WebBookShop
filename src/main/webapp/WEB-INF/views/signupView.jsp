@@ -26,142 +26,95 @@
 					<div class="mb-3">
 						<label for="inputUsername" class="form-label">Tên đăng
 							nhập</label> <input type="text"
-							class="form-control ${not empty requestScope.violations.usernameViolations
-                   ? 'is-invalid' : (not empty requestScope.values.username ? 'is-valid' : '')}"
+							class="form-control ${not empty requestScope.errors.username ? 'is-invalid' : (not empty requestScope.values.username ? 'is-valid' : '')}"
 							id="inputUsername" name="username"
 							value="${requestScope.values.username}">
-						<c:if
-							test="${not empty requestScope.violations.usernameViolations}">
+						<c:if test="${not empty requestScope.errors.username}">
 							<div class="invalid-feedback">
-								<ul class="list-unstyled">
-									<c:forEach var="violation"
-										items="${requestScope.violations.usernameViolations}">
-										<li>${violation}</li>
-									</c:forEach>
-								</ul>
+								${requestScope.errors.username}
 							</div>
 						</c:if>
 					</div>
 					<div class="mb-3">
 						<label for="inputPassword" class="form-label">Mật khẩu</label> <input
 							type="password"
-							class="form-control ${not empty requestScope.violations.passwordViolations
-                   ? 'is-invalid' : (not empty requestScope.values.password ? 'is-valid' : '')}"
+							class="form-control ${not empty requestScope.errors.password ? 'is-invalid' : (not empty requestScope.values.password ? 'is-valid' : '')}"
 							id="inputPassword" name="password"
 							value="${requestScope.values.password}">
-						<c:if
-							test="${not empty requestScope.violations.passwordViolations}">
+						<c:if test="${not empty requestScope.errors.password}">
 							<div class="invalid-feedback">
-								<ul class="list-unstyled">
-									<c:forEach var="violation"
-										items="${requestScope.violations.passwordViolations}">
-										<li>${violation}</li>
-									</c:forEach>
-								</ul>
+								${requestScope.errors.password}
 							</div>
 						</c:if>
 					</div>
 					<div class="mb-3">
 						<label for="inputFullname" class="form-label">Họ và tên</label> <input
 							type="text"
-							class="form-control ${not empty requestScope.violations.fullnameViolations
-                   ? 'is-invalid' : (not empty requestScope.values.fullname ? 'is-valid' : '')}"
+							class="form-control ${not empty requestScope.errors.fullname ? 'is-invalid' : (not empty requestScope.values.fullname ? 'is-valid' : '')}"
 							id="inputFullname" name="fullname"
 							value="${requestScope.values.fullname}">
-						<c:if
-							test="${not empty requestScope.violations.fullnameViolations}">
+						<c:if test="${not empty requestScope.errors.fullname}">
 							<div class="invalid-feedback">
-								<ul class="list-unstyled">
-									<c:forEach var="violation"
-										items="${requestScope.violations.fullnameViolations}">
-										<li>${violation}</li>
-									</c:forEach>
-								</ul>
+								${requestScope.errors.fullname}
 							</div>
 						</c:if>
 					</div>
 					<div class="mb-3">
 						<label for="inputEmail" class="form-label">Email</label> <input
 							type="email"
-							class="form-control ${not empty requestScope.violations.emailViolations
-                   ? 'is-invalid' : (not empty requestScope.values.email ? 'is-valid' : '')}"
+							class="form-control ${not empty requestScope.errors.email ? 'is-invalid' : (not empty requestScope.values.email ? 'is-valid' : '')}"
 							id="inputEmail" name="email" value="${requestScope.values.email}">
-						<c:if test="${not empty requestScope.violations.emailViolations}">
+						<c:if test="${not empty requestScope.errors.email}">
 							<div class="invalid-feedback">
-								<ul class="list-unstyled">
-									<c:forEach var="violation"
-										items="${requestScope.violations.emailViolations}">
-										<li>${violation}</li>
-									</c:forEach>
-								</ul>
+								${requestScope.errors.email}
 							</div>
 						</c:if>
 					</div>
 					<div class="mb-3">
 						<label for="inputPhoneNumber" class="form-label">Số điện
 							thoại</label> <input type="text"
-							class="form-control ${not empty requestScope.violations.phoneNumberViolations
-                   ? 'is-invalid' : (not empty requestScope.values.phoneNumber ? 'is-valid' : '')}"
+							class="form-control ${not empty requestScope.errors.phoneNumber ? 'is-invalid' : (not empty requestScope.values.phoneNumber ? 'is-valid' : '')}"
 							id="inputPhoneNumber" name="phoneNumber"
 							value="${requestScope.values.phoneNumber}">
-						<c:if
-							test="${not empty requestScope.violations.phoneNumberViolations}">
+						<c:if test="${not empty requestScope.errors.phoneNumber}">
 							<div class="invalid-feedback">
-								<ul class="list-unstyled">
-									<c:forEach var="violation"
-										items="${requestScope.violations.phoneNumberViolations}">
-										<li>${violation}</li>
-									</c:forEach>
-								</ul>
+								${requestScope.errors.phoneNumber}
 							</div>
 						</c:if>
 					</div>
 					<div class="mb-3">
 						<div class="form-check d-inline-block me-4">
 							<input
-								class="form-check-input ${not empty requestScope.violations.genderViolations
-                     ? 'is-invalid' : (not empty requestScope.values.gender ? 'is-valid' : '')}"
+								class="form-check-input ${not empty requestScope.errors.gender ? 'is-invalid' : (not empty requestScope.values.gender ? 'is-valid' : '')}"
 								type="radio" name="gender" id="radioGender1" value="0"
-								${requestScope.values.gender.equals("0") ? 'checked' : '' }>
+								${requestScope.values.gender == '0' ? 'checked' : '' }>
 							<label class="form-check-label" for="radioGender1">Nam</label>
 						</div>
 						<div class="form-check d-inline-block">
 							<input
-								class="form-check-input ${not empty requestScope.violations.genderViolations
-                     ? 'is-invalid' : (not empty requestScope.values.gender ? 'is-valid' : '')}"
+								class="form-check-input ${not empty requestScope.errors.gender ? 'is-invalid' : (not empty requestScope.values.gender ? 'is-valid' : '')}"
 								type="radio" name="gender" id="radioGender2" value="1"
-								${requestScope.values.gender.equals("1") ? 'checked' : '' }>
+								${requestScope.values.gender == '1' ? 'checked' : '' }>
 							<label class="form-check-label" for="radioGender2">Nữ</label>
 						</div>
-						<c:if test="${not empty requestScope.violations.genderViolations}">
+						<c:if test="${not empty requestScope.errors.gender}">
 							<div class="is-invalid"></div>
 							<div class="invalid-feedback">
-								<ul class="list-unstyled">
-									<c:forEach var="violation"
-										items="${requestScope.violations.genderViolations}">
-										<li>${violation}</li>
-									</c:forEach>
-								</ul>
+								${requestScope.errors.gender}
 							</div>
 						</c:if>
 					</div>
 					<div class="mb-3 form-check">
 						<input
-							class="form-check-input ${not empty requestScope.violations.policyViolations
-                   ? 'is-invalid' : (not empty requestScope.values.policy ? 'is-valid' : '')}"
+							class="form-check-input ${not empty requestScope.errors.policy ? 'is-invalid' : (not empty requestScope.values.policy ? 'is-valid' : '')}"
 							type="checkbox" value="checked" id="checkboxPolicy" name="policy"
 							checked> <label class="form-check-label"
 							for="checkboxPolicy"> Đồng ý với <a href="#">điều
 								khoản sử dụng</a>
 						</label>
-						<c:if test="${not empty requestScope.violations.policyViolations}">
+						<c:if test="${not empty requestScope.errors.policy}">
 							<div class="invalid-feedback">
-								<ul class="list-unstyled">
-									<c:forEach var="violation"
-										items="${requestScope.violations.policyViolations}">
-										<li>${violation}</li>
-									</c:forEach>
-								</ul>
+								${requestScope.errors.policy}
 							</div>
 						</c:if>
 					</div>

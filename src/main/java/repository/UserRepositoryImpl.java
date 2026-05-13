@@ -37,11 +37,28 @@ public class UserRepositoryImpl implements UserRepository {
 				}
 			}
 
-			String profileSql = "INSERT INTO user_profile (user_id, fullname, avatar_url) VALUES (?, ?, ?)";
+			if (user.getAuthInfo() != null && user.getAuthInfo().getLocal() != null) {
+				String localSql = "INSERT INTO user_local (user_id, username, password_hash, email) VALUES (?, ?, ?, ?)";
+				try (PreparedStatement ps = conn.prepareStatement(localSql)) {
+					ps.setLong(1, userId);
+					ps.setString(2, user.getAuthInfo().getLocal().getUsername());
+					ps.setString(3, user.getAuthInfo().getLocal().getPasswordHash());
+					ps.setString(4, user.getAuthInfo().getLocal().getEmail());
+					ps.executeUpdate();
+				}
+			}
+
+			String profileSql = "INSERT INTO user_profile (user_id, fullname, phone_number, gender_id, avatar_url) VALUES (?, ?, ?, ?, ?)";
 			try (PreparedStatement ps = conn.prepareStatement(profileSql)) {
 				ps.setLong(1, userId);
 				ps.setString(2, user.getProfile().getFullname());
-				ps.setString(3, user.getProfile().getAvatarUrl());
+				ps.setString(3, user.getProfile().getPhoneNumber());
+				if (user.getProfile().getGender() != null) {
+					ps.setInt(4, user.getProfile().getGender().getId());
+				} else {
+					ps.setNull(4, java.sql.Types.INTEGER);
+				}
+				ps.setString(5, user.getProfile().getAvatarUrl());
 				ps.executeUpdate();
 			}
 
@@ -66,11 +83,36 @@ public class UserRepositoryImpl implements UserRepository {
 				ps.executeUpdate();
 			}
 
-			String profileSql = "UPDATE user_profile SET fullname=?, avatar_url=? WHERE user_id=?";
+			if (user.getAuthInfo() != null && user.getAuthInfo().getLocal() != null) {
+				String localSql = "UPDATE user_local SET username=?, email=? WHERE user_id=?";
+				try (PreparedStatement ps = conn.prepareStatement(localSql)) {
+					ps.setString(1, user.getAuthInfo().getLocal().getUsername());
+					ps.setString(2, user.getAuthInfo().getLocal().getEmail());
+					ps.setLong(3, user.getId());
+					ps.executeUpdate();
+					
+					if (user.getAuthInfo().getLocal().getPasswordHash() != null) {
+						String passwordSql = "UPDATE user_local SET password_hash=? WHERE user_id=?";
+						try (PreparedStatement ps2 = conn.prepareStatement(passwordSql)) {
+							ps2.setString(1, user.getAuthInfo().getLocal().getPasswordHash());
+							ps2.setLong(2, user.getId());
+							ps2.executeUpdate();
+						}
+					}
+				}
+			}
+
+			String profileSql = "UPDATE user_profile SET fullname=?, phone_number=?, gender_id=?, avatar_url=? WHERE user_id=?";
 			try (PreparedStatement ps = conn.prepareStatement(profileSql)) {
 				ps.setString(1, user.getProfile().getFullname());
-				ps.setString(2, user.getProfile().getAvatarUrl());
-				ps.setLong(3, user.getId());
+				ps.setString(2, user.getProfile().getPhoneNumber());
+				if (user.getProfile().getGender() != null) {
+					ps.setInt(3, user.getProfile().getGender().getId());
+				} else {
+					ps.setNull(3, java.sql.Types.INTEGER);
+				}
+				ps.setString(4, user.getProfile().getAvatarUrl());
+				ps.setLong(5, user.getId());
 				ps.executeUpdate();
 			}
 		}

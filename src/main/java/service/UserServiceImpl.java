@@ -239,6 +239,11 @@ public class UserServiceImpl implements UserService {
 		UserProfile profile = new UserProfile();
 		profile.setFullname(dto.getFullname());
 		profile.setPhoneNumber(dto.getPhoneNumber());
+		profile.setGender(dto.getGender());
+		profile.setPreferredLanguage(dto.getPreferredLanguage());
+		profile.setAvatarUrl(dto.getAvatarUrl());
+		
+		user.setProfile(profile);
 
 		if (dto.getRole() != null) {
 			user.setRole(dto.getRole());

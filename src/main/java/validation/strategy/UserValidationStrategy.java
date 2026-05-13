@@ -1,5 +1,6 @@
 package validation.strategy;
 
+import beans.common.Role;
 import constants.UserConstants;
 import dto.UserCreateUpdateFormDTO;
 import service.UserService;
@@ -170,7 +171,9 @@ public class UserValidationStrategy {
         }
 
         if (roleCode == null || roleCode.trim().isEmpty()) {
-            dto.addError("role", "Vui lòng chọn vai trò");
+            Role customerRole = new Role();
+            customerRole.setCode(constants.UserConstants.Role.CUSTOMER);
+            dto.setRole(customerRole);
         }
     }
 }
