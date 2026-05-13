@@ -40,14 +40,8 @@
 							<article class="card">
 								<div class="card-body">
 									<div>
-										<strong>${sessionScope.currentUser.fullname}</strong>
+										<strong>${sessionScope.currentUser.profile != null ? sessionScope.currentUser.profile.fullname : sessionScope.currentUser.username}</strong>
 										<p>${sessionScope.currentUser.email}</p>
-									</div>
-									<hr>
-									<div>
-										<p class="bi bi-map d-block lh-lg">
-											Địa chỉ: <br> ${sessionScope.currentUser.address}
-										</p>
 									</div>
 									<article class="card-group">
 										<figure class="card bg-light">

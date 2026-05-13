@@ -39,10 +39,7 @@
 						<dd class="col-md-9">${requestScope.user.phoneNumber}</dd>
 
 						<dt class="col-md-3">Giới tính</dt>
-						<dd class="col-md-9">${requestScope.user.gender == 0 ? 'Nam' : 'Nữ'}</dd>
-
-						<dt class="col-md-3">Địa chỉ</dt>
-						<dd class="col-md-9">${requestScope.user.address}</dd>
+						<dd class="col-md-9">${requestScope.user.gender != null and requestScope.user.gender.id == 1 ? 'Nữ' : 'Nam'}</dd>
 					</dl>
 				</div>
 			</div>

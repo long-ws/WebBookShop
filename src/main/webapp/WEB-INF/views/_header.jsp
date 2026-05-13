@@ -86,7 +86,7 @@
 		<div class="ms-auto">
 			<c:choose>
 				<c:when test="${not empty sessionScope.currentUser}">
-					<span>Xin chào <strong>${sessionScope.currentUser.fullname}</strong>!
+					<span>Xin chào <strong>${sessionScope.currentUser.profile != null ? sessionScope.currentUser.profile.fullname : sessionScope.currentUser.username}</strong>!
 					</span>
 					<a class="btn btn-light ms-2"
 						href="${pageContext.request.contextPath}/signout">Đăng xuất</a>

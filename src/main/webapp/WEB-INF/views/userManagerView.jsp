@@ -58,7 +58,7 @@
 								<td>${user.fullname}</td>
 								<td>${user.email}</td>
 								<td>${user.phoneNumber}</td>
-								<td>${user.gender == 0 ? 'Nam' : 'Nữ'}</td>
+								<td>${user.gender != null and user.gender.id == 1 ? 'Nữ' : 'Nam'}</td>
 								<td><c:choose>
 										<c:when test="${user.role == 'ADMIN'}">Quản trị viên</c:when>
 										<c:when test="${user.role == 'EMPLOYEE'}">Nhân viên</c:when>
