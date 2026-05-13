@@ -30,8 +30,8 @@ public class AuthorizationFilter implements Filter {
 		String role = null;
 		if (session != null) {
 			User currentUser = (User) session.getAttribute("currentUser");
-			if (currentUser != null) {
-				role = currentUser.getRole();
+			if (currentUser != null && currentUser.getRole() != null) {
+				role = currentUser.getRole().getCode();
 			}
 		}
 

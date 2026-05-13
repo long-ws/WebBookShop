@@ -135,7 +135,7 @@
 								class="form-check-input ${not empty requestScope.violations.genderViolations
                      ? 'is-invalid' : (not empty requestScope.user.gender ? 'is-valid' : '')}"
 								type="radio" name="gender" id="user-gender-male" value="0"
-								${requestScope.user.gender=='0' ? 'checked' : '' } required>
+								${requestScope.user.gender != null and requestScope.user.gender.id == 0 ? 'checked' : '' } required>
 							<label class="form-check-label" for="user-gender-male">Nam</label>
 						</div>
 						<div class="form-check d-inline-block">
@@ -143,7 +143,7 @@
 								class="form-check-input ${not empty requestScope.violations.genderViolations
                      ? 'is-invalid' : (not empty requestScope.user.gender ? 'is-valid' : '')}"
 								type="radio" name="gender" id="user-gender-female" value="1"
-								${requestScope.user.gender=='1' ? 'checked' : '' } required>
+								${requestScope.user.gender != null and requestScope.user.gender.id == 1 ? 'checked' : '' } required>
 							<label class="form-check-label" for="user-gender-female">Nữ</label>
 						</div>
 						<c:if test="${not empty requestScope.violations.genderViolations}">
@@ -159,25 +159,6 @@
 						</c:if>
 					</div>
 					<div class="mb-3">
-						<label for="user-address" class="form-label">Địa chỉ <span
-							class="text-danger">*</span></label> <input type="text"
-							class="form-control ${not empty requestScope.violations.addressViolations
-                   ? 'is-invalid' : (not empty requestScope.user.address ? 'is-valid' : '')}"
-							id="user-address" name="address"
-							value="${requestScope.user.address}" required>
-						<c:if
-							test="${not empty requestScope.violations.addressViolations}">
-							<div class="invalid-feedback">
-								<ul class="list-unstyled">
-									<c:forEach var="violation"
-										items="${requestScope.violations.addressViolations}">
-										<li>${violation}</li>
-									</c:forEach>
-								</ul>
-							</div>
-						</c:if>
-					</div>
-					<div class="mb-3">
 						<label for="user-role" class="form-label">Quyền <span
 							class="text-danger">*</span></label> <select
 							class="form-select ${not empty requestScope.violations.roleViolations
@@ -186,13 +167,13 @@
 							<option ${empty requestScope.user.role ? 'selected' : '' }
 								disabled>Chọn một quyền...</option>
 							<option value="ADMIN"
-								${requestScope.user.role=='ADMIN' ? 'selected' : '' }>Quản
+								${requestScope.user.role != null and requestScope.user.role.code == 'ADMIN' ? 'selected' : '' }>Quản
 								trị viên</option>
 							<option value="EMPLOYEE"
-								${requestScope.user.role=='EMPLOYEE' ? 'selected' : '' }>Nhân
+								${requestScope.user.role != null and requestScope.user.role.code == 'EMPLOYEE' ? 'selected' : '' }>Nhân
 								viên</option>
 							<option value="CUSTOMER"
-								${requestScope.user.role=='CUSTOMER' ? 'selected' : '' }>Khách
+								${requestScope.user.role != null and requestScope.user.role.code == 'CUSTOMER' ? 'selected' : '' }>Khách
 								hàng</option>
 						</select>
 						<c:if test="${not empty requestScope.violations.roleViolations}">

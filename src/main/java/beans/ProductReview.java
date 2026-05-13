@@ -13,7 +13,7 @@ public class ProductReview {
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
 
-	private User user;
+	private beans.User user;
 	private Product product;
 
 	public ProductReview() {
@@ -99,7 +99,7 @@ public class ProductReview {
 		return user;
 	}
 
-	public void setUser(User user) {
+	public void setUser(beans.User user) {
 		this.user = user;
 	}
 

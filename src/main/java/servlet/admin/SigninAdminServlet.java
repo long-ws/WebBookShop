@@ -13,13 +13,14 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import service.UserService;
+import service.UserServiceImpl;
 import utils.HashingUtils;
 
 @WebServlet(name = "SigninAdminServlet", value = "/admin/signin")
 public class SigninAdminServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
-	private final UserService userService = new UserService();
+	private final UserService userService = new UserServiceImpl();
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -67,7 +68,7 @@ public class SigninAdminServlet extends HttpServlet {
 		User userFromServer = null;
 		if (violations.get("usernameViolations").isEmpty()) {
 			try {
-				userFromServer = userService.getByUsername(username);
+				userFromServer = userService.getUserEntityByUsername(username);
 				if (userFromServer == null) {
 					violations.get("usernameViolations").add("Tên đăng nhập không tồn tại");
 				}
@@ -78,8 +79,8 @@ public class SigninAdminServlet extends HttpServlet {
 		}
 
 		if (userFromServer != null && violations.get("passwordViolations").isEmpty()) {
-			String hashedInputPassword = HashingUtils.hash(password);
-			if (!hashedInputPassword.equals(userFromServer.getPassword())) {
+			String userPasswordHash = userFromServer.getPasswordHash();
+			if (userPasswordHash == null || !HashingUtils.verify(password, userPasswordHash)) {
 				violations.get("passwordViolations").add("Mật khẩu không đúng");
 			}
 		}
@@ -87,8 +88,8 @@ public class SigninAdminServlet extends HttpServlet {
 		int totalViolations = violations.values().stream().mapToInt(List::size).sum();
 
 		if (totalViolations == 0 && userFromServer != null) {
-			if ("ADMIN".equals(userFromServer.getRole()) || "EMPLOYEE".equals(userFromServer.getRole())) {
-
+			String roleCode = userFromServer.getRole() != null ? userFromServer.getRole().getCode() : null;
+			if ("ADMIN".equals(roleCode) || "EMPLOYEE".equals(roleCode)) {
 				request.getSession().setAttribute("currentUser", userFromServer);
 				response.sendRedirect(request.getContextPath() + "/admin");
 				return;

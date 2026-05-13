@@ -15,13 +15,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import service.ProductReviewService;
 import service.ProductService;
 import service.UserService;
+import service.UserServiceImpl;
 
 @WebServlet(name = "ProductReviewManagerServlet", value = "/admin/reviewManager")
 public class ProductReviewManagerServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
 	private final ProductReviewService productReviewService = new ProductReviewService();
-	private final UserService userService = new UserService();
+	private final UserService userService = new UserServiceImpl();
 	private final ProductService productService = new ProductService();
 
 	private static final int PRODUCT_REVIEWS_PER_PAGE = 5;

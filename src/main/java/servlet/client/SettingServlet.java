@@ -3,6 +3,9 @@ package servlet.client;
 import java.io.IOException;
 
 import beans.User;
+import beans.common.Gender;
+import dto.AdminUserDetailDTO;
+import dto.UserCreateUpdateFormDTO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -10,87 +13,73 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import service.UserService;
+import service.UserServiceImpl;
 
 @WebServlet(name = "SettingServlet", value = "/setting")
 public class SettingServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
-    private final UserService userService = new UserService();
+	private final UserService userService = new UserServiceImpl();
 
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        HttpSession session = request.getSession();
-        User user = (User) session.getAttribute("currentUser");
-        if (user != null) {
-            request.setAttribute("user", user);
-        }
-        request.getRequestDispatcher("WEB-INF/views/settingView.jsp").forward(request, response);
-    }
+	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		HttpSession session = request.getSession();
+		User user = (User) session.getAttribute("currentUser");
+		if (user != null) {
+			AdminUserDetailDTO detail = userService.getUserById(user.getId());
+			if (detail != null) {
+				UserCreateUpdateFormDTO form = userService.toFormDTO(detail);
+				request.setAttribute("user", form);
+			}
+		}
+		request.getRequestDispatcher("WEB-INF/views/settingView.jsp").forward(request, response);
+	}
 
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        HttpSession session = request.getSession();
-        User currentUser = (User) session.getAttribute("currentUser");
-        if (currentUser == null) {
-            response.sendRedirect(request.getContextPath() + "/signin");
-            return;
-        }
+	@Override
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		HttpSession session = request.getSession();
+		User currentUser = (User) session.getAttribute("currentUser");
+		if (currentUser == null) {
+			response.sendRedirect(request.getContextPath() + "/signin");
+			return;
+		}
 
-        // Lấy dữ liệu từ form
-        String username = request.getParameter("username");
-        String fullname = request.getParameter("fullname");
-        String email = request.getParameter("email");
-        String phoneNumber = request.getParameter("phoneNumber");
-        String genderStr = request.getParameter("gender");
-        String address = request.getParameter("address");
+		UserCreateUpdateFormDTO dto = new UserCreateUpdateFormDTO();
+		dto.setId(currentUser.getId());
+		dto.setUsername(request.getParameter("username"));
+		dto.setFullname(request.getParameter("fullname"));
+		dto.setEmail(request.getParameter("email"));
+		dto.setPhoneNumber(request.getParameter("phoneNumber"));
+		String genderStr = request.getParameter("gender");
+		if (genderStr != null) {
+			try {
+				int genderId = Integer.parseInt(genderStr);
+				Gender gender = new Gender();
+				gender.setId(genderId);
+				dto.setGender(gender);
+			} catch (Exception e) {
+			}
+		}
 
-        int gender = 0;
-        try {
-            gender = Integer.parseInt(genderStr);
-        } catch (NumberFormatException e) {
-            // giữ gender = 0 nếu không hợp lệ
-        }
+		UserCreateUpdateFormDTO result = userService.updateUser(dto);
 
-        // Kiểm tra username đã tồn tại chưa (nếu người dùng đổi username)
-        User userWithNewUsername = null;
-        if (!currentUser.getUsername().equals(username)) {
-            try {
-                userWithNewUsername = userService.getByUsername(username);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+		if (result.hasErrors()) {
+			request.setAttribute("errors", result.getErrors());
+			request.setAttribute("user", dto);
+			request.setAttribute("errorMessage", "Vui lòng kiểm tra lại thông tin");
+		} else {
+			User updatedUser = userService.getById(dto.getId());
+			if (updatedUser != null) {
+				session.setAttribute("currentUser", updatedUser);
+			}
+			request.setAttribute("successMessage", "Cập nhật thành công!");
+			AdminUserDetailDTO detail = userService.getUserById(dto.getId());
+			if (detail != null) {
+				UserCreateUpdateFormDTO form = userService.toFormDTO(detail);
+				request.setAttribute("user", form);
+			}
+		}
 
-        if (userWithNewUsername != null) {
-            // Username đã tồn tại
-            request.setAttribute("errorMessage", "Tên đăng nhập đã tồn tại!");
-            request.setAttribute("user", currentUser);
-        } else {
-            // Tạo đối tượng user mới với dữ liệu mới
-            User updatedUser = new User();
-            updatedUser.setId(currentUser.getId());
-            updatedUser.setUsername(username);
-            updatedUser.setPassword(currentUser.getPassword()); // giữ mật khẩu cũ
-            updatedUser.setFullname(fullname);
-            updatedUser.setEmail(email);
-            updatedUser.setPhoneNumber(phoneNumber);
-            updatedUser.setGender(gender);
-            updatedUser.setAddress(address);
-            updatedUser.setRole(currentUser.getRole()); // Giữ nguyên role hiện tại của người dùng
-            //updatedUser.setRole("CUSTOMER"); // giữ role
-
-            try {
-                userService.update(updatedUser);
-                request.setAttribute("successMessage", "Cập nhật thành công!");
-                request.setAttribute("user", updatedUser);
-                session.setAttribute("currentUser", updatedUser);
-            } catch (Exception e) {
-                e.printStackTrace();
-                request.setAttribute("errorMessage", "Cập nhật không thành công!");
-                request.setAttribute("user", currentUser);
-            }
-        }
-
-        request.getRequestDispatcher("WEB-INF/views/settingView.jsp").forward(request, response);
-    }
+		request.getRequestDispatcher("WEB-INF/views/settingView.jsp").forward(request, response);
+	}
 }

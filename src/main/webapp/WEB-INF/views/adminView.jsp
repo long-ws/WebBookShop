@@ -23,7 +23,7 @@
 						<div class="row">
 							<c:if
 								test="${sessionScope.currentUser != null 
-           and sessionScope.currentUser.role == 'ADMIN'}">
+           and sessionScope.currentUser.role.code == 'ADMIN'}">
 
 								<div class="col-6 col-lg-3">
 									<figure class="card">

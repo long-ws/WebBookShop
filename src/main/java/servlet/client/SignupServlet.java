@@ -6,14 +6,14 @@ import java.util.Map;
 
 import beans.common.Gender;
 import beans.common.Role;
-import dto.UserFormDTO;
+import dto.UserCreateUpdateFormDTO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import service.user.UserService;
-import service.user.impl.UserServiceImpl;
+import service.UserService;
+import service.UserServiceImpl;
 
 
 @WebServlet(name = "SignupServlet", value = "/signup")
@@ -107,7 +107,7 @@ public class SignupServlet extends HttpServlet {
         }
 
         try {
-            UserFormDTO dto = new UserFormDTO();
+            UserCreateUpdateFormDTO dto = new UserCreateUpdateFormDTO();
             dto.setUsername(username);
             dto.setPassword(password);
             dto.setFullname(fullname);
@@ -122,7 +122,7 @@ public class SignupServlet extends HttpServlet {
             roleObj.setCode("CUSTOMER");
             dto.setRole(roleObj);
             
-            UserFormDTO result = userService.createUser(dto);
+            UserCreateUpdateFormDTO result = userService.createUser(dto);
             
             if (result.hasErrors()) {
                 for (Map.Entry<String, String> entry : result.getErrors().entrySet()) {

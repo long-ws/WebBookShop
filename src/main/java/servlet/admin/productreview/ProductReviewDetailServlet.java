@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import service.ProductReviewService;
 import service.ProductService;
 import service.UserService;
+import service.UserServiceImpl;
 import utils.TextUtils;
 
 @WebServlet(name = "ProductReviewDetailServlet", value = "/admin/reviewManager/detail")
@@ -20,7 +21,7 @@ public class ProductReviewDetailServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
     private final ProductReviewService productReviewService = new ProductReviewService();
-    private final UserService userService = new UserService();
+    private final UserService userService = new UserServiceImpl();
     private final ProductService productService = new ProductService();
 
     @Override

@@ -2,19 +2,20 @@ package servlet.admin.user;
 
 import java.io.IOException;
 
-import beans.User;
+import dto.AdminUserDetailDTO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import service.UserService;
+import service.UserServiceImpl;
 
 @WebServlet(name = "UserDetailServlet", value = "/admin/userManager/detail")
 public class UserDetailServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
-	private final UserService userService = new UserService();
+	private final UserService userService = new UserServiceImpl();
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -28,12 +29,7 @@ public class UserDetailServlet extends HttpServlet {
 			return;
 		}
 
-		User user = null;
-		try {
-			user = userService.getById(id);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		AdminUserDetailDTO user = userService.getUserById(id);
 
 		if (user != null) {
 			request.setAttribute("user", user);

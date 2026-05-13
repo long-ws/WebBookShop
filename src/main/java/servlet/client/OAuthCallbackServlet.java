@@ -1,7 +1,7 @@
 package servlet.client;
 
+import beans.User;
 import beans.oauth.OAuthUser;
-import beans.user.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;

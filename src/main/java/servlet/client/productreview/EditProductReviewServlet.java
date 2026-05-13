@@ -13,13 +13,14 @@ import jakarta.servlet.http.HttpSession;
 import service.ProductReviewService;
 import service.ProductService;
 import service.UserService;
+import service.UserServiceImpl;
 
 @WebServlet(name = "EditProductReviewServlet", value = "/editProductReview")
 public class EditProductReviewServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
     private final ProductReviewService productReviewService = new ProductReviewService();
-    private final UserService userService = new UserService();
+    private final UserService userService = new UserServiceImpl();
     private final ProductService productService = new ProductService();
 
     @Override

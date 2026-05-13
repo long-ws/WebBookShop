@@ -75,20 +75,15 @@
 												<div class="form-check d-inline-block me-4">
 													<input class="form-check-input" type="radio" name="gender"
 														id="radioGender1" value="0"
-														${requestScope.user.gender==0 ? 'checked' : '' }>
+														${requestScope.user.gender != null and requestScope.user.gender.id == 0 ? 'checked' : '' }>
 													<label class="form-check-label" for="radioGender1">Nam</label>
 												</div>
 												<div class="form-check d-inline-block">
 													<input class="form-check-input" type="radio" name="gender"
 														id="radioGender2" value="1"
-														${requestScope.user.gender==1 ? 'checked' : '' }>
+														${requestScope.user.gender != null and requestScope.user.gender.id == 1 ? 'checked' : '' }>
 													<label class="form-check-label" for="radioGender2">Nữ</label>
 												</div>
-											</div>
-											<div class="mb-3">
-												<label for="inputAddress" class="form-label">Địa chỉ</label>
-												<input type="text" class="form-control" id="inputAddress"
-													name="address" value="${requestScope.user.address}">
 											</div>
 											<button type="submit" class="btn btn-primary w-100">Cập
 												nhật thông tin mới</button>

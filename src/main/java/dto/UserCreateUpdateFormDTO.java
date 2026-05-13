@@ -7,7 +7,7 @@ import beans.common.Role;
 import java.util.HashMap;
 import java.util.Map;
 
-public class UserFormDTO {
+public class UserCreateUpdateFormDTO {
 	private Long id;
 	private String username;
 	private String password;
@@ -21,7 +21,7 @@ public class UserFormDTO {
 
 	private Map<String, String> errors = new HashMap<>();
 
-	public UserFormDTO() {
+	public UserCreateUpdateFormDTO() {
 	}
 
 	public boolean hasErrors() {
@@ -88,7 +88,6 @@ public class UserFormDTO {
 		this.phoneNumber = phoneNumber;
 	}
 
-	// New getters/setters for object references
 	public Gender getGender() {
 		return gender;
 	}

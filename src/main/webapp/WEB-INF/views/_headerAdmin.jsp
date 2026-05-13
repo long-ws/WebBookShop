@@ -48,7 +48,7 @@
 			style="border-collapse: separate; border-spacing: 5px; width: 100%;">
 			<tr>
 				<!-- Quản lý người dùng -->
-				<c:if test="${sessionScope.currentUser.role == 'ADMIN'}">
+				<c:if test="${sessionScope.currentUser.role.code == 'ADMIN'}">
 					<td
 						bgcolor="${fn:startsWith(servletPath, '/admin/userManager') ? '#0d6efd' : ''}"
 						align="center"><a
