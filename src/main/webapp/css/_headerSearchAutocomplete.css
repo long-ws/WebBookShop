@@ -1,0 +1,93 @@
+.search-autocomplete-wrapper {
+    position: relative;
+    width: 100%;
+}
+.search-autocomplete-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 1000;
+    max-height: 420px;
+    overflow-y: auto;
+    display: none;
+}
+.search-autocomplete-dropdown.show {
+    display: block;
+}
+.search-autocomplete-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    text-decoration: none;
+    color: #212529;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+.search-autocomplete-item:last-child {
+    border-bottom: none;
+}
+.search-autocomplete-item:hover {
+    background-color: #f8f9fa;
+}
+.search-autocomplete-item img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+.search-autocomplete-info {
+    flex: 1;
+    min-width: 0;
+}
+.search-autocomplete-name {
+    font-weight: 500;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+.search-autocomplete-author {
+    font-size: 0.75rem;
+    color: #6c757d;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.search-autocomplete-price {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #ee4d2d;
+    white-space: nowrap;
+    margin-left: 10px;
+}
+.search-autocomplete-empty {
+    padding: 12px;
+    text-align: center;
+    color: #6c757d;
+    font-size: 0.85rem;
+}
+.search-autocomplete-footer {
+    padding: 8px 12px;
+    background: #f8f9fa;
+    text-align: center;
+    border-top: 1px solid #dee2e6;
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+mark.search-highlight {
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 0 2px;
+    border-radius: 2px;
+    font-weight: 600;
+}

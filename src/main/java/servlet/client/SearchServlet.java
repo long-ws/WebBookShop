@@ -1,10 +1,14 @@
 package servlet.client;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
 import beans.Product;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import dto.SearchResponse;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -16,74 +20,92 @@ import service.ProductService;
 public class SearchServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
-    private final ProductService productService = new ProductService();
+	private final ProductService productService = new ProductService();
+	private final Gson gson = new GsonBuilder().create();
 
-    private static final int PRODUCTS_PER_PAGE = 12;
+	private static final int PRODUCTS_PER_PAGE = 12;
 
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String queryStr = request.getParameter("q");
+	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		processSearchRequest(request, response);
+	}
 
-        if (queryStr != null && !queryStr.trim().isEmpty()) {
-            queryStr = queryStr.trim();
+	@Override
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		processSearchRequest(request, response);
+	}
 
-            // Lấy tổng số sản phẩm
-            int totalProducts = 0;
-            try {
-                totalProducts = productService.countByQuery(queryStr);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+	private void processSearchRequest(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		String queryStr = request.getParameter("q");
+		String ajaxParam = request.getParameter("ajax");
+		boolean isAjax = "true".equalsIgnoreCase(ajaxParam);
 
-            int totalPages = totalProducts / PRODUCTS_PER_PAGE;
-            if (totalProducts % PRODUCTS_PER_PAGE != 0) {
-                totalPages += 1;
-            }
+		if (queryStr == null || queryStr.trim().isEmpty()) {
+			if (isAjax) {
+				sendJsonResponse(response, new SearchResponse());
+				return;
+			}
+			response.sendRedirect(request.getContextPath() + "/");
+			return;
+		}
 
-            // Lấy trang hiện tại
-            int page = 1;
-            try {
-                String pageParam = request.getParameter("page");
-                if (pageParam != null) {
-                    page = Integer.parseInt(pageParam);
-                }
-            } catch (NumberFormatException e) {
-                page = 1;
-            }
-            if (page < 1 || page > totalPages) {
-                page = 1;
-            }
+		queryStr = queryStr.trim();
 
-            int offset = (page - 1) * PRODUCTS_PER_PAGE;
+		int page = 1;
+		try {
+			String pageParam = request.getParameter("page");
+			if (pageParam != null && !pageParam.trim().isEmpty()) {
+				page = Math.max(1, Integer.parseInt(pageParam.trim()));
+			}
+		} catch (NumberFormatException e) {
+			page = 1;
+		}
 
-            // Lấy danh sách sản phẩm
-            List<Product> products = new ArrayList<>();
-            try {
-                products = productService.getByQuery(queryStr, PRODUCTS_PER_PAGE, offset);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+		int totalProducts = 0;
+		List<Product> products = new ArrayList<>();
 
-            for (Product product : products) {
-                String name = product.getName();
-                product.setName(name);
-            }
+		try {
+			totalProducts = productService.countByAdvancedQuery(queryStr);
 
-            request.setAttribute("query", queryStr);
-            request.setAttribute("totalProducts", totalProducts);
-            request.setAttribute("totalPages", totalPages);
-            request.setAttribute("page", page);
-            request.setAttribute("products", products);
+			int totalPages = (totalProducts + PRODUCTS_PER_PAGE - 1) / PRODUCTS_PER_PAGE;
+			if (totalPages == 0)
+				totalPages = 1;
+			page = Math.min(page, totalPages);
 
-            request.getRequestDispatcher("/WEB-INF/views/searchView.jsp").forward(request, response);
-        } else {
-            // Nếu query rỗng thì redirect về trang chủ
-            response.sendRedirect(request.getContextPath() + "/");
-        }
-    }
+			int offset = (page - 1) * PRODUCTS_PER_PAGE;
+			products = productService.getByAdvancedQuery(queryStr, PRODUCTS_PER_PAGE, offset);
 
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        doGet(request, response);
-    }
+		} catch (Exception e) {
+			System.err.println("Error during search operation: " + e.getMessage());
+			e.printStackTrace();
+			totalProducts = 0;
+			products = new ArrayList<>();
+		}
+
+		if (isAjax) {
+			SearchResponse searchResponse = new SearchResponse(totalProducts, products, queryStr);
+			sendJsonResponse(response, searchResponse);
+			return;
+		}
+
+		request.setAttribute("query", queryStr);
+		request.setAttribute("totalProducts", totalProducts);
+		int calcTotalPages = (totalProducts + PRODUCTS_PER_PAGE - 1) / (PRODUCTS_PER_PAGE == 0 ? 1 : PRODUCTS_PER_PAGE);
+		request.setAttribute("totalPages", calcTotalPages);
+		request.setAttribute("page", page);
+		request.setAttribute("products", products);
+
+		request.getRequestDispatcher("/WEB-INF/views/searchView.jsp").forward(request, response);
+	}
+
+	private void sendJsonResponse(HttpServletResponse response, SearchResponse searchResponse) throws IOException {
+		response.setContentType("application/json");
+		response.setCharacterEncoding("UTF-8");
+		response.setStatus(HttpServletResponse.SC_OK);
+		PrintWriter out = response.getWriter();
+		gson.toJson(searchResponse, out);
+	}
 }
