@@ -74,7 +74,7 @@ public class CreateCategoryServlet extends HttpServlet {
 
 		if (totalViolations == 0) {
 			try {
-				String imageName = ImageUtils.upload(request);
+				String imageName = ImageUtils.uploadSingle(request);
 				if (imageName != null) {
 					category.setImageName(imageName);
 				}
