@@ -2,7 +2,10 @@ package service;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import beans.Cart;
 import beans.CartItem;
@@ -80,5 +83,31 @@ public class CheckoutService {
         p.setVnpTxnRef(VNPConfig.getRandomCode(orderId, userId, now));
 
         return p;
+    }
+    public boolean hasEnoughQty(long cartId) {
+        Cart cart = cartDAO.getById(cartId);
+        if (cart == null) throw new RuntimeException("Giỏ hàng không tồn tại");
+
+        List<CartItem> items = cartItemDAO.getByCartId(cartId);
+        if (items == null || items.isEmpty()) return true;
+
+        List<Long> productIds = new ArrayList<>();
+        for (CartItem ci : items) {
+            productIds.add(ci.getProductId());
+        }
+
+        Map<Long, Integer> map = productDAO.getQty(productIds);
+        for (CartItem ci : items) {
+            long pId = ci.getProductId();
+            int cartQty = ci.getQuantity();
+            int productQty = map.getOrDefault(pId, 0);
+
+            if (cartQty > productQty) {
+                return false;
+            }else{
+                map.put(pId, cartQty);
+            }
+        }
+        return productDAO.updateQty(map);
     }
 }

@@ -7,7 +7,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import beans.Product;
 import dao.ProductDAO;
@@ -887,4 +890,62 @@ public class ProductDAO implements DAO<Product> {
 		}
 		return list;
 	}
+    public Map<Long, Integer> getQty(List<Long> productIds){
+        Map<Long, Integer> map = new HashMap<>();
+        if (productIds == null || productIds.isEmpty()) {
+            return map;
+        }
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < productIds.size(); i++) {
+            sb.append("?");
+            if (i < productIds.size() - 1) {
+                sb.append(", ");
+            }
+        }
+        String placeholders = sb.toString();
+        String sql = "SELECT id, quantity FROM products WHERE id IN (" + placeholders + ")";
+        try(Connection con = DBConnection.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)){
+            for (int i = 0; i < productIds.size(); i++) {
+                ps.setLong(i + 1, productIds.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    long id = rs.getLong("id");
+                    int qty = rs.getInt("stock_quantity");
+                    map.put(id, qty);
+                }
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        return map;
+    }
+    public boolean updateQty(Map<Long, Integer> map) {
+        if (map == null || map.isEmpty()) return true;
+        String sql = "UPDATE products SET quantity = quantity - ? WHERE id = ? AND quantity >= ?";
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            con.setAutoCommit(false);
+
+            for (Map.Entry<Long, Integer> entry : map.entrySet()) {
+                long productId = entry.getKey();
+                int qtyToDecrease = entry.getValue();
+
+                ps.setInt(1, qtyToDecrease);
+                ps.setLong(2, productId);
+                ps.setInt(3, qtyToDecrease);
+
+                ps.addBatch();
+            }
+            int[] results = ps.executeBatch();
+            con.commit();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
