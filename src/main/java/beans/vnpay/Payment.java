@@ -10,6 +10,7 @@ public class Payment implements Serializable {
     private int status;
     private double amount;
     private Timestamp createdAt;
+    private Timestamp expiredAt;
     private String vnpTxnRef;
 
     private String vnpTransactionNo;
@@ -108,5 +109,13 @@ public class Payment implements Serializable {
     }
     public long getVnpAmount(){
         return (long) amount * 100;
+    }
+
+    public Timestamp getExpiredAt() {
+        return expiredAt;
+    }
+
+    public void setExpiredAt(Timestamp expiredAt) {
+        this.expiredAt = expiredAt;
     }
 }

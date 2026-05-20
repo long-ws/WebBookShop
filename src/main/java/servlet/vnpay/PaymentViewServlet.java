@@ -28,7 +28,7 @@ public class PaymentViewServlet extends HttpServlet {
             resp.sendRedirect(req.getContextPath() + "/cart?error=not_found");
             return;
         }
-        User u =  (User) req.getSession().getAttribute("user");
+        User u =  (User) req.getSession().getAttribute(constants.SessionConstants.CURRENT_USER);
         if(u==null || u.getId() != p.getUserId()){
             resp.sendRedirect(req.getContextPath() + "/error");
             return;

@@ -60,7 +60,7 @@
                     </div>
 
                     <div class="d-grid gap-2">
-                        <a href="${pageContext.request.contextPath}/orderDetail?id=${payment.orderId}}" class="btn btn-primary btn-lg">
+                        <a href="${pageContext.request.contextPath}/orderDetail?id=${payment.orderId}" class="btn btn-primary btn-lg">
                             Xem lịch sử đơn hàng
                         </a>
                         <a href="${pageContext.request.contextPath}/" class="btn btn-link text-muted">

@@ -903,7 +903,7 @@ public class ProductDAO implements DAO<Product> {
             }
         }
         String placeholders = sb.toString();
-        String sql = "SELECT id, quantity FROM products WHERE id IN (" + placeholders + ")";
+        String sql = "SELECT id, quantity FROM product WHERE id IN (" + placeholders + ")";
         try(Connection con = DBConnection.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql)){
             for (int i = 0; i < productIds.size(); i++) {
@@ -923,7 +923,7 @@ public class ProductDAO implements DAO<Product> {
     }
     public boolean updateQty(Map<Long, Integer> map) {
         if (map == null || map.isEmpty()) return true;
-        String sql = "UPDATE products SET quantity = quantity - ? WHERE id = ? AND quantity >= ?";
+        String sql = "UPDATE product SET quantity = quantity - ? WHERE id = ? AND quantity >= ?";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
