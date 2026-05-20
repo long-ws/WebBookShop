@@ -55,13 +55,15 @@ public class CheckoutService {
 
         double totalPrice = cart.getTotalPrice() + deliveryPrice;
 
+        Timestamp now =  new Timestamp(System.currentTimeMillis());
+
         Order o = new Order();
         o.setUserId(userId);
         o.setStatus(1);
         o.setDeliveryMethod(deliveryMethod);
         o.setDeliveryPrice(deliveryPrice);
         o.setTotalPrice(totalPrice);
-        o.setCreatedAt(LocalDateTime.now());
+        o.setCreatedAt(now.toLocalDateTime());
 
         long orderId = orderDAO.insert(o);
 
@@ -73,12 +75,12 @@ public class CheckoutService {
 
         cartDAO.delete(cartId);
 
-        Timestamp now = new Timestamp(System.currentTimeMillis());
         Payment p = new Payment();
         p.setOrderId(orderId);
         p.setUserId(userId);
         p.setStatus(0);
         p.setCreatedAt(now);
+        p.setExpiredAt(VNPConfig.getExpireTime(now));
         p.setAmount(totalPrice);
         p.setVnpTxnRef(VNPConfig.getRandomCode(orderId, userId, now));
 

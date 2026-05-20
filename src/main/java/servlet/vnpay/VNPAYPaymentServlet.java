@@ -50,7 +50,7 @@ public class VNPAYPaymentServlet extends HttpServlet {
             vnp_Params.put("vnp_IpAddr", VNPConfig.getIpAddress(req));
 
             vnp_Params.put("vnp_CreateDate", VNPConfig.formatVnpayDate(p.getCreatedAt()));
-            vnp_Params.put("vnp_ExpireDate", VNPConfig.getVnpayExpireDate(p.getCreatedAt()));
+            vnp_Params.put("vnp_ExpireDate", VNPConfig.getFormatedExpireTime(p.getCreatedAt()));
 
             String vnp_SecureHash = VNPConfig.hashAllFields(vnp_Params);
 
