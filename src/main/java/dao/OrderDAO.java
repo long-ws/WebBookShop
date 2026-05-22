@@ -265,4 +265,51 @@ public class OrderDAO implements DAO<Order> {
 			order.setUpdatedAt(updatedAt.toLocalDateTime());
 		return order;
 	}
+    public boolean cancelOrder(long oId, long pId){
+        String sql = "UPDATE orders o " +
+                "JOIN payments p ON o.id = p.order_id " +
+                "SET o.status = 3, p.status = 2, p.is_expired = 1 " +
+                "WHERE o.id = ? AND p.id = ?";
+        try(Connection con =  DBConnection.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, oId);
+            ps.setLong(2, pId);
+            int rowsAffected = ps.executeUpdate();
+            return rowsAffected > 0;
+        }catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+    public boolean checkUser(long oId, long uId){
+        String sql = "SELECT userId FROM orders WHERE id = ?";
+        try(Connection con = DBConnection.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql);
+        ){
+            ps.setLong(1, oId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                return rs.getLong("userId") == uId;
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        return false;
+    }
+    public boolean rebuy(long uId, long oId) {
+        String sql = "INSERT INTO cart_item (cartId, productId, quantity, createdAt) " +
+                "SELECT (SELECT id FROM cart WHERE userId = ?), oi.productId, oi.quantity, NOW()" +
+                "FROM order_item oi " +
+                "WHERE oi.orderId = ? " +
+                "ON DUPLICATE KEY UPDATE quantity =VALUES(quantity), updatedAt = NOW()";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, uId);
+            ps.setLong(2, oId);
+            int rowsAffected = ps.executeUpdate();
+            return rowsAffected > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

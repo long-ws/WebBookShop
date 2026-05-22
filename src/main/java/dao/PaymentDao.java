@@ -87,7 +87,7 @@ public class PaymentDao {
     }
     public Payment getPaymentByOrderId(long oId) {
         String sql = "SELECT id, order_id, user_id, vnp_TxnRef, amount, status, created_at, " +
-                "expired_at, vnp_ResponseCode, vnp_TransactionNo, bank_code, pay_date " +
+                "expired_at, vnp_ResponseCode, vnp_TransactionNo, bank_code, pay_date, is_expired " +
                 "FROM payments WHERE order_id = ?";
 
         try (Connection conn = DBConnection.getConnection();
@@ -110,6 +110,41 @@ public class PaymentDao {
                     p.setVnpTransactionNo(rs.getString("vnp_TransactionNo"));
                     p.setBankCode(rs.getString("bank_code"));
                     p.setPayDate(rs.getTimestamp("pay_date"));
+                    p.setExpired(rs.getBoolean("is_expired"));
+                    return p;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    public Payment getPaymentById(long id) {
+        String sql = "SELECT id, order_id, user_id, vnp_TxnRef, amount, status, created_at, " +
+                "expired_at, vnp_ResponseCode, vnp_TransactionNo, bank_code, pay_date, is_expired " +
+                "FROM payments WHERE id = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setLong(1, id);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Payment p = new Payment();
+                    p.setId(rs.getLong("id"));
+                    p.setOrderId(rs.getLong("order_id"));
+                    p.setUserId(rs.getLong("user_id"));
+                    p.setVnpTxnRef(rs.getString("vnp_TxnRef"));
+                    p.setAmount(rs.getDouble("amount"));
+                    p.setStatus(rs.getInt("status"));
+                    p.setCreatedAt(rs.getTimestamp("created_at"));
+                    p.setExpiredAt(rs.getTimestamp("expired_at"));
+                    p.setVnpResponseCode(rs.getString("vnp_ResponseCode"));
+                    p.setVnpTransactionNo(rs.getString("vnp_TransactionNo"));
+                    p.setBankCode(rs.getString("bank_code"));
+                    p.setPayDate(rs.getTimestamp("pay_date"));
+                    p.setExpired(rs.getBoolean("is_expired"));
                     return p;
                 }
             }
@@ -121,9 +156,9 @@ public class PaymentDao {
     public boolean isPaymentExpired(long id) {
         String sqlCheck = "SELECT p.expired_at, p.order_id FROM payments p " +
                 "LEFT JOIN orders o ON o.id = p.order_id " +
-                "WHERE (p.id = ? OR o.id = ?) AND o.status = 1";
+                "WHERE (p.id = ? OR o.id = ?) AND p.status = 0";
 
-        String sqlUpdatePayment = "UPDATE payments SET status = 2 WHERE order_id = ?";
+        String sqlUpdatePayment = "UPDATE payments SET status = 2, is_expired = 1 WHERE order_id = ?";
         String sqlUpdateOrder = "UPDATE orders SET status = 3 WHERE id = ?";
 
         Connection con = null;

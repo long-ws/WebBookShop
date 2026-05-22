@@ -28,4 +28,7 @@ public class PaymentService {
     public boolean isPaymentExpired(long oId){
         return dao.isPaymentExpired(oId);
     }
+    public Payment getPaymentById(long id){
+        return dao.getPaymentById(id);
+    }
 }

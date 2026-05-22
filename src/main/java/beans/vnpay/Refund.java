@@ -3,22 +3,24 @@ package beans.vnpay;
 import java.io.Serializable;
 import java.sql.Timestamp;
 
-public class Payment implements Serializable {
+public class Refund implements Serializable {
     private long id;
     private long orderId;
     private long userId;
-    private int status;
-    private double amount;
-    private Timestamp createdAt;
-    private Timestamp expiredAt;
-    private String vnpTxnRef;
-    private boolean expired;
 
-    private String vnpTransactionNo;
+    private Timestamp createAt;
+    private String vnpRequestId;
+    private String vnpTransactionType;
+    private String vnpTxnRef;
+    private double amount;
+
     private String vnpResponseCode;
     private String bankCode;
+    private String vnpTransactionNo;
     private Timestamp payDate;
-    public Payment() {
+    private String vnpTransactionStatus;
+
+    public Refund() {
     }
 
     public long getId() {
@@ -45,20 +47,20 @@ public class Payment implements Serializable {
         this.userId = userId;
     }
 
-    public int getStatus() {
-        return status;
+    public String getVnpRequestId() {
+        return vnpRequestId;
     }
 
-    public void setStatus(int status) {
-        this.status = status;
+    public void setVnpRequestId(String vnpRequestId) {
+        this.vnpRequestId = vnpRequestId;
     }
 
-    public Timestamp getCreatedAt() {
-        return createdAt;
+    public String getVnpTransactionType() {
+        return vnpTransactionType;
     }
 
-    public void setCreatedAt(Timestamp createdAt) {
-        this.createdAt = createdAt;
+    public void setVnpTransactionType(String vnpTransactionType) {
+        this.vnpTransactionType = vnpTransactionType;
     }
 
     public String getVnpTxnRef() {
@@ -76,6 +78,9 @@ public class Payment implements Serializable {
     public void setAmount(double amount) {
         this.amount = amount;
     }
+    public long getVnpAmount(){
+        return (long) amount * 100;
+    }
 
     public String getVnpTransactionNo() {
         return vnpTransactionNo;
@@ -83,6 +88,14 @@ public class Payment implements Serializable {
 
     public void setVnpTransactionNo(String vnpTransactionNo) {
         this.vnpTransactionNo = vnpTransactionNo;
+    }
+
+    public Timestamp getCreateAt() {
+        return createAt;
+    }
+
+    public void setCreateAt(Timestamp createDate) {
+        this.createAt = createDate;
     }
 
     public String getVnpResponseCode() {
@@ -108,23 +121,12 @@ public class Payment implements Serializable {
     public void setPayDate(Timestamp payDate) {
         this.payDate = payDate;
     }
-    public long getVnpAmount(){
-        return (long) amount * 100;
+
+    public String getVnpTransactionStatus() {
+        return vnpTransactionStatus;
     }
 
-    public Timestamp getExpiredAt() {
-        return expiredAt;
-    }
-
-    public void setExpiredAt(Timestamp expiredAt) {
-        this.expiredAt = expiredAt;
-    }
-
-    public boolean isExpired() {
-        return expired;
-    }
-
-    public void setExpired(boolean expired) {
-        this.expired = expired;
+    public void setVnpTransactionStatus(String vnpTransactionStatus) {
+        this.vnpTransactionStatus = vnpTransactionStatus;
     }
 }

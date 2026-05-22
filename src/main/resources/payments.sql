@@ -11,7 +11,7 @@
  Target Server Version : 90100 (9.1.0)
  File Encoding         : 65001
 
- Date: 21/05/2026 02:49:03
+ Date: 22/05/2026 17:06:59
 */
 
 SET NAMES utf8mb4;
@@ -34,8 +34,9 @@ CREATE TABLE `payments`  (
   `vnp_ResponseCode` varchar(5) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `pay_date` timestamp NULL DEFAULT NULL,
   `bank_code` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+  `is_expired` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_vnp_TxnRef`(`vnp_TxnRef` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 28 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 45 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 SET FOREIGN_KEY_CHECKS = 1;

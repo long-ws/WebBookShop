@@ -71,9 +71,12 @@ public class CheckoutService {
             orderItemDAO.insert(new OrderItem(0L, orderId, ci.getProduct().getId(),
                     ci.getProduct().getPrice(), ci.getProduct().getDiscount(),
                     ci.getQuantity(), LocalDateTime.now(), null));
+            try{
+                cartItemDAO.delete(ci.getId());
+            }catch(Exception e){
+                e.printStackTrace();
+            }
         }
-
-        cartDAO.delete(cartId);
 
         Payment p = new Payment();
         p.setOrderId(orderId);
