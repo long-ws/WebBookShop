@@ -11,7 +11,7 @@
  Target Server Version : 90100 (9.1.0)
  File Encoding         : 65001
 
- Date: 21/05/2026 02:48:46
+ Date: 22/05/2026 17:06:49
 */
 
 SET NAMES utf8mb4;
@@ -32,6 +32,6 @@ CREATE TABLE `orders`  (
   `updatedAt` datetime NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_orders_user`(`userId`) USING BTREE
-) ENGINE = MyISAM AUTO_INCREMENT = 61 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = FIXED;
+) ENGINE = MyISAM AUTO_INCREMENT = 78 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = FIXED;
 
 SET FOREIGN_KEY_CHECKS = 1;

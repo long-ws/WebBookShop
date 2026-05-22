@@ -130,6 +130,8 @@
             const paymentCard = document.getElementById("payment-card");
             const timeoutCard = document.getElementById("timeout-card");
 
+            const oId = "${payment.orderId}";
+
             const timer = setInterval(function () {
                 const now = new Date().getTime();
                 const remain = targetTime - now;
@@ -145,15 +147,37 @@
                 }
 
                 if (remain <= 0) {
+
                     clearInterval(timer);
 
                     if (paymentCard && timeoutCard) {
                         paymentCard.classList.add("d-none");
                         timeoutCard.classList.remove("d-none");
                     }
+                    updateExpiredPayment(oId);
                 }
             }, 1000);
+            function updateExpiredPayment(oId) {
+                fetch("${pageContext.request.contextPath}/updateExpiredPayment", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: "orderId=" + encodeURIComponent(id)
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            console.log("Success");
+                        } else {
+                            console.error("Error " + response.status);
+                        }
+                    })
+                    .catch(error => {
+                        console.error(error);
+                    });
+            }
         });
+
     </script>
 </c:if>
 </body>

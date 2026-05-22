@@ -1,6 +1,7 @@
 package servlet.client;
 
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.List;
 import beans.Order;
 import beans.OrderItem;
 import beans.Product;
+import beans.vnpay.Payment;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -15,7 +17,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import service.OrderItemService;
 import service.OrderService;
+import service.PaymentService;
 import service.ProductService;
+import servlet.vnpay.VNPConfig;
 
 @WebServlet(name = "OrderDetailServlet", value = "/orderDetail")
 public class OrderDetailServlet extends HttpServlet {
@@ -24,7 +28,7 @@ public class OrderDetailServlet extends HttpServlet {
     private final OrderService orderService = new OrderService();
     private final OrderItemService orderItemService = new OrderItemService();
     private final ProductService productService = new ProductService();
-
+    private final PaymentService  paymentService = new PaymentService();
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         long id = 0;
@@ -34,6 +38,7 @@ public class OrderDetailServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/");
             return;
         }
+        paymentService.isPaymentExpired(id);
 
         Order order = null;
         try {
@@ -71,7 +76,22 @@ public class OrderDetailServlet extends HttpServlet {
                     orderItem.setProduct(new Product());
                 }
             }
-
+            Payment p = null;
+            try{
+                p = paymentService.getPaymentByOrderId(id);
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+            if(p != null){
+                String vnpMessage = VNPConfig.getResponseMessage(p.getVnpResponseCode());
+                boolean isRetryAble = VNPConfig.isRetryAble(p.getVnpResponseCode());
+                request.setAttribute("payment", p);
+                request.setAttribute("isRetryAble",  isRetryAble);
+                request.setAttribute("vnpMessage", vnpMessage);
+            }else{
+                response.sendRedirect(request.getContextPath() + "/error");
+                return;
+            }
             request.setAttribute("order", order);
             request.setAttribute("createdAt", order.getCreatedAt().format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")));
             request.setAttribute("tempPrice", tempPrice);
@@ -81,27 +101,4 @@ public class OrderDetailServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/");
         }
     }
-
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        long id = Long.parseLong(request.getParameter("id"));
-        String action = request.getParameter("action");
-
-        if("requestCancel".equals(action)) {
-            // Chỉ đánh dấu trạng thái xác nhận, không hủy
-            request.setAttribute("confirmCancel", true);
-            doGet(request, response); // render lại trang
-        } else if("confirmCancel".equals(action)) {
-            try {
-                orderService.cancelOrder(id);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            response.sendRedirect(request.getContextPath() + "/orderDetail?id=" + id);
-        } else if("cancelCancel".equals(action)) {
-            // Hủy thao tác, quay về trạng thái ban đầu
-            doGet(request, response);
-        }
-    }
-
 }
