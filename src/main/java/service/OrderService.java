@@ -55,8 +55,8 @@ public class OrderService {
         return orderDAO.count();
     }
 
-    public boolean cancelOrder(long id) {
-        return orderDAO.cancelOrder(id);
+    public boolean cancelOrder(long oId, long pId) {
+        return orderDAO.cancelOrder(oId, pId);
     }
 
     public boolean confirm(long id) {
@@ -87,5 +87,11 @@ public class OrderService {
         }
 
         return totalPrice;
+    }
+    public boolean checkUser(long oId, long uId){
+        return orderDAO.checkUser(oId, uId);
+    }
+    public boolean rebuy(long uId, long oId){
+        return orderDAO.rebuy(uId, oId);
     }
 }

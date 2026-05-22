@@ -180,6 +180,14 @@ public class CartServlet extends HttpServlet {
             System.out.println("[CartServlet] Creating payment record...");
             boolean paymentCreated = paymentService.createPayment(p);
             System.out.println("[CartServlet] Payment created: " + paymentCreated);
+			long cartId = Long.parseLong(request.getParameter("cartId"));
+            if(checkoutService.hasEnoughQty(cartId)){
+                session.setAttribute("errorMessage", "Đặt hàng thất bại, sản phấm hết hàng!");
+                response.sendRedirect(request.getContextPath() + "/cart");
+                return;
+            }
+			int deliveryMethod = Integer.parseInt(request.getParameter("deliveryMethod"));
+			double deliveryPrice = Double.parseDouble(request.getParameter("deliveryPrice"));
 
             session.setAttribute("latestPayment", p);
             session.setAttribute("latestOrderId", p.getOrderId());
