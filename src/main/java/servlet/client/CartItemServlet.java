@@ -76,6 +76,9 @@ public class CartItemServlet extends HttpServlet {
             );
         }
 
+        int cartCount = cartService.countCartItemQuantityByUserId(userId);
+        request.getSession().setAttribute("cartCount", cartCount);
+
         response.sendRedirect(request.getContextPath() + "/cart");
     }
 
@@ -89,9 +92,17 @@ public class CartItemServlet extends HttpServlet {
             throw new IllegalStateException("Cart item not found");
         }
 
+        Cart cart = cartService.getById(item.getCartId());
+        long userId = cart != null ? cart.getUserId() : 0;
+
         item.setQuantity(quantity);
         item.setUpdatedAt(LocalDateTime.now());
         cartItemService.update(item);
+
+        if (userId > 0) {
+            int cartCount = cartService.countCartItemQuantityByUserId(userId);
+            request.getSession().setAttribute("cartCount", cartCount);
+        }
 
         response.sendRedirect(request.getContextPath() + "/cart");
     }
@@ -99,7 +110,19 @@ public class CartItemServlet extends HttpServlet {
     private void handleDelete(HttpServletRequest request, HttpServletResponse response) throws Exception {
 
         long cartItemId = Long.parseLong(request.getParameter("cartItemId"));
+
+        CartItem item = cartItemService.getById(cartItemId);
+        long userId = 0;
+        if (item != null) {
+            Cart cart = cartService.getById(item.getCartId());
+            userId = cart != null ? cart.getUserId() : 0;
+        }
+
         cartItemService.delete(cartItemId);
+        if (userId > 0) {
+            int cartCount = cartService.countCartItemQuantityByUserId(userId);
+            request.getSession().setAttribute("cartCount", cartCount);
+        }
 
         response.sendRedirect(request.getContextPath() + "/cart");
     }
