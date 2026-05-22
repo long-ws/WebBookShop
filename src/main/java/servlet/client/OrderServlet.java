@@ -21,7 +21,7 @@ import service.OrderService;
 @WebServlet(name = "OrderServlet", value = "/order")
 public class OrderServlet extends HttpServlet {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
     private final OrderService orderService = new OrderService();
     private final OrderItemService orderItemService = new OrderItemService();
 
@@ -37,21 +37,32 @@ public class OrderServlet extends HttpServlet {
             return;
         }
 
-        // Lấy tổng số order của user
+        String statusParam = request.getParameter("status");
+        Integer status = null;
+        if (statusParam != null && !statusParam.trim().isEmpty()) {
+            try {
+                status = Integer.parseInt(statusParam);
+            } catch (NumberFormatException e) {
+                status = null;
+            }
+        }
+
         int totalOrders = 0;
         try {
-            totalOrders = orderService.countByUserId(user.getId());
+            if (status == null) {
+                totalOrders = orderService.countByUserId(user.getId());
+            } else {
+                totalOrders = orderService.countByUserIdAndStatus(user.getId(), status);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        // Tính tổng số trang
         int totalPages = totalOrders / ORDERS_PER_PAGE;
         if (totalOrders % ORDERS_PER_PAGE != 0) {
             totalPages++;
         }
 
-        // Lấy trang hiện tại
         int page = 1;
         String pageParam = request.getParameter("page");
         if (pageParam != null) {
@@ -67,10 +78,13 @@ public class OrderServlet extends HttpServlet {
 
         int offset = (page - 1) * ORDERS_PER_PAGE;
 
-        // Lấy danh sách order
         List<Order> orders = new ArrayList<>();
         try {
-            orders = orderService.getOrderedPartByUserId(user.getId(), ORDERS_PER_PAGE, offset);
+            if (status == null) {
+                orders = orderService.getOrderedPartByUserId(user.getId(), ORDERS_PER_PAGE, offset);
+            } else {
+                orders = orderService.getOrderedPartByUserIdAndStatus(user.getId(), status, ORDERS_PER_PAGE, offset);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -124,7 +138,6 @@ public class OrderServlet extends HttpServlet {
         doGet(request, response);
     }
 
-    // Helper method để format danh sách sản phẩm
     private String formatProductNames(List<String> list) {
         if (list == null || list.isEmpty()) return "";
         if (list.size() == 1) return list.get(0);
