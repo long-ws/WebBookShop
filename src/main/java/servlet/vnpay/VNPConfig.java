@@ -9,9 +9,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import jakarta.servlet.http.HttpServletRequest;
 
 public class VNPConfig {
@@ -154,38 +151,6 @@ public class VNPConfig {
     public static boolean verifySignature(Map<String, String> fields, String vnp_SecureHash) {
         String signValue = hashAllFields(fields);
         return signValue.equalsIgnoreCase(vnp_SecureHash);
-    }
-    public static Map<String, String> parseJsonToMap(String jsonStr) {
-        Map<String, String> resultMap = new HashMap<>();
-        try {
-            JsonObject jsonObject = JsonParser.parseString(jsonStr).getAsJsonObject();
-
-            for (String key : jsonObject.keySet()) {
-                if (jsonObject.get(key) != null && !jsonObject.get(key).isJsonNull()) {
-                    resultMap.put(key, jsonObject.get(key).getAsString());
-                } else {
-                    resultMap.put(key, "");
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return resultMap;
-    }
-    public static String hashRefundFields(Map<String, String> fields) {
-        StringBuilder sb = new StringBuilder();
-        Iterator<Map.Entry<String, String>> itr = fields.entrySet().iterator();
-        while (itr.hasNext()) {
-            Map.Entry<String, String> entry = itr.next();
-            String fieldValue = entry.getValue();
-            if (fieldValue != null) {
-                sb.append(fieldValue);
-            }
-            if (itr.hasNext()) {
-                sb.append("|");
-            }
-        }
-        return hmacSHA512(secretKey, sb.toString());
     }
 }
 
