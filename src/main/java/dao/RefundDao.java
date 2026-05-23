@@ -33,11 +33,12 @@ public class RefundDao {
                 }
                 throw new SQLException("Không lấy được ID.");
             }
-        }catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return -1;
         }
     }
+
     public boolean updateRefundResult(Refund r) {
         String sql = "UPDATE refunds r " +
                 "JOIN payments p ON r.vnp_TxnRef = p.vnp_TxnRef " +
@@ -62,5 +63,24 @@ public class RefundDao {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public long getPendingRefundId(String vnpTxnRef, long vnpAmount) {
+        String sql = "SELECT id FROM refunds WHERE vnp_TxnRef = ? AND amount = ? AND status = 3 LIMIT 1";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, vnpTxnRef);
+            ps.setLong(2, vnpAmount / 100);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getLong("id");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
     }
 }
