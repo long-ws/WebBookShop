@@ -95,6 +95,7 @@ public class UpdateCategoryServlet extends HttpServlet {
             category.setImageName(imageNameParam.trim());
         }
 
+        // ===== VALIDATION =====
         Map<String, List<String>> violations = new HashMap<String, List<String>>();
 
         // name
@@ -132,7 +133,7 @@ public class UpdateCategoryServlet extends HttpServlet {
                     category.setImageName(null);
                 }
 
-                String newImageName = ImageUtils.uploadSingle(request);
+                String newImageName = ImageUtils.upload(request);
                 if (newImageName != null) {
                     if (oldImageName != null) {
                         ImageUtils.delete(oldImageName);
