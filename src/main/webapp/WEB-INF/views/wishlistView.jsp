@@ -16,12 +16,6 @@
 <body>
 	<jsp:include page="_header.jsp" />
 
-	<section class="section-pagetop bg-light">
-		<div class="container">
-			<h2 class="title-page">Danh sách sản phẩm yêu thích</h2>
-		</div>
-	</section>
-
 	<section class="section-content padding-y">
 		<div class="container">
 			<div class="row">
@@ -34,15 +28,20 @@
 					</c:when>
 
 					<c:otherwise>
+						<jsp:include page="_navPanel.jsp">
+							<jsp:param name="active" value="WISHLIST" />
+						</jsp:include>
 						<c:if test="${empty wishlistItems}">
-							<p>
-								Bạn chưa thêm sản phẩm nào vào danh sách yêu thích. <a
-									href="${pageContext.request.contextPath}/">Mua sắm ngay</a>
-							</p>
+							<main class="col-md-9">
+								<p>
+									Bạn chưa thêm sản phẩm nào vào danh sách yêu thích. <a
+										href="${pageContext.request.contextPath}/">Mua sắm ngay</a>
+								</p>
+							</main>
 						</c:if>
 
 						<c:if test="${not empty wishlistItems}">
-							<main class="col-lg-12">
+							<main class="col-md-9">
 								<div class="card">
 									<table class="table align-middle">
 										<thead>

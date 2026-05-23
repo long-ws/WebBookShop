@@ -1,54 +1,52 @@
 package repository;
 
+import beans.User;
+import beans.user.UserAccount;
+import beans.user.UserLocalAuth;
+import beans.user.UserOAuthAuth;
+import beans.user.UserProfile;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
-import beans.User;
-
 public interface UserRepository {
 
-	/**
-	 * Lưu user mới.
-	 */
-	long insert(User user) throws SQLException;
+	long insert(Connection conn, User user) throws SQLException;
 
-	void update(User user) throws SQLException;
+	void update(Connection conn, User user) throws SQLException;
 
-	void delete(long id) throws SQLException;
+	boolean delete(Connection conn, List<Long> userIds) throws SQLException;
 
-	List<User> findAll(int limit, int offset, String orderBy, String orderDir);
+	void changePassword(Connection conn, long userId, String hashedPassword) throws SQLException;
 
-	/**
-	 * Tìm user theo ID
-	 */
-	Optional<User> findById(long id);
+	boolean incrementTokenVersion(Connection conn, long userId) throws SQLException;
 
-	/**
-	 * Tìm người dùng theo Username.
-	 */
-	Optional<User> findByUsername(String username);
+	long createLocalUser(Connection conn, UserAccount account, UserProfile profile, UserLocalAuth localAuth)
+			throws SQLException;
 
-	/**
-	 * Tìm người dùng theo Email.
-	 */
-	Optional<User> findByEmail(String email);
+	long createOAuthUser(Connection conn, UserAccount account, UserProfile profile, UserOAuthAuth oauthAuth)
+			throws SQLException;
 
-	/**
-	 * Kiểm tra xem Username đã tồn tại chưa.
-	 */
-	boolean existsByUsername(String username);
+	Optional<User> findById(Connection conn, long userId) throws SQLException;
 
-	/**
-	 * Kiểm tra xem Email đã tồn tại chưa.
-	 */
-	boolean existsByEmail(String email);
+	Optional<User> findByUsername(Connection conn, String username) throws SQLException;
 
-	long count();
+	Optional<User> findByEmail(Connection conn, String email) throws SQLException;
 
-	void changePassword(long userId, String hashedPassword);
+	boolean existUserByUsername(Connection conn, String username) throws SQLException;
 
-	boolean incrementTokenVersion(long userId);
+	boolean existUserByUsername(Connection conn, String username, long excludeUserId) throws SQLException;
 
-	int getTokenVersion(long userId);
+	boolean existUserByEmail(Connection conn, String email) throws SQLException;
+
+	boolean existUserByEmail(Connection conn, String email, long excludeUserId) throws SQLException;
+
+	List<User> findAllUser(Connection conn) throws SQLException;
+
+	List<User> findAllUser(Connection conn, String orderBy, String orderDir) throws SQLException;
+
+	long count(Connection conn) throws SQLException;
+
+	int getTokenVersion(Connection conn, long userId) throws SQLException;
 }

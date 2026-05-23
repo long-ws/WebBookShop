@@ -73,3 +73,23 @@ a {
 .toast-container {
 	z-index: 5;
 }
+
+/* Sticky Footer */
+html, body {
+	height: 100%;
+}
+
+body {
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
+}
+
+main, section.section-content {
+	flex: 1 0 auto;
+}
+
+.section-footer {
+	flex-shrink: 0;
+	margin-top: auto;
+}

@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import beans.ProductReview;
 import beans.User;
+import constants.SessionConstants;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -12,15 +13,15 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import service.ProductReviewService;
 import service.ProductService;
-import service.UserService;
-import service.UserServiceImpl;
+import service.UserManagementService;
+import service.UserManagementServiceImpl;
 
 @WebServlet(name = "EditProductReviewServlet", value = "/editProductReview")
 public class EditProductReviewServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
     private final ProductReviewService productReviewService = new ProductReviewService();
-    private final UserService userService = new UserServiceImpl();
+    private final UserManagementService userManagementService = new UserManagementServiceImpl();
     private final ProductService productService = new ProductService();
 
     @Override
@@ -39,12 +40,12 @@ public class EditProductReviewServlet extends HttpServlet {
             return;
         }
 
-        User reviewUser = userService.getById(productReview.getUserId());
+        User reviewUser = userManagementService.getById(productReview.getUserId());
         productReview.setUser(reviewUser);
         productReview.setProduct(productService.getById(productReview.getProductId()));
 
         HttpSession session = request.getSession();
-        User currentUser = (User) session.getAttribute("currentUser");
+        User currentUser = (User) session.getAttribute(SessionConstants.CURRENT_USER);
         if (currentUser == null || currentUser.getId() != productReview.getUserId()) {
             response.sendRedirect(request.getContextPath() + "/");
             return;
@@ -71,7 +72,7 @@ public class EditProductReviewServlet extends HttpServlet {
         }
 
         HttpSession session = request.getSession();
-        User currentUser = (User) session.getAttribute("currentUser");
+        User currentUser = (User) session.getAttribute(SessionConstants.CURRENT_USER);
         if (currentUser == null || currentUser.getId() != productReview.getUserId()) {
             response.sendRedirect(request.getContextPath() + "/");
             return;

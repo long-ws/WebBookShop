@@ -5,6 +5,7 @@ import java.io.IOException;
 import beans.Cart;
 import beans.User;
 import beans.vnpay.Payment;
+import constants.SessionConstants;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -25,7 +26,7 @@ public class CartServlet extends HttpServlet {
 			throws ServletException, IOException {
 
 		HttpSession session = request.getSession();
-		User user = (User) session.getAttribute("currentUser");
+		User user = (User) session.getAttribute(SessionConstants.CURRENT_USER);
 
 		try {
 			if (user != null) {
@@ -49,7 +50,7 @@ public class CartServlet extends HttpServlet {
 			throws ServletException, IOException {
 
 		HttpSession session = request.getSession();
-		User user = (User) session.getAttribute("currentUser");
+		User user = (User) session.getAttribute(SessionConstants.CURRENT_USER);
 
 		if (user == null) {
 			response.sendRedirect(request.getContextPath() + "/signin");

@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib uri="jakarta.tags.core" prefix="c"%>
+<%@ include file="_paramKeys.jsp" %>
 <!DOCTYPE html>
 <html lang="vi">
 
@@ -26,95 +27,47 @@
 					<div class="mb-3">
 						<label for="inputUsername" class="form-label">Tên đăng
 							nhập</label> <input type="text"
-							class="form-control ${not empty requestScope.errors.username ? 'is-invalid' : (not empty requestScope.values.username ? 'is-valid' : '')}"
-							id="inputUsername" name="username"
-							value="${requestScope.values.username}">
-						<c:if test="${not empty requestScope.errors.username}">
+							class="form-control ${not empty requestScope[ATTR_ERRORS][P_USERNAME] ? 'is-invalid' : (not empty requestScope[ATTR_VALUES][P_USERNAME] ? 'is-valid' : '')}"
+							id="inputUsername" name="${P_USERNAME}"
+							value="${requestScope[ATTR_VALUES][P_USERNAME]}">
+						<c:if test="${not empty requestScope[ATTR_ERRORS][P_USERNAME]}">
 							<div class="invalid-feedback">
-								${requestScope.errors.username}
+								${requestScope[ATTR_ERRORS][P_USERNAME]}
 							</div>
 						</c:if>
 					</div>
 					<div class="mb-3">
 						<label for="inputPassword" class="form-label">Mật khẩu</label> <input
 							type="password"
-							class="form-control ${not empty requestScope.errors.password ? 'is-invalid' : (not empty requestScope.values.password ? 'is-valid' : '')}"
-							id="inputPassword" name="password"
-							value="${requestScope.values.password}">
-						<c:if test="${not empty requestScope.errors.password}">
+							class="form-control ${not empty requestScope[ATTR_ERRORS][P_PASSWORD] ? 'is-invalid' : (not empty requestScope[ATTR_VALUES][P_PASSWORD] ? 'is-valid' : '')}"
+							id="inputPassword" name="${P_PASSWORD}"
+							value="${requestScope[ATTR_VALUES][P_PASSWORD]}">
+						<c:if test="${not empty requestScope[ATTR_ERRORS][P_PASSWORD]}">
 							<div class="invalid-feedback">
-								${requestScope.errors.password}
+								${requestScope[ATTR_ERRORS][P_PASSWORD]}
 							</div>
 						</c:if>
 					</div>
 					<div class="mb-3">
 						<label for="inputFullname" class="form-label">Họ và tên</label> <input
 							type="text"
-							class="form-control ${not empty requestScope.errors.fullname ? 'is-invalid' : (not empty requestScope.values.fullname ? 'is-valid' : '')}"
-							id="inputFullname" name="fullname"
-							value="${requestScope.values.fullname}">
-						<c:if test="${not empty requestScope.errors.fullname}">
+							class="form-control ${not empty requestScope[ATTR_ERRORS][P_FULLNAME] ? 'is-invalid' : (not empty requestScope[ATTR_VALUES][P_FULLNAME] ? 'is-valid' : '')}"
+							id="inputFullname" name="${P_FULLNAME}"
+							value="${requestScope[ATTR_VALUES][P_FULLNAME]}">
+						<c:if test="${not empty requestScope[ATTR_ERRORS][P_FULLNAME]}">
 							<div class="invalid-feedback">
-								${requestScope.errors.fullname}
+								${requestScope[ATTR_ERRORS][P_FULLNAME]}
 							</div>
 						</c:if>
 					</div>
 					<div class="mb-3">
 						<label for="inputEmail" class="form-label">Email</label> <input
 							type="email"
-							class="form-control ${not empty requestScope.errors.email ? 'is-invalid' : (not empty requestScope.values.email ? 'is-valid' : '')}"
-							id="inputEmail" name="email" value="${requestScope.values.email}">
-						<c:if test="${not empty requestScope.errors.email}">
+							class="form-control ${not empty requestScope[ATTR_ERRORS][P_EMAIL] ? 'is-invalid' : (not empty requestScope[ATTR_VALUES][P_EMAIL] ? 'is-valid' : '')}"
+							id="inputEmail" name="${P_EMAIL}" value="${requestScope[ATTR_VALUES][P_EMAIL]}">
+						<c:if test="${not empty requestScope[ATTR_ERRORS][P_EMAIL]}">
 							<div class="invalid-feedback">
-								${requestScope.errors.email}
-							</div>
-						</c:if>
-					</div>
-					<div class="mb-3">
-						<label for="inputPhoneNumber" class="form-label">Số điện
-							thoại</label> <input type="text"
-							class="form-control ${not empty requestScope.errors.phoneNumber ? 'is-invalid' : (not empty requestScope.values.phoneNumber ? 'is-valid' : '')}"
-							id="inputPhoneNumber" name="phoneNumber"
-							value="${requestScope.values.phoneNumber}">
-						<c:if test="${not empty requestScope.errors.phoneNumber}">
-							<div class="invalid-feedback">
-								${requestScope.errors.phoneNumber}
-							</div>
-						</c:if>
-					</div>
-					<div class="mb-3">
-						<div class="form-check d-inline-block me-4">
-							<input
-								class="form-check-input ${not empty requestScope.errors.gender ? 'is-invalid' : (not empty requestScope.values.gender ? 'is-valid' : '')}"
-								type="radio" name="gender" id="radioGender1" value="0"
-								${requestScope.values.gender == '0' ? 'checked' : '' }>
-							<label class="form-check-label" for="radioGender1">Nam</label>
-						</div>
-						<div class="form-check d-inline-block">
-							<input
-								class="form-check-input ${not empty requestScope.errors.gender ? 'is-invalid' : (not empty requestScope.values.gender ? 'is-valid' : '')}"
-								type="radio" name="gender" id="radioGender2" value="1"
-								${requestScope.values.gender == '1' ? 'checked' : '' }>
-							<label class="form-check-label" for="radioGender2">Nữ</label>
-						</div>
-						<c:if test="${not empty requestScope.errors.gender}">
-							<div class="is-invalid"></div>
-							<div class="invalid-feedback">
-								${requestScope.errors.gender}
-							</div>
-						</c:if>
-					</div>
-					<div class="mb-3 form-check">
-						<input
-							class="form-check-input ${not empty requestScope.errors.policy ? 'is-invalid' : (not empty requestScope.values.policy ? 'is-valid' : '')}"
-							type="checkbox" value="checked" id="checkboxPolicy" name="policy"
-							checked> <label class="form-check-label"
-							for="checkboxPolicy"> Đồng ý với <a href="#">điều
-								khoản sử dụng</a>
-						</label>
-						<c:if test="${not empty requestScope.errors.policy}">
-							<div class="invalid-feedback">
-								${requestScope.errors.policy}
+								${requestScope[ATTR_ERRORS][P_EMAIL]}
 							</div>
 						</c:if>
 					</div>

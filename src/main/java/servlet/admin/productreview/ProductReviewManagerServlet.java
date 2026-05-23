@@ -14,15 +14,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import service.ProductReviewService;
 import service.ProductService;
-import service.UserService;
-import service.UserServiceImpl;
+import service.UserManagementService;
+import service.UserManagementServiceImpl;
 
-@WebServlet(name = "ProductReviewManagerServlet", value = "/admin/reviewManager")
+@WebServlet(name = "ProductReviewManagerServlet", value = "/admin/reviewManager/view")
 public class ProductReviewManagerServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
 	private final ProductReviewService productReviewService = new ProductReviewService();
-	private final UserService userService = new UserServiceImpl();
+	private final UserManagementService userManagementService = new UserManagementServiceImpl();
 	private final ProductService productService = new ProductService();
 
 	private static final int PRODUCT_REVIEWS_PER_PAGE = 5;
@@ -59,7 +59,7 @@ public class ProductReviewManagerServlet extends HttpServlet {
 		for (int i = 0; i < productReviews.size(); i++) {
 			ProductReview review = productReviews.get(i);
 
-			User user = userService.getById(review.getUserId());
+			User user = userManagementService.getById(review.getUserId());
 			if (user != null) {
 				review.setUser(user);
 			}
@@ -98,7 +98,7 @@ public class ProductReviewManagerServlet extends HttpServlet {
 	    }
 
 	    response.sendRedirect(
-	        request.getContextPath() + "/admin/reviewManager?page=" + pageParam
+	        request.getContextPath() + "/admin/reviewManager/view?page=" + pageParam
 	    );
 	}
 

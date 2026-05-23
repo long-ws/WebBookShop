@@ -15,15 +15,15 @@ import jakarta.servlet.http.HttpServletResponse;
 import service.OrderItemService;
 import service.OrderService;
 import service.ProductService;
-import service.UserService;
-import service.UserServiceImpl;
+import service.UserManagementService;
+import service.UserManagementServiceImpl;
 
 @WebServlet(name = "OrderManagerDetailServlet", value = "/admin/orderManager/detail")
 public class OrderManagerDetailServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
 	private final OrderService orderService = new OrderService();
-	private final UserService userService = new UserServiceImpl();
+	private final UserManagementService userManagementService = new UserManagementServiceImpl();
 	private final OrderItemService orderItemService = new OrderItemService();
 	private final ProductService productService = new ProductService();
 
@@ -56,7 +56,7 @@ public class OrderManagerDetailServlet extends HttpServlet {
 		}
 
 		try {
-			User user = userService.getById(order.getUserId());
+			User user = userManagementService.getById(order.getUserId());
 			order.setUser(user);
 		} catch (Exception e) {
 			e.printStackTrace();

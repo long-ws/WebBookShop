@@ -14,15 +14,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import service.OrderItemService;
 import service.OrderService;
-import service.UserService;
-import service.UserServiceImpl;
+import service.UserManagementService;
+import service.UserManagementServiceImpl;
 
-@WebServlet(name = "OrderManagerServlet", value = "/admin/orderManager")
+@WebServlet(name = "OrderManagerServlet", value = "/admin/orderManager/view")
 public class OrderManagerServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
 	private final OrderService orderService = new OrderService();
-	private final UserService userService = new UserServiceImpl();
+	private final UserManagementService userManagementService = new UserManagementServiceImpl();
 	private final OrderItemService orderItemService = new OrderItemService();
 
 	private static final int ORDERS_PER_PAGE = 5;
@@ -74,7 +74,7 @@ public class OrderManagerServlet extends HttpServlet {
 			Order order = orders.get(i);
 
 			try {
-				User user = userService.getById(order.getUserId());
+				User user = userManagementService.getById(order.getUserId());
 				order.setUser(user);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -134,7 +134,7 @@ public class OrderManagerServlet extends HttpServlet {
 			request.getSession().setAttribute("errorMessage", "Cập nhật đơn hàng thất bại!");
 		}
 
-		response.sendRedirect(request.getContextPath() + "/admin/orderManager?page=" + pageParam);
+		response.sendRedirect(request.getContextPath() + "/admin/orderManager/view?page=" + pageParam);
 	}
 
 }

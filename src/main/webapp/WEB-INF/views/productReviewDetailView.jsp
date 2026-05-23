@@ -30,7 +30,7 @@
 						<dt class="col-md-3">Người dùng</dt>
 						<dd class="col-md-9">
 							<a
-								href="${pageContext.request.contextPath}/admin/userManager/detail?id=${requestScope.productReview.user.id}">
+								href="${pageContext.request.contextPath}/admin/user/detail?id=${requestScope.productReview.user.id}">
 								${requestScope.productReview.user.username} </a>
 							(${requestScope.productReview.user.fullname})
 						</dd>

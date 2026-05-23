@@ -8,6 +8,7 @@ import java.util.List;
 import beans.Order;
 import beans.OrderItem;
 import beans.User;
+import constants.SessionConstants;
 import dto.OrderResponse;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -15,6 +16,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import service.CartService;
 import service.OrderItemService;
 import service.OrderService;
 
@@ -24,13 +26,14 @@ public class OrderServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private final OrderService orderService = new OrderService();
     private final OrderItemService orderItemService = new OrderItemService();
+    private final CartService cartService = new CartService();
 
     private static final int ORDERS_PER_PAGE = 3;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession();
-        User user = (User) session.getAttribute("currentUser");
+        User user = (User) session.getAttribute(SessionConstants.CURRENT_USER);
 
         if (user == null) {
             response.sendRedirect(request.getContextPath() + "/signin");

@@ -1,26 +1,30 @@
 package servlet.admin;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import beans.User;
+import constants.FormConstants;
+import constants.RequestParamConstants;
+import constants.SessionConstants;
+import constants.ViewAttributeConstants;
+import dto.user.AdminSigninRequest;
+import exception.BusinessException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import service.UserService;
-import service.UserServiceImpl;
-import utils.HashingUtils;
+import jakarta.servlet.http.HttpSession;
+import service.AuthenticationService;
+import service.AuthenticationServiceImpl;
 
 @WebServlet(name = "SigninAdminServlet", value = "/admin/signin")
 public class SigninAdminServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
-	private final UserService userService = new UserServiceImpl();
+	private final AuthenticationService authenticationService = new AuthenticationServiceImpl();
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -32,74 +36,44 @@ public class SigninAdminServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
-		String username = request.getParameter("username");
-		String password = request.getParameter("password");
+		final String username = request.getParameter(RequestParamConstants.Auth.USERNAME);
+		final String password = request.getParameter(RequestParamConstants.Auth.PASSWORD);
 
-		Map<String, String> values = new HashMap<>();
-		values.put("username", username);
-		values.put("password", password);
+		final Map<String, String> values = new HashMap<>();
+		values.put(RequestParamConstants.Auth.USERNAME, username);
+		values.put(RequestParamConstants.Auth.PASSWORD, password);
 
-		Map<String, List<String>> violations = new HashMap<>();
-		violations.put("usernameViolations", new ArrayList<>());
-		violations.put("passwordViolations", new ArrayList<>());
-
-		if (username == null || username.trim().isEmpty()) {
-			violations.get("usernameViolations").add("Tên đăng nhập không được để trống");
-		} else {
-			if (!username.equals(username.trim())) {
-				violations.get("usernameViolations").add("Tên đăng nhập không có dấu cách ở hai đầu");
-			}
-			if (username.length() > 25) {
-				violations.get("usernameViolations").add("Tên đăng nhập tối đa 25 ký tự");
-			}
-		}
-
-		if (password == null || password.trim().isEmpty()) {
-			violations.get("passwordViolations").add("Mật khẩu không được để trống");
-		} else {
-			if (!password.equals(password.trim())) {
-				violations.get("passwordViolations").add("Mật khẩu không có dấu cách ở hai đầu");
-			}
-			if (password.length() > 32) {
-				violations.get("passwordViolations").add("Mật khẩu tối đa 32 ký tự");
-			}
-		}
+		final Map<String, String> errors = new HashMap<>();
 
 		User userFromServer = null;
-		if (violations.get("usernameViolations").isEmpty()) {
-			try {
-				userFromServer = userService.getUserEntityByUsername(username);
-				if (userFromServer == null) {
-					violations.get("usernameViolations").add("Tên đăng nhập không tồn tại");
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-				request.setAttribute("errorMessage", "Lỗi hệ thống, vui lòng thử lại sau");
-			}
-		}
 
-		if (userFromServer != null && violations.get("passwordViolations").isEmpty()) {
-			String userPasswordHash = userFromServer.getPasswordHash();
-			if (userPasswordHash == null || !HashingUtils.verify(password, userPasswordHash)) {
-				violations.get("passwordViolations").add("Mật khẩu không đúng");
-			}
-		}
+		try {
+			final AdminSigninRequest adminSigninRequest = new AdminSigninRequest.Builder()
+					.username(username)
+					.password(password)
+					.build();
 
-		int totalViolations = violations.values().stream().mapToInt(List::size).sum();
-
-		if (totalViolations == 0 && userFromServer != null) {
-			String roleCode = userFromServer.getRole() != null ? userFromServer.getRole().getCode() : null;
-			if ("ADMIN".equals(roleCode) || "EMPLOYEE".equals(roleCode)) {
-				request.getSession().setAttribute("currentUser", userFromServer);
-				response.sendRedirect(request.getContextPath() + "/admin");
-				return;
+			userFromServer = authenticationService.authenticateAdmin(adminSigninRequest);
+		} catch (BusinessException e) {
+			final Map<String, String> businessErrors = e.getErrors();
+			if (businessErrors != null && !businessErrors.isEmpty()) {
+				errors.putAll(businessErrors);
 			} else {
-				request.setAttribute("errorMessage", "Người dùng không có quyền đăng nhập Admin");
+				request.setAttribute(ViewAttributeConstants.ERROR_MESSAGE, e.getMessage());
 			}
 		}
 
-		request.setAttribute("values", values);
-		request.setAttribute("violations", violations);
-		request.getRequestDispatcher("/WEB-INF/views/signinAdminView.jsp").forward(request, response);
+		if (!errors.isEmpty() || userFromServer == null) {
+			request.setAttribute(ViewAttributeConstants.VALUES, values);
+			request.setAttribute(ViewAttributeConstants.ERRORS, errors);
+			request.getRequestDispatcher("/WEB-INF/views/signinAdminView.jsp").forward(request, response);
+			return;
+		}
+
+		request.getSession().invalidate();
+		final HttpSession newSession = request.getSession(true);
+		newSession.setAttribute(SessionConstants.CURRENT_USER, userFromServer);
+
+		response.sendRedirect(request.getContextPath() + "/admin");
 	}
 }

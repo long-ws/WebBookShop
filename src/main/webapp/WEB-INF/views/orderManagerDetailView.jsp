@@ -36,7 +36,7 @@
 						<dt class="col-md-3">Người đặt/nhận</dt>
 						<dd class="col-md-9">
 							<a
-								href="${pageContext.request.contextPath}/admin/userManager/detail?id=${requestScope.order.user.id}">
+								href="${pageContext.request.contextPath}/admin/user/detail?id=${requestScope.order.user.id}">
 								${requestScope.order.user.username} </a>
 							(${requestScope.order.user.fullname})
 						</dd>

@@ -9,6 +9,7 @@ import beans.Product;
 import beans.ProductReview;
 import beans.User;
 import beans.WishlistItem;
+import constants.SessionConstants;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -87,7 +88,7 @@ public class ProductServlet extends HttpServlet {
 
         // Wishlist
         HttpSession session = request.getSession();
-        User currentUser = (User) session.getAttribute("currentUser");
+        User currentUser = (User) session.getAttribute(SessionConstants.CURRENT_USER);
         List<WishlistItem> wishlistItems = new ArrayList<>();
         if (currentUser != null) {
             wishlistItems = wishlistItemService.getByUserId(currentUser.getId());

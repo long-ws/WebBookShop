@@ -71,6 +71,7 @@ CREATE TABLE role_registry (
     code VARCHAR(30) NOT NULL UNIQUE, -- Mã code cho role
     name VARCHAR(50) NOT NULL,
     description VARCHAR(255), -- Mô tả cho role
+    is_system TINYINT DEFAULT 0,
     is_active TINYINT DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -95,7 +96,9 @@ CREATE TABLE role_permission_assignment (
     
     PRIMARY KEY (role_id, permission_id),
     CONSTRAINT fk_rp_role FOREIGN KEY (role_id) REFERENCES role_registry(id) ON DELETE CASCADE,
-    CONSTRAINT fk_rp_permission FOREIGN KEY (permission_id) REFERENCES permission_registry(id) ON DELETE CASCADE
+    CONSTRAINT fk_rp_permission FOREIGN KEY (permission_id) REFERENCES permission_registry(id) ON DELETE CASCADE,
+    
+    INDEX idx_permission_role (permission_id, role_id)
 );
 
 CREATE TABLE user_account (
@@ -137,16 +140,13 @@ CREATE TABLE user_local (
     user_id BIGINT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    
     email VARCHAR(100) NOT NULL UNIQUE,
-    
     email_verify_status_id TINYINT NOT NULL DEFAULT 1,
     
     failed_attempts INT NOT NULL DEFAULT 0,
     locked_until TIMESTAMP NULL,
     
     CHECK (failed_attempts >= 0),
-    
     CONSTRAINT fk_local_user FOREIGN KEY (user_id) REFERENCES user_account(id) ON DELETE CASCADE,
     CONSTRAINT fk_email_verify_status FOREIGN KEY (email_verify_status_id) REFERENCES email_verify_status(id)
 );
@@ -157,7 +157,7 @@ CREATE TABLE user_oauth (
     provider_id INT NOT NULL,
     provider_user_id VARCHAR(255) NOT NULL,
     
-    email VARCHAR(100),
+    email VARCHAR(100) NOT NULL UNIQUE,
     display_name VARCHAR(100),
     avatar_url TEXT,
     
@@ -193,19 +193,20 @@ CREATE TABLE user_token (
     INDEX idx_status (status_id)
 );
 
-CREATE TABLE user_profile (
-    user_id BIGINT PRIMARY KEY,
-    fullname VARCHAR(100),
-    phone_number VARCHAR(20),
-    gender_id TINYINT,
-    avatar_url TEXT,
-    preferred_language_id INT NOT NULL DEFAULT 1,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
-    CONSTRAINT fk_profile_user FOREIGN KEY (user_id) REFERENCES user_account(id) ON DELETE CASCADE,
-    CONSTRAINT fk_gender FOREIGN KEY (gender_id) REFERENCES gender(id),
-    CONSTRAINT fk_profile_language FOREIGN KEY (preferred_language_id) REFERENCES language_registry(id)
-);
+	CREATE TABLE user_profile (
+		user_id BIGINT PRIMARY KEY,
+		fullname VARCHAR(100),
+		phone_number VARCHAR(20),
+		email VARCHAR(100) NOT NULL UNIQUE,
+		gender_id TINYINT,
+		avatar_url TEXT,
+		preferred_language_id INT NOT NULL DEFAULT 1,
+		updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+		
+		CONSTRAINT fk_profile_user FOREIGN KEY (user_id) REFERENCES user_account(id) ON DELETE CASCADE,
+		CONSTRAINT fk_gender FOREIGN KEY (gender_id) REFERENCES gender(id),
+		CONSTRAINT fk_profile_language FOREIGN KEY (preferred_language_id) REFERENCES language_registry(id)
+	);
 
 
 CREATE TABLE product
@@ -435,11 +436,11 @@ INSERT INTO language_registry (code, name, description) VALUES
 ('ko', 'Korean', 'Tiếng Hàn');
 
 -- 8. Vai trò (Roles)
-INSERT INTO role_registry (id, code, name, description) VALUES
-(1, 'SUPER_ADMIN', 'Quản trị tối cao', 'Toàn quyền hệ thống'),
-(2, 'ADMIN', 'Quản lý', 'Quản lý trong phạm vi chi nhánh'),
-(3, 'STAFF', 'Nhân viên', 'Người dùng vận hành hệ thống'),
-(4, 'CUSTOMER', 'Khách hàng', 'Người mua sắm trực tuyến');
+INSERT INTO role_registry (id, code, name, description, is_system) VALUES
+(1, 'SUPER_ADMIN', 'Quản trị tối cao', 'Toàn quyền hệ thống', 1),
+(2, 'ADMIN', 'Quản lý', 'Quản lý trong phạm vi chi nhánh', 1),
+(3, 'STAFF', 'Nhân viên', 'Người dùng vận hành hệ thống', 0),
+(4, 'CUSTOMER', 'Khách hàng', 'Người mua sắm trực tuyến', 0);
 
 -- 9. Quyền hạn (Permissions)
 INSERT INTO permission_registry (code, name, description, module, is_system) VALUES
@@ -517,14 +518,17 @@ INSERT INTO permission_registry (code, name, description, module, is_system) VAL
 INSERT INTO role_permission_assignment (role_id, permission_id)
 SELECT 1, id FROM permission_registry;
 
--- ADMIN (Quản lý User, Product, Order, Report, Category)
+-- ADMIN (Quản lý User, Role, Permission, Product, Order, Report, Category, Review, Voucher)
 INSERT INTO role_permission_assignment (role_id, permission_id)
-SELECT 2, id FROM permission_registry WHERE module IN ('USER', 'PRODUCT', 'ORDER', 'REPORT', 'CATEGORY');
+SELECT 2, id FROM permission_registry WHERE module IN ('USER', 'ROLE', 'PERMISSION', 'PRODUCT', 'ORDER', 'REPORT', 'CATEGORY', 'REVIEW', 'VOUCHER');
+
+-- STAFF (Quản lý Product, Category, Order, Review)
+INSERT INTO role_permission_assignment (role_id, permission_id)
+SELECT 3, id FROM permission_registry WHERE module IN ('PRODUCT', 'CATEGORY', 'ORDER', 'REVIEW');
 
 -- CUSTOMER
 INSERT INTO role_permission_assignment (role_id, permission_id)
 SELECT 4, id FROM permission_registry WHERE code IN ('order.create');
-
 
 -- 15. USER ACCOUNTS (Tài khoản người dùng)
 -- Thứ tự insert quan trọng: 
@@ -535,32 +539,32 @@ INSERT INTO user_account (id, status_id) VALUES
 (1, 1), (2, 1), (3, 1), (4, 1), (5, 1), (6, 1);
 
 -- BƯỚC 2: Thêm thông tin cá nhân vào user_profile
-INSERT INTO user_profile (user_id, fullname, phone_number, gender_id, preferred_language_id) VALUES
-(1, 'Dunn Mcpherson', '0989894900', 0, 1),
-(2, 'Foreman Carter', '0993194154', 0, 1),
-(3, 'Felecia Cabrera', '0930174351', 1, 1),
-(4, 'Juliette Mcdowell', '0911925643', 1, 1),
-(5, 'Vilma Spencer', '0987509391', 1, 1),
-(6, 'System Administrator', '0912345678', 0, 1);
+INSERT INTO user_profile (user_id, fullname, phone_number, email, gender_id, preferred_language_id) VALUES
+(1, 'System Administrator', '0912345678','admin@webbookshop.com', 0, 1),
+(2, 'Dunn Mcpherson', '0989894900', 'dunnmcpherson@recrisys.com', 0, 1),
+(3, 'Foreman Carter', '0993194154', 'foremancarter@recrisys.com', 0, 1),
+(4, 'Felecia Cabrera', '0930174351', 'feleciacabrera@recrisys.com', 1, 1),
+(5, 'Juliette Mcdowell', '0911925643', 'juliettemcdowell@recrisys.com', 1, 1),
+(6, 'Vilma Spencer', '0987509391', 'vilmaspencer@recrisys.com', 1, 1);
 
 -- BƯỚC 3: Thêm thông tin đăng nhập vào user_local
 -- Password hash: $2a$12$UllaLd399u9rzzFCvwLK8Of5vL1l9MxyC1OCMR1cyfCd4jxoyBqf2
 INSERT INTO user_local (user_id, username, password_hash, email, email_verify_status_id) VALUES
-(1, 'user1', '$2a$12$UllaLd399u9rzzFCvwLK8Of5vL1l9MxyC1OCMR1cyfCd4jxoyBqf2', 'dunnmcpherson@recrisys.com', 1),
-(2, 'user2', '$2a$12$UllaLd399u9rzzFCvwLK8Of5vL1l9MxyC1OCMR1cyfCd4jxoyBqf2', 'foremancarter@recrisys.com', 1),
-(3, 'user3', '$2a$12$UllaLd399u9rzzFCvwLK8Of5vL1l9MxyC1OCMR1cyfCd4jxoyBqf2', 'feleciacabrera@recrisys.com', 1),
-(4, 'user4', '$2a$12$UllaLd399u9rzzFCvwLK8Of5vL1l9MxyC1OCMR1cyfCd4jxoyBqf2', 'juliettemcdowell@recrisys.com', 1),
-(5, 'user5', '$2a$12$UllaLd399u9rzzFCvwLK8Of5vL1l9MxyC1OCMR1cyfCd4jxoyBqf2', 'vilmaspencer@recrisys.com', 1),
-(6, 'admin', '$2a$12$UllaLd399u9rzzFCvwLK8Of5vL1l9MxyC1OCMR1cyfCd4jxoyBqf2', 'admin@webbookshop.com', 1);
+(1, 'admin', '$2a$12$UllaLd399u9rzzFCvwLK8Of5vL1l9MxyC1OCMR1cyfCd4jxoyBqf2', 'admin@webbookshop.com', 1),
+(2, 'user1', '$2a$12$UllaLd399u9rzzFCvwLK8Of5vL1l9MxyC1OCMR1cyfCd4jxoyBqf2', 'dunnmcpherson@recrisys.com', 1),
+(3, 'user2', '$2a$12$UllaLd399u9rzzFCvwLK8Of5vL1l9MxyC1OCMR1cyfCd4jxoyBqf2', 'foremancarter@recrisys.com', 1),
+(4, 'user3', '$2a$12$UllaLd399u9rzzFCvwLK8Of5vL1l9MxyC1OCMR1cyfCd4jxoyBqf2', 'feleciacabrera@recrisys.com', 1),
+(5, 'user4', '$2a$12$UllaLd399u9rzzFCvwLK8Of5vL1l9MxyC1OCMR1cyfCd4jxoyBqf2', 'juliettemcdowell@recrisys.com', 1),
+(6, 'user5', '$2a$12$UllaLd399u9rzzFCvwLK8Of5vL1l9MxyC1OCMR1cyfCd4jxoyBqf2', 'vilmaspencer@recrisys.com', 1);
 
 -- BƯỚC 4: Phân quyền (Role Assignment) - PHẢI SAU user_account
 INSERT INTO user_role_registry (user_id, role_id) VALUES
-(1, 2), -- user1: ADMIN
-(2, 3), -- user2: STAFF (EMPLOYEE)
-(3, 3), -- user3: STAFF (EMPLOYEE)
-(4, 4), -- user4: CUSTOMER
-(5, 4), -- user5: CUSTOMER
-(6, 1); -- admin: SUPER_ADMIN (System Account)
+(1, 1), -- admin: SUPER_ADMIN (System Account)
+(2, 2), -- user1: ADMIN
+(3, 3), -- user2: STAFF
+(4, 3), -- user3: STAFF
+(5, 4), -- user4: CUSTOMER
+(6, 4); -- user5: CUSTOMER
 
 -- product
 INSERT INTO bookshopdb.product(`name`,`price`,`discount`,`quantity`,`totalBuy`,`author`,`pages`,`publisher`,`yearPublishing`,`description`,`imageName`,`shop`,`createdAt`,`updatedAt`,`startsAt`,`endsAt`) VALUES ('Sách Toyletry',466183,0,86,86,'Stafford Hayden',250,'NXB Giáo dục',2013,'Consequat cupidatat magna nostrud ullamco non commodo esse. Veniam anim ipsum duis cillum cillum exercitation deserunt irure sint eiusmod. Duis consectetur adipisicing aliquip magna eiusmod ullamco ut ad ipsum nostrud dolore id. Ex ullamco nulla Lorem consequat sunt exercitation cillum adipisicing.\r\nProident labore ut qui esse cupidatat deserunt occaecat dolor in. Ad nulla reprehenderit pariatur esse enim ullamco do incididunt anim do excepteur est dolore excepteur. Laboris voluptate cupidatat anim dolore eiusmod in id fugiat est cupidatat pariatur mollit. Mollit irure proident enim consequat irure ipsum proident amet aliqua. Irure ad dolore laboris elit reprehenderit officia ex.\r\n','temp-10075522682831764585.jpg',0,'2021-03-23 08:22:50',NULL,NULL,NULL);

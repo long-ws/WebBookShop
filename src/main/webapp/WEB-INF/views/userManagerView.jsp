@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib uri="jakarta.tags.core" prefix="c"%>
 <%@ taglib uri="jakarta.tags.fmt" prefix="fmt"%>
+<%@ include file="_paramKeys.jsp"%>
 <fmt:setLocale value="vi_VN" />
 <!DOCTYPE html>
 <html lang="vi">
@@ -8,140 +9,245 @@
 <head>
 <jsp:include page="_meta.jsp" />
 <title>Quản lý người dùng</title>
+<script src="${pageContext.request.contextPath}/js/selectAll.js" defer></script>
+<script src="${pageContext.request.contextPath}/js/dynamicFilter.js"
+	defer></script>
 </head>
 
 <body class="d-flex flex-column min-vh-100">
+
 	<jsp:include page="_headerAdmin.jsp" />
 
-	<section class="section-content flex-fill">
-		<div class="container">
-			<c:if test="${not empty sessionScope.successMessage}">
-				<div class="alert alert-success mb-0 mt-4" role="alert">${sessionScope.successMessage}</div>
-			</c:if>
-			<c:if test="${not empty sessionScope.errorMessage}">
-				<div class="alert alert-danger mb-0 mt-4" role="alert">${sessionScope.errorMessage}</div>
-			</c:if>
-			<c:remove var="successMessage" scope="session" />
-			<c:remove var="errorMessage" scope="session" />
+	<main class="flex-fill">
+		<section class="section-content padding-y py-4">
+			<div class="container">
 
-			<header class="section-heading py-4 d-flex justify-content-between">
-				<h3 class="section-title">Quản lý người dùng</h3>
-				<a class="btn btn-primary"
-					href="${pageContext.request.contextPath}/admin/userManager/create"
-					role="button" style="height: fit-content;"> Thêm người dùng </a>
-			</header>
-			<!-- section-heading.// -->
+				<%-- Alerts --%>
+				<c:if test="${not empty sessionScope.successMessage}">
+					<div class="alert alert-success py-2 mb-3" role="alert">
+						<c:out value="${sessionScope.successMessage}" />
+					</div>
+					<c:remove var="successMessage" scope="session" />
+				</c:if>
 
-			<main class="table-responsive-xl mb-5">
-				<table
-					class="table table-bordered table-striped table-hover align-middle">
-					<thead>
-						<tr>
-							<th scope="col">#</th>
-							<th scope="col">ID</th>
-							<th scope="col">Tên đăng nhập</th>
-							<th scope="col">Họ và tên</th>
-							<th scope="col">Email</th>
-							<th scope="col">Số điện thoại</th>
-							<th scope="col">Giới tính</th>
-							<th scope="col">Quyền</th>
-							<th scope="col" style="width: 225px;">Thao tác</th>
-						</tr>
-					</thead>
-					<tbody>
-						<c:forEach var="user" varStatus="loop"
-							items="${requestScope.users}">
-							<tr>
-								<th scope="row">${loop.index + 1}</th>
-								<td>${user.id}</td>
-								<td>${user.username}</td>
-								<td>${user.fullname}</td>
-								<td>${user.email}</td>
-								<td>${user.phoneNumber}</td>
-								<td>${user.gender != null and user.gender.id == 1 ? 'Nữ' : 'Nam'}</td>
-								<td><c:choose>
-										<c:when test="${user.role == 'ADMIN'}">Quản trị viên</c:when>
-										<c:when test="${user.role == 'EMPLOYEE'}">Nhân viên</c:when>
-										<c:when test="${user.role == 'CUSTOMER'}">Khách hàng</c:when>
-									</c:choose></td>
-								<td class="text-center text-nowrap">
-									<!-- Nút Xem --> <a class="btn btn-primary me-2"
-									href="${pageContext.request.contextPath}/admin/userManager/detail?id=${user.id}"
-									role="button">Xem</a> <!-- Nút Sửa --> <a
-									class="btn btn-success me-2"
-									href="${pageContext.request.contextPath}/admin/userManager/update?id=${user.id}"
-									role="button">Sửa</a> <!-- Bước 1: Nút Xóa --> <c:if
-										test="${param.confirmId ne user.id}">
-										<form
-											action="${pageContext.request.contextPath}/admin/userManager"
-											method="get" style="display: inline">
-											<input type="hidden" name="confirmId" value="${user.id}" />
-											<input type="hidden" name="page" value="${requestScope.page}" />
-											<button type="submit" class="btn btn-danger">Xóa</button>
-										</form>
+				<c:if test="${not empty sessionScope.errorMessage}">
+					<div class="alert alert-danger py-2 mb-3" role="alert">
+						<c:out value="${sessionScope.errorMessage}" />
+					</div>
+					<c:remove var="errorMessage" scope="session" />
+				</c:if>
 
-									</c:if> <!-- Bước 2: Xác nhận --> <c:if
-										test="${param.confirmId eq user.id}">
-										<span class="badge bg-warning text-dark">Bạn có chắc
-											muốn xóa?</span>
-										<form
-											action="${pageContext.request.contextPath}/admin/userManager"
-											method="post" style="display: inline">
-											<input type="hidden" name="action" value="delete" /> <input
-												type="hidden" name="id" value="${user.id}" /> <input
-												type="hidden" name="page" value="${requestScope.page}" />
-											<button type="submit" class="btn btn-danger btn-sm">Xác
-												nhận</button>
-										</form>
+				<%-- Tiêu đề & Thanh công cụ (Bộ lọc + Nút hành động) --%>
+				<div
+					class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3 pb-3 border-bottom">
+					<div>
+						<h5 class="text-primary mb-0 fw-bold">
+							<i class="bi bi-people-fill me-2"></i>Quản lý người dùng
+						</h5>
+					</div>
 
-										<a class="btn btn-secondary btn-sm"
-											href="${pageContext.request.contextPath}/admin/userManager">Hủy</a>
+					<div class="d-flex align-items-center flex-wrap gap-3">
+						<%-- Bộ lọc JS gắn kết --%>
+						<div class="d-flex align-items-center gap-2 flex-wrap"
+							id="filterControls">
+							<span class="text-muted fw-bold small">Lọc:</span>
+
+							<div class="form-check form-switch m-0">
+								<input type="checkbox" class="form-check-input"
+									id="filterToggle"> <label
+									class="form-check-label small" for="filterToggle"> OR </label>
+							</div>
+						</div>
+
+						<%-- Nút hành động thêm / xóa nhanh --%>
+						<div class="d-flex gap-2">
+							<c:if test="${hasUserCreate}">
+								<a class="btn btn-sm btn-primary"
+									href="${pageContext.request.contextPath}/admin/user/create">
+									<i class="bi bi-plus-circle me-1"></i> Thêm người dùng
+								</a>
+							</c:if>
+
+							<c:if test="${hasUserDelete}">
+								<button type="submit" form="deleteForm"
+									class="btn btn-sm btn-danger">
+									<i class="bi bi-trash me-1"></i> Xóa đã chọn
+								</button>
+							</c:if>
+						</div>
+					</div>
+				</div>
+
+				<%-- Form và Bảng dữ liệu chính --%>
+				<form id="deleteForm"
+					action="${pageContext.request.contextPath}/admin/user/delete"
+					method="post">
+					<div class="table-responsive"
+						style="max-height: 600px; overflow-y: auto;">
+						<table
+							class="table table-bordered table-sm table-hover align-middle filter-table mb-0">
+
+							<thead class="table-light sticky-top">
+								<tr id="header-row">
+									<c:if test="${hasUserDelete}">
+										<th class="no-filter text-center" style="width: 40px;"><input
+											type="checkbox" id="selectAllCheckbox"
+											class="form-check-input"></th>
 									</c:if>
-								</td>
+									<th data-name="filterId" style="width: 80px;">ID</th>
+									<th data-name="filterUsername">Tên đăng nhập</th>
+									<th data-name="filterFullname">Họ và tên</th>
+									<th data-name="filterEmail">Email</th>
+									<th data-name="filterPhone">Số điện thoại</th>
+									<th data-name="filterRole" style="width: 140px;" class="text-center">Vai trò</th>
+									<th data-name="filterStatus" style="width: 130px;" class="text-center">Trạng thái</th>
+								</tr>
+								<%-- Hàng này dành cho bộ lọc động inject tự động từ JS --%>
+								<tr id="filter-row"></tr>
+							</thead>
 
-							</tr>
-						</c:forEach>
-					</tbody>
-				</table>
-			</main>
+							<tbody>
+								<c:forEach var="user" items="${requestScope.users}">
+									<tr>
+										<%-- Cột Checkbox xóa hàng loạt --%>
+										<c:if test="${hasUserDelete}">
+											<td class="text-center"><c:choose>
+													<c:when test="${user.system}">
+														<input type="checkbox" name="${P_USER_IDS}"
+															value="${user.id}" class="form-check-input" disabled>
+													</c:when>
+													<c:otherwise>
+														<input type="checkbox" name="${P_USER_IDS}"
+															value="${user.id}" class="form-check-input">
+													</c:otherwise>
+												</c:choose></td>
+										</c:if>
 
+										<%-- Thiết lập biến kiểm tra quyền được chỉnh sửa --%>
+										<c:set var="isEditable"
+											value="${hasUserEdit and not user.system}" />
 
-		</div>
-		<!-- container.// -->
-	</section>
-	<!-- section-content.// -->
+										<%-- ID --%>
+										<td><c:choose>
+												<c:when test="${isEditable}">
+													<a class="text-decoration-none text-secondary d-block p-2"
+														href="${pageContext.request.contextPath}/admin/user/update?id=${user.id}">#<c:out
+															value="${user.id}" /></a>
+												</c:when>
+												<c:otherwise>
+													<span class="text-secondary p-2 d-block">#<c:out
+															value="${user.id}" /></span>
+												</c:otherwise>
+											</c:choose></td>
 
-	<c:if test="${requestScope.totalPages != 0}">
-		<nav class="mt-3 mb-5">
-			<ul class="pagination justify-content-center">
-				<li class="page-item ${requestScope.page == 1 ? 'disabled' : ''}"><a
-					class="page-link"
-					href="${pageContext.request.contextPath}/admin/userManager?page=${requestScope.page - 1}">
-						Trang trước </a></li>
+										<%-- Tên đăng nhập --%>
+										<td><c:choose>
+												<c:when test="${isEditable}">
+													<a
+														class="text-decoration-none fw-bold text-dark d-block p-2"
+														href="${pageContext.request.contextPath}/admin/user/update?id=${user.id}"><c:out
+															value="${user.username}" /></a>
+												</c:when>
+												<c:otherwise>
+													<span class="fw-bold text-dark p-2 d-block"><c:out
+															value="${user.username}" /></span>
+												</c:otherwise>
+											</c:choose></td>
 
-				<c:forEach begin="1" end="${requestScope.totalPages}" var="i">
-					<c:choose>
-						<c:when test="${requestScope.page == i}">
-							<li class="page-item active"><a class="page-link">${i}</a></li>
-						</c:when>
-						<c:otherwise>
-							<li class="page-item"><a class="page-link"
-								href="${pageContext.request.contextPath}/admin/userManager?page=${i}">
-									${i} </a></li>
-						</c:otherwise>
-					</c:choose>
-				</c:forEach>
+										<%-- Họ và tên --%>
+										<td><c:choose>
+												<c:when test="${isEditable}">
+													<a class="text-decoration-none text-dark d-block p-2"
+														href="${pageContext.request.contextPath}/admin/user/update?id=${user.id}"><c:out
+															value="${user.fullname}" /></a>
+												</c:when>
+												<c:otherwise>
+													<span class="text-dark p-2 d-block"><c:out
+															value="${user.fullname}" /></span>
+												</c:otherwise>
+											</c:choose></td>
 
-				<li
-					class="page-item ${requestScope.page == requestScope.totalPages ? 'disabled' : ''}"><a
-					class="page-link"
-					href="${pageContext.request.contextPath}/admin/userManager?page=${requestScope.page + 1}">
-						Trang sau </a></li>
-			</ul>
-		</nav>
-	</c:if>
+										<%-- Email --%>
+										<td><c:choose>
+												<c:when test="${isEditable}">
+													<a class="text-decoration-none text-dark d-block p-2"
+														href="${pageContext.request.contextPath}/admin/user/update?id=${user.id}"><c:out
+															value="${user.email}" /></a>
+												</c:when>
+												<c:otherwise>
+													<span class="text-dark p-2 d-block"><c:out
+															value="${user.email}" /></span>
+												</c:otherwise>
+											</c:choose></td>
+
+										<%-- Số điện thoại --%>
+										<td><c:choose>
+												<c:when test="${isEditable}">
+													<a class="text-decoration-none text-dark d-block p-2"
+														href="${pageContext.request.contextPath}/admin/user/update?id=${user.id}"><c:out
+															value="${user.phoneNumber}" /></a>
+												</c:when>
+												<c:otherwise>
+													<span class="text-dark p-2 d-block"><c:out
+															value="${user.phoneNumber}" /></span>
+												</c:otherwise>
+											</c:choose></td>
+
+										<%-- Vai trò --%>
+										<td class="text-center"><c:choose>
+												<c:when test="${isEditable}">
+													<a class="text-decoration-none d-block p-2"
+														href="${pageContext.request.contextPath}/admin/user/update?id=${user.id}">
+														<span class="badge bg-secondary-subtle text-secondary border"><c:out value="${user.role}" /></span>
+													</a>
+												</c:when>
+												<c:otherwise>
+													<span class="p-2 d-block">
+														<span class="badge bg-secondary-subtle text-secondary border"><c:out value="${user.role}" /></span>
+													</span>
+												</c:otherwise>
+											</c:choose></td>
+
+										<%-- Trạng thái --%>
+										<td class="text-center"><c:choose>
+												<c:when test="${isEditable}">
+													<a class="text-decoration-none d-block p-2"
+														href="${pageContext.request.contextPath}/admin/user/update?id=${user.id}">
+														<c:choose>
+															<c:when test="${user.status.id == 1}">
+																<span class="badge bg-success-subtle text-success border border-success border-opacity-20">Hoạt động</span>
+															</c:when>
+															<c:otherwise>
+																<span class="badge bg-secondary-subtle text-secondary border">Tắt</span>
+															</c:otherwise>
+														</c:choose>
+													</a>
+												</c:when>
+												<c:otherwise>
+													<span class="p-2 d-block"> <c:choose>
+															<c:when test="${user.status.id == 1}">
+																<span class="badge bg-success-subtle text-success border border-success border-opacity-20">Hoạt động</span>
+															</c:when>
+															<c:otherwise>
+																<span class="badge bg-secondary-subtle text-secondary border">Tắt</span>
+															</c:otherwise>
+														</c:choose>
+													</span>
+												</c:otherwise>
+											</c:choose></td>
+									</tr>
+								</c:forEach>
+							</tbody>
+
+						</table>
+					</div>
+				</form>
+
+			</div>
+		</section>
+	</main>
 
 	<jsp:include page="_footerAdmin.jsp" />
-</body>
 
+</body>
 </html>

@@ -52,7 +52,7 @@
 								<th scope="row">${loop.index + 1}</th>
 								<td>${productReview.id}</td>
 								<td><a
-									href="${pageContext.request.contextPath}/admin/userManager/detail?id=${productReview.user.id}">
+									href="${pageContext.request.contextPath}/admin/user/detail?id=${productReview.user.id}">
 										${productReview.user.username} </a>
 									(${productReview.user.fullname})</td>
 								<td>${productReview.createdAt.format(DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy"))}</td>
