@@ -12,7 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import service.VoucherService;
 
-@WebServlet(name = "VoucherManagerServlet", value = "/admin/voucherManager")
+@WebServlet(name = "VoucherManagerServlet", value = "/admin/voucherManager/view")
 public class VoucherManagerServlet extends HttpServlet {
     private final VoucherService voucherService = new VoucherService();
     private static final int VOUCHERS_PER_PAGE = 5;

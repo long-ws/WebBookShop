@@ -53,7 +53,7 @@
 								<th scope="row">${loop.index + 1}</th>
 								<td>${order.id}</td>
 								<td><a
-									href="${pageContext.request.contextPath}/admin/userManager/detail?id=${order.user.id}">
+									href="${pageContext.request.contextPath}/admin/user/detail?id=${order.user.id}">
 										${order.user.username} </a> (${order.user.fullname})</td>
 								<td>${order.createdAt.format(DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy"))}</td>
 								<td>${order.updatedAt.format(DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy"))}</td>

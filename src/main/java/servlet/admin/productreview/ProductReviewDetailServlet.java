@@ -12,8 +12,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import service.ProductReviewService;
 import service.ProductService;
-import service.UserService;
-import service.UserServiceImpl;
+import service.UserManagementService;
+import service.UserManagementServiceImpl;
 import utils.TextUtils;
 
 @WebServlet(name = "ProductReviewDetailServlet", value = "/admin/reviewManager/detail")
@@ -21,7 +21,7 @@ public class ProductReviewDetailServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
     private final ProductReviewService productReviewService = new ProductReviewService();
-    private final UserService userService = new UserServiceImpl();
+    private final UserManagementService userManagementService = new UserManagementServiceImpl();
     private final ProductService productService = new ProductService();
 
     @Override
@@ -48,7 +48,7 @@ public class ProductReviewDetailServlet extends HttpServlet {
                 )
         );
 
-        User user = userService.getById(productReview.getUserId());
+        User user = userManagementService.getById(productReview.getUserId());
         if (user != null) {
             productReview.setUser(user);
         }

@@ -12,7 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import service.CategoryService;
 
-@WebServlet(name = "CategoryManagerServlet", value = "/admin/categoryManager")
+@WebServlet(name = "CategoryManagerServlet", value = "/admin/categoryManager/view")
 public class CategoryManagerServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
@@ -93,7 +93,7 @@ public class CategoryManagerServlet extends HttpServlet {
 				request.getSession().setAttribute("errorMessage", "Xóa thất bại!");
 			}
 
-			response.sendRedirect(request.getContextPath() + "/admin/categoryManager?page=" + pageParam);
+			response.sendRedirect(request.getContextPath() + "/admin/categoryManager/view?page=" + pageParam);
 		}
 	}
 

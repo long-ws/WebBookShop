@@ -12,7 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import service.ProductService;
 
-@WebServlet(name = "ProductManagerServlet", value = "/admin/productManager")
+@WebServlet(name = "ProductManagerServlet", value = "/admin/productManager/view")
 public class ProductManagerServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
@@ -93,7 +93,7 @@ public class ProductManagerServlet extends HttpServlet {
 		if (currentPage == null)
 			currentPage = "1";
 
-		response.sendRedirect(request.getContextPath() + "/admin/productManager?page=" + currentPage);
+		response.sendRedirect(request.getContextPath() + "/admin/productManager/view?page=" + currentPage);
 	}
 
 }

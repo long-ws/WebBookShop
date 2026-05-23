@@ -13,14 +13,6 @@
 <body>
 	<jsp:include page="_header.jsp" />
 
-	<section class="section-pagetop bg-light">
-		<div class="container">
-			<h2 class="title-page">Đơn hàng</h2>
-		</div>
-		<!-- container.// -->
-	</section>
-	<!-- section-pagetop.// -->
-
 	<section class="section-content padding-y">
 		<div class="container">
 			<div class="row">
@@ -31,6 +23,48 @@
 						</jsp:include>
 
 						<main class="col-md-9">
+							<!-- Order Statistics -->
+							<article class="card mb-4">
+								<div class="card-header bg-white">
+									<h5 class="card-title mb-0">Thống kê đơn hàng</h5>
+								</div>
+								<div class="card-body">
+									<div class="row g-3">
+										<div class="col-6 col-md-3">
+											<div class="card bg-light h-100">
+												<div class="card-body text-center">
+													<h3 class="text-primary mb-1">${requestScope.countCartItemQuantity}</h3>
+													<small class="text-muted">Sản phẩm trong giỏ</small>
+												</div>
+											</div>
+										</div>
+										<div class="col-6 col-md-3">
+											<div class="card bg-light h-100">
+												<div class="card-body text-center">
+													<h3 class="text-info mb-1">${requestScope.countOrder}</h3>
+													<small class="text-muted">Tổng đơn hàng</small>
+												</div>
+											</div>
+										</div>
+										<div class="col-6 col-md-3">
+											<div class="card bg-light h-100">
+												<div class="card-body text-center">
+													<h3 class="text-warning mb-1">${requestScope.countOrderDeliver}</h3>
+													<small class="text-muted">Đang giao</small>
+												</div>
+											</div>
+										</div>
+										<div class="col-6 col-md-3">
+											<div class="card bg-light h-100">
+												<div class="card-body text-center">
+													<h3 class="text-success mb-1">${requestScope.countOrderReceived}</h3>
+													<small class="text-muted">Đã nhận</small>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</article>
 
 							<div class="table-responsive-xxl">
 								<table
