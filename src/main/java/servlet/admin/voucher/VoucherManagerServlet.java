@@ -14,13 +14,13 @@ import service.VoucherService;
 
 @WebServlet(name = "VoucherManagerServlet", value = "/admin/voucherManager/view")
 public class VoucherManagerServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
     private final VoucherService voucherService = new VoucherService();
     private static final int VOUCHERS_PER_PAGE = 5;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
         int totalVouchers;
         try {
             totalVouchers = voucherService.count();

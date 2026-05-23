@@ -1,7 +1,6 @@
 let currentType = '';
 let timeout = null;
 
-
 function prepareModal(type) {
     currentType = type;
     const searchInput = document.getElementById('searchInput');
@@ -11,13 +10,8 @@ function prepareModal(type) {
     searchInput.value = '';
     resultList.innerHTML = '<li class="text-muted text-center py-3">Nhập từ khóa tìm kiếm...</li>';
 
-    if (type === 'category') {
-        modalTitle.innerText = 'Tìm kiếm danh mục';
-        searchInput.placeholder = 'Nhập tên danh mục ...';
-    } else {
-        modalTitle.innerText = 'Tìm kiếm sản phẩm';
-        searchInput.placeholder = 'Nhập tên sản phẩm...';
-    }
+    modalTitle.innerText = type === 'category' ? 'Tìm kiếm danh mục' : 'Tìm kiếm sản phẩm';
+    searchInput.placeholder = type === 'category' ? 'Nhập tên danh mục...' : 'Nhập tên sản phẩm...';
 }
 
 function addToList(type, id, name, img) {
@@ -25,24 +19,27 @@ function addToList(type, id, name, img) {
     const inputName = type === 'category' ? 'categoryIds' : 'productIds';
     const listContainer = document.getElementById(listId);
 
-    if (listContainer.querySelector(`input[value="${id}"]`)) {
-        alert("Đã có trong danh sách!");
-        return;
-    }
+    if (listContainer.querySelector(`input[value="${id}"]`)) return;
 
     const emptyMsg = listContainer.querySelector('.text-muted');
     if (emptyMsg) emptyMsg.remove();
 
+    const safeImg = (img && img.trim() !== "" && img !== "null") ? img : 'default.png';
+    const imgSrc = `${contextPath}/images/${safeImg}`;
+
     const li = document.createElement('li');
     li.className = 'list-group-item d-flex align-items-center justify-content-between py-2 rounded mb-1 shadow-sm bg-white';
+
     li.innerHTML = `
         <div class="d-flex align-items-center">
-            <img src="${contextPath}/images/${img || 'default.png'}" class="rounded me-2" style="width:30px; height:30px; object-fit:cover;">
+            <img src="${imgSrc}" 
+                 onerror="this.onerror=null; this.src='${contextPath}/images/default.png';"
+                 class="rounded me-2" style="width:30px; height:30px; object-fit:cover;">
             <span class="small fw-bold">${name}</span>
             <input type="hidden" name="${inputName}" value="${id}">
         </div>
         <button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="this.closest('li').remove()">
-            Xóa <i class="bi bi-trash3 ms-1"></i>
+             Xóa <i class="bi bi-trash3 ms-1"></i>
         </button>
     `;
     listContainer.appendChild(li);
@@ -61,16 +58,17 @@ document.getElementById('searchInput').addEventListener('input', function() {
     timeout = setTimeout(() => {
         resultList.innerHTML = `<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-secondary"></div></div>`;
 
-        fetch(`${contextPath}/admin/voucherManager/search?type=${currentType}&query=${encodeURIComponent(keyword)}`)
+        fetch(`${contextPath}/admin/voucherManager/create?type=${currentType}&query=${encodeURIComponent(keyword)}`)
             .then(res => res.json())
             .then(data => {
                 resultList.innerHTML = '';
                 if (data.length === 0) {
-                    resultList.innerHTML = '<li class="text-center py-3 text-danger">Không thấy kết quả</li>';
+                    resultList.innerHTML = '<li class="text-center py-3 text-danger">Không tìm thấy kết quả</li>';
                     return;
                 }
                 data.forEach(item => {
                     const btn = document.createElement('button');
+                    btn.type = "button";
                     btn.className = 'list-group-item list-group-item-action d-flex align-items-center';
                     btn.innerHTML = `
                         <img src="${contextPath}/images/${item.imageName || 'default.png'}" class="rounded me-3" style="width:40px; height:40px; object-fit:cover;">
@@ -81,33 +79,33 @@ document.getElementById('searchInput').addEventListener('input', function() {
                     btn.onclick = () => addToList(currentType, item.id, item.name, item.imageName);
                     resultList.appendChild(btn);
                 });
+            })
+            .catch(err => {
+                resultList.innerHTML = '<li class="text-center py-3 text-danger">Lỗi tải dữ liệu</li>';
             });
-    }, 1000);
+    }, 500);
 });
+
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('voucherForm');
     const methodSelect = document.getElementById('calculationMethod');
     const valueInput = document.getElementById('voucherValue');
-    const valueFeedback = document.getElementById('valueFeedback');
     const startInput = document.getElementById('startDate');
     const endInput = document.getElementById('endDate');
 
     function validateLogic() {
         const val = parseFloat(valueInput.value);
-        if (methodSelect.value === 'PERCENT') {
+        if (methodSelect.value === '0') {
             if (val > 100) {
-                valueInput.setCustomValidity('Max 100%');
-                valueFeedback.textContent = 'Giảm giá theo % không được quá 100%.';
+                valueInput.setCustomValidity('Tối đa 100%');
             } else if (val <= 0) {
-                valueInput.setCustomValidity('Min 1');
-                valueFeedback.textContent = 'Giảm giá phải lớn hơn 0.';
+                valueInput.setCustomValidity('Phải > 0');
             } else {
                 valueInput.setCustomValidity('');
             }
         } else {
             if (val <= 0) {
-                valueInput.setCustomValidity('Min 1');
-                valueFeedback.textContent = 'Giảm giá phải lớn hơn 0.';
+                valueInput.setCustomValidity('Phải > 0');
             } else {
                 valueInput.setCustomValidity('');
             }
@@ -116,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const start = new Date(startInput.value);
         const end = new Date(endInput.value);
         if (startInput.value && endInput.value && end <= start) {
-            endInput.setCustomValidity('Invalid date');
+            endInput.setCustomValidity('Ngày kết thúc phải sau ngày bắt đầu');
         } else {
             endInput.setCustomValidity('');
         }

@@ -5,6 +5,7 @@ import java.util.List;
 
 import beans.Category;
 import dao.CategoryDAO;
+import dto.CategoryDTO;
 
 public class CategoryService {
 
@@ -51,5 +52,8 @@ public class CategoryService {
     }
     public List<Category> searchByName(String keyword) {
         return categoryDAO.searchByName(keyword);
+    }
+    public List<CategoryDTO> searchDTOByName(String keyword) {
+        return categoryDAO.searchDTOByName(keyword);
     }
 }

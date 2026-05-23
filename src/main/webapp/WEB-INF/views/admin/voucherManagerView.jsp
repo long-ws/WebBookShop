@@ -55,7 +55,7 @@
                         </td>
                         <td>
                             <c:choose>
-                                <c:when test="${v.calculationMethod == 'PERCENT'}">
+                                <c:when test="${v.calculationMethod == 0}">
                                     <span class="badge bg-info text-dark">${v.value}%</span>
                                     <div class="small text-muted">Tối đa: <fmt:formatNumber value="${v.maxDiscount}" type="currency" currencyCode="VND"/></div>
                                 </c:when>
@@ -65,7 +65,9 @@
                             </c:choose>
                         </td>
                         <td>
-                            <b>${v.applyTo}</b>
+                            <span class="badge bg-secondary">
+                                    ${v.applyTo == 0 ? 'Đơn hàng' : 'Vận chuyển'}
+                            </span>
                         </td>
                         <td class="small">
                             Từ: <fmt:parseDate value="${v.startDate}" pattern="yyyy-MM-dd'T'HH:mm" var="sDate" type="both" />
@@ -76,13 +78,13 @@
                         <td>
                             <div class="progress" style="height: 10px;">
                                 <div class="progress-bar bg-warning" role="progressbar"
-                                     style="width: ${(v.usedCount / v.usageLimit) * 100}%"></div>
+                                     style="width: ${v.usageLimit > 0 ? (v.usedCount / v.usageLimit) * 100 : 0}%"></div>
                             </div>
                             <small>${v.usedCount}/${v.usageLimit}</small>
                         </td>
                         <td>
                             <c:choose>
-                                <c:when test="${v.isActive}">
+                                <c:when test="${v.active}">
                                     <span class="badge bg-success">Đang chạy</span>
                                 </c:when>
                                 <c:otherwise>
@@ -92,11 +94,11 @@
                         </td>
                         <td>
                             <div class="d-flex gap-2">
-                                <a href="${pageContext.request.contextPath}/admin/voucherEdit?id=${v.id}"
+                                <a href="${pageContext.request.contextPath}/admin/voucherManager/update?id=${v.id}"
                                    class="btn btn-sm btn-outline-primary">
                                     <i class="bi bi-pencil"></i> Sửa
                                 </a>
-                                <form action="${pageContext.request.contextPath}/admin/deleteVoucher" method="post"
+                                <form action="${pageContext.request.contextPath}/admin/voucherManager/delete" method="post"
                                       style="display:inline;"
                                       onsubmit="return confirm('Xóa voucher ID: ${v.id}?')">
                                     <input type="hidden" name="id" value="${v.id}">
@@ -112,8 +114,6 @@
                 </tbody>
             </table>
         </main>
-
-
     </div>
 </section>
 
@@ -122,14 +122,14 @@
         <ul class="pagination justify-content-center">
             <c:if test="${requestScope.currentPage > 3}">
                 <li class="page-item">
-                    <a class="page-link" href="${pageContext.request.contextPath}/admin/voucherManager?page=1">
+                    <a class="page-link" href="${pageContext.request.contextPath}/admin/voucherManager/view?page=1">
                         Trang đầu
                     </a>
                 </li>
             </c:if>
             <li class="page-item ${requestScope.currentPage == 1 ? 'disabled' : ''}">
                 <a class="page-link"
-                   href="${pageContext.request.contextPath}/admin/voucherManager?page=${requestScope.currentPage - 1}">
+                   href="${pageContext.request.contextPath}/admin/voucherManager/view?page=${requestScope.currentPage - 1}">
                     <i class="bi bi-chevron-left"></i>
                 </a>
             </li>
@@ -148,23 +148,22 @@
             </c:if>
             <c:forEach begin="${begin}" end="${end}" var="i">
                 <li class="page-item ${requestScope.currentPage == i ? 'active' : ''}">
-                    <a class="page-link" href="${pageContext.request.contextPath}/admin/voucherManager?page=${i}">${i}</a>
+                    <a class="page-link" href="${pageContext.request.contextPath}/admin/voucherManager/view?page=${i}">${i}</a>
                 </li>
             </c:forEach>
             <li class="page-item ${requestScope.currentPage == requestScope.totalPages ? 'disabled' : ''}">
                 <a class="page-link"
-                   href="${pageContext.request.contextPath}/admin/voucherManager?page=${requestScope.currentPage + 1}">
+                   href="${pageContext.request.contextPath}/admin/voucherManager/view?page=${requestScope.currentPage + 1}">
                     <i class="bi bi-chevron-right"></i>
                 </a>
             </li>
             <c:if test="${requestScope.currentPage < requestScope.totalPages - 2}">
                 <li class="page-item">
-                    <a class="page-link" href="${pageContext.request.contextPath}/admin/voucherManager?page=${requestScope.totalPages}">
+                    <a class="page-link" href="${pageContext.request.contextPath}/admin/voucherManager/view?page=${requestScope.totalPages}">
                         Trang cuối
                     </a>
                 </li>
             </c:if>
-
         </ul>
     </nav>
 </c:if>

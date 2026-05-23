@@ -1,15 +1,23 @@
 package beans;
 
+import dto.CategoryDTO;
+import dto.ProductDTO;
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Voucher implements Serializable {
-    private int id;
+    private long id;
     private String code;
     private String name;
     private String description;
-    private String calculationMethod;
-    private String applyTo;
+    private int calculationMethod;
+    private int applyTo;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private double value;
@@ -18,16 +26,20 @@ public class Voucher implements Serializable {
     private int usageLimit;
     private int perUserLimit;
     private int usedCount;
-    private boolean isActive;
+    private boolean active;
+    private List<ProductDTO> products;
+    private List<CategoryDTO> categories;
 
     public Voucher() {
+        categories =  new ArrayList<>();
+        products = new ArrayList<>();
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 
@@ -55,19 +67,19 @@ public class Voucher implements Serializable {
         this.description = description;
     }
 
-    public String getCalculationMethod() {
+    public int getCalculationMethod() {
         return calculationMethod;
     }
 
-    public void setCalculationMethod(String caculationMethod) {
+    public void setCalculationMethod(int caculationMethod) {
         this.calculationMethod = caculationMethod;
     }
 
-    public String getApplyTo() {
+    public int getApplyTo() {
         return applyTo;
     }
 
-    public void setApplyTo(String applyTo) {
+    public void setApplyTo(int applyTo) {
         this.applyTo = applyTo;
     }
 
@@ -135,11 +147,42 @@ public class Voucher implements Serializable {
         this.usedCount = usedCount;
     }
 
-    public boolean getIsActive() {
-        return isActive;
+    public boolean isActive() {
+        return active;
     }
 
     public void setActive(boolean active) {
-        isActive = active;
+        this.active = active;
+    }
+
+    public List<CategoryDTO> getCategories() {
+        return categories;
+    }
+
+    public boolean setCategory(CategoryDTO category) {
+        return this.categories.add(category);
+    }
+
+    public List<ProductDTO> getProducts() {
+        return products;
+    }
+
+    public boolean setProduct(ProductDTO product) {
+        return this.products.add(product);
+    }
+
+    public void setCategories(List<CategoryDTO> categories) {
+        this.categories = categories;
+    }
+
+    public void setProducts(List<ProductDTO> products) {
+        this.products = products;
+    }
+    public List<Long> getCategoryIds() {
+        return categories.stream().map(CategoryDTO::getId).collect(Collectors.toList());
+    }
+
+    public List<Long> getProductIds() {
+        return products.stream().map(ProductDTO::getId).collect(Collectors.toList());
     }
 }

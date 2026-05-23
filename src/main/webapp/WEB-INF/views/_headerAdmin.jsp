@@ -106,7 +106,7 @@
 
 				<c:if test="${canViewVouchers}">
 					<li class="nav-item">
-						<a class="nav-link rounded px-3 py-2 ${fn:startsWith(servletPath, '/admin/voucherManager') ? 'active bg-primary text-white' : 'text-dark'}" 
+						<a class="nav-link rounded px-3 py-2 ${fn:startsWith(servletPath, '/admin/voucherManager') ? 'active bg-primary text-white' : 'text-dark'}"
 						   href="${pageContext.request.contextPath}/admin/voucherManager/view">
 							<i class="bi bi-ticket"></i> Voucher
 						</a>

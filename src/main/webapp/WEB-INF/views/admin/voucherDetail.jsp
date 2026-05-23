@@ -42,8 +42,7 @@
                         <div class="col-md-4">
                             <div class="form-floating">
                                 <input type="text" name="code" class="form-control" id="floatingCode" placeholder="Mã Voucher"
-                                       value="${voucher.code}" pattern="[A-Z0-9]{3,20}"
-                                ${mode == 'view' ? 'disabled' : 'required'}>
+                                       value="${voucher.code}" pattern="[A-Z0-9]{3,20}" required>
                                 <label for="floatingCode">Mã Voucher</label>
                                 <div class="invalid-feedback">Mã (3-20 ký tự in hoa/số).</div>
                             </div>
@@ -52,43 +51,45 @@
                         <div class="col-md-8">
                             <div class="form-floating">
                                 <input type="text" name="name" class="form-control" id="floatingName" placeholder="Tên Voucher"
-                                       value="${voucher.name}" ${mode == 'view' ? 'disabled' : 'required'}>
+                                       value="${voucher.name}" required>
                                 <label for="floatingName">Tên Voucher</label>
                                 <div class="invalid-feedback">Vui lòng nhập tên voucher.</div>
                             </div>
                         </div>
+
                         <div class="col-md-4">
                             <div class="form-floating">
-                                <select name="applyTo" id="applyTo" class="form-select" ${mode == 'view' ? 'disabled' : ''}>
-                                    <option value="ORDER" ${voucher.applyTo == 'ORDER' ? 'selected' : ''}>Đơn hàng</option>
-                                    <option value="SHIPPING" ${voucher.applyTo == 'SHIPPING' ? 'selected' : ''}>Ship</option>
+                                <select name="applyTo" id="applyTo" class="form-select">
+                                    <option value="0" ${voucher.applyTo == 0 ? 'selected' : ''}>Đơn hàng</option>
+                                    <option value="1" ${voucher.applyTo == 1 ? 'selected' : ''}>Vận chuyển</option>
                                 </select>
-                                <label for="calculationMethod">Sử dụng</label>
+                                <label for="applyTo">Phạm vi áp dụng</label>
                             </div>
                         </div>
+
                         <div class="col-md-8">
                             <div class="form-floating">
-                        <textarea name="description" class="form-control" id="floatingDesc" placeholder="Mô tả"
-                                  style="height: 100px" ${mode == 'view' ? 'disabled' : ''}>${voucher.description}</textarea>
+                                <textarea name="description" class="form-control" id="floatingDesc" placeholder="Mô tả"
+                                          style="height: 100px">${voucher.description}</textarea>
                                 <label for="floatingDesc">Mô tả</label>
                             </div>
                         </div>
 
                         <div class="col-md-4">
                             <div class="form-floating">
-                                <select name="calculationMethod" id="calculationMethod" class="form-select" ${mode == 'view' ? 'disabled' : ''}>
-                                    <option value="PERCENT" ${voucher.calculationMethod == 'PERCENT' ? 'selected' : ''}>% (Phần trăm)</option>
-                                    <option value="FIXED" ${voucher.calculationMethod == 'FIXED' ? 'selected' : ''}>Cố định (Số tiền)</option>
+                                <select name="calculationMethod" id="calculationMethod" class="form-select">
+                                    <option value="0" ${voucher.calculationMethod == 0 ? 'selected' : ''}>% (Phần trăm)</option>
+                                    <option value="1" ${voucher.calculationMethod == 1 ? 'selected' : ''}>Cố định (Số tiền)</option>
                                 </select>
-                                <label for="calculationMethod">Cách tính</label>
+                                <label for="calculationMethod">Cách tính giá trị</label>
                             </div>
                         </div>
 
                         <div class="col-md-4">
                             <div class="form-floating">
                                 <input type="number" name="value" id="voucherValue" class="form-control" placeholder="Giá trị"
-                                       value="${voucher.value}" min="1" step="any" ${mode == 'view' ? 'disabled' : 'required'}>
-                                <label for="voucherValue">Giá trị</label>
+                                       value="<fmt:formatNumber value="${voucher.value}" pattern="#.##" />" min="1" step="any" required>
+                                <label for="voucherValue">Giá trị giảm</label>
                                 <div id="valueFeedback" class="invalid-feedback">Giá trị phải lớn hơn 0.</div>
                             </div>
                         </div>
@@ -96,7 +97,7 @@
                         <div class="col-md-4 d-flex align-items-center justify-content-center">
                             <div class="form-check form-switch p-0 m-0">
                                 <input class="form-check-input ms-0" type="checkbox" name="isActive" id="flexSwitchCheckDefault"
-                                ${voucher.isActive ? 'checked' : ''} ${mode == 'view' ? 'disabled' : ''}>
+                                ${voucher.active ? 'checked' : ''}>
                                 <label class="form-check-label ms-2 fw-bold" for="flexSwitchCheckDefault">Kích hoạt</label>
                             </div>
                         </div>
@@ -104,28 +105,28 @@
                         <div class="col-md-3">
                             <div class="form-floating">
                                 <input type="number" name="minPurchase" class="form-control" id="floatingMin" placeholder="Đơn tối thiểu"
-                                       min="0" value="${voucher.minPurchase}" ${mode == 'view' ? 'disabled' : ''}>
+                                       min="0" value="<fmt:formatNumber value="${voucher.minPurchase}" pattern="#.##" />">
                                 <label for="floatingMin">Đơn tối thiểu</label>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="form-floating">
                                 <input type="number" name="maxDiscount" class="form-control" id="floatingMax" placeholder="Giảm tối đa"
-                                       min="0" value="${voucher.maxDiscount}" ${mode == 'view' ? 'disabled' : ''}>
+                                       min="0" value="<fmt:formatNumber value="${voucher.maxDiscount}" pattern="#.##" />">
                                 <label for="floatingMax">Giảm tối đa</label>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="form-floating">
                                 <input type="number" name="usageLimit" class="form-control" id="floatingUsage" placeholder="Tổng lượt dùng"
-                                       min="1" value="${voucher.usageLimit}" ${mode == 'view' ? 'disabled' : ''}>
+                                       min="1" value="<fmt:formatNumber value="${voucher.usageLimit}" pattern="#.##" />">
                                 <label for="floatingUsage">Tổng lượt dùng</label>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="form-floating">
                                 <input type="number" name="perUserLimit" class="form-control" id="floatingPer" placeholder="Lượt/Người"
-                                       min="1" value="${voucher.perUserLimit}" ${mode == 'view' ? 'disabled' : ''}>
+                                       min="1" value="<fmt:formatNumber value="${voucher.perUserLimit}" pattern="#.##" />">
                                 <label for="floatingPer">Lượt/Người dùng</label>
                             </div>
                         </div>
@@ -133,7 +134,7 @@
                         <div class="col-md-6">
                             <div class="form-floating">
                                 <input type="datetime-local" name="startDate" id="startDate" class="form-control"
-                                       value="${voucher.startDate}" required ${mode == 'view' ? 'disabled' : ''}>
+                                       value="${voucher.startDate}" required>
                                 <label for="startDate">Ngày bắt đầu</label>
                                 <div class="invalid-feedback">Vui lòng chọn ngày bắt đầu.</div>
                             </div>
@@ -141,7 +142,7 @@
                         <div class="col-md-6">
                             <div class="form-floating">
                                 <input type="datetime-local" name="endDate" id="endDate" class="form-control"
-                                       value="${voucher.endDate}" required ${mode == 'view' ? 'disabled' : ''}>
+                                       value="${voucher.endDate}" required>
                                 <label for="endDate">Ngày kết thúc</label>
                                 <div class="invalid-feedback">Ngày kết thúc phải sau ngày bắt đầu.</div>
                             </div>
@@ -151,33 +152,28 @@
                             <div class="col-md-6">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <label class="form-label fw-bold text-success mb-0">Danh mục áp dụng</label>
-                                    <c:if test="${mode != 'view'}">
-                                        <button type="button" class="btn btn-outline-success btn-sm"
-                                                data-bs-toggle="modal" data-bs-target="#selectionModal"
-                                                onclick="prepareModal('category')">
-                                            <i class="bi bi-plus-lg"></i>
-                                        </button>
-                                    </c:if>
+                                    <button type="button" class="btn btn-outline-success btn-sm"
+                                            data-bs-toggle="modal" data-bs-target="#selectionModal"
+                                            onclick="prepareModal('category')">
+                                        <i class="bi bi-plus-lg"></i>
+                                    </button>
                                 </div>
                                 <ul class="list-group list-group-flush border rounded p-2 bg-light" id="selected-categories" style="min-height: 100px;">
+                                    <li class="text-muted small text-center mt-4">Chưa có danh mục nào được chọn</li>
                                 </ul>
                             </div>
 
                             <div class="col-md-6">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <label class="form-label fw-bold text-primary mb-0">Sản phẩm áp dụng</label>
-                                    <c:if test="${mode != 'view'}">
-                                        <button type="button" class="btn btn-outline-primary btn-sm"
-                                                data-bs-toggle="modal" data-bs-target="#selectionModal"
-                                                onclick="prepareModal('product')">
-                                            <i class="bi bi-plus-lg"></i>
-                                        </button>
-                                    </c:if>
+                                    <button type="button" class="btn btn-outline-primary btn-sm"
+                                            data-bs-toggle="modal" data-bs-target="#selectionModal"
+                                            onclick="prepareModal('product')">
+                                        <i class="bi bi-plus-lg"></i>
+                                    </button>
                                 </div>
                                 <ul class="list-group list-group-flush border rounded p-2 bg-light" id="selected-products" style="min-height: 100px;">
-                                    <c:if test="${empty selectedProducts}">
-                                        <li class="text-muted small text-center mt-4">Chưa có sản phẩm nào được chọn</li>
-                                    </c:if>
+                                    <li class="text-muted small text-center mt-4">Chưa có sản phẩm nào được chọn</li>
                                 </ul>
                             </div>
                         </div>
@@ -187,14 +183,9 @@
 
                     <div class="d-flex justify-content-end gap-2 mb-5">
                         <a href="${pageContext.request.contextPath}/admin/vouchers" class="btn btn-secondary">Quay lại</a>
-                        <c:if test="${mode != 'view'}">
-                            <button type="submit" class="btn btn-primary px-4">
-                                    ${mode == 'add' ? 'Tạo mới' : 'Lưu thay đổi'}
-                            </button>
-                        </c:if>
-                        <c:if test="${mode == 'view'}">
-                            <a href="${pageContext.request.contextPath}/admin/vouchers/edit?id=${voucher.id}" class="btn btn-warning">Chỉnh sửa</a>
-                        </c:if>
+                        <button type="submit" class="btn btn-primary px-4">
+                            ${mode == 'add' ? 'Tạo mới' : 'Lưu thay đổi'}
+                        </button>
                     </div>
                 </form>
             </div>
@@ -225,10 +216,28 @@
         </div>
     </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <jsp:include page="../_footerAdmin.jsp"/>
 <script>
     const contextPath = "${pageContext.request.contextPath}";
+    const initialCategories = [
+        <c:forEach items="${voucher.categories}" var="cat">
+        { id: "${cat.id}", name: "${cat.name}", img: "${cat.imageName}" },
+        </c:forEach>
+    ];
+    const initialProducts = [
+        <c:forEach items="${voucher.products}" var="prod">
+        { id: "${prod.id}", name: "${prod.name}", img: "${prod.imageName}" },
+        </c:forEach>
+    ];
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initialCategories.forEach(item => {
+            if(item.id) addToList('category', item.id, item.name, item.img);
+        });
+        initialProducts.forEach(item => {
+            if(item.id) addToList('product', item.id, item.name, item.img);
+        });
+    });
 </script>
 <script src="${pageContext.request.contextPath}/assets/js/voucherDetailScripts.js"></script>
 </body>
