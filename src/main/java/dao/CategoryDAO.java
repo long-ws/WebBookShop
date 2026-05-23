@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import beans.Category;
+import dto.CategoryDTO;
 import utils.DBConnection;
 
 public class CategoryDAO implements DAO<Category> {
@@ -221,6 +222,31 @@ public class CategoryDAO implements DAO<Category> {
             }
         }catch (SQLException e) {
            e.printStackTrace();
+        }
+        return list;
+    }
+    public List<CategoryDTO> searchDTOByName(String keyword) {
+        List<CategoryDTO> list = new ArrayList<>();
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return list;
+        }
+        String sql = "SELECT id, name, imageName FROM category WHERE isDeleted = 0 AND name LIKE ? ORDER BY name LIMIT 5";
+
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, "%" + keyword.trim() + "%");
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    CategoryDTO dto = new CategoryDTO();
+                    dto.setId(rs.getLong("id"));
+                    dto.setName(rs.getString("name"));
+                    dto.setImageName(rs.getString("imageName"));
+                    list.add(dto);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return list;
     }

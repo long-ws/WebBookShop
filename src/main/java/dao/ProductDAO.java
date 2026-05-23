@@ -433,7 +433,7 @@ public class ProductDAO implements DAO<Product> {
 		return p;
 	}
 
-	public List<ProductDTO> searchByName(String keyword) {
+	public List<ProductDTO> searchDTOByName(String keyword) {
 		List<ProductDTO> list = new ArrayList<>();
 		if (keyword == null || keyword.trim().isEmpty()) {
 			return list;

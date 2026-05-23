@@ -153,8 +153,8 @@ public class ProductService {
 		return String.join(" AND ", filters);
 	}
 
-	public List<ProductDTO> searchByName(String keyword) {
-		return productDAO.searchByName(keyword);
+	public List<ProductDTO> searchDTOByName(String keyword) {
+		return productDAO.searchDTOByName(keyword);
 	}
 
 	// Tìm kiếm nâng cao
