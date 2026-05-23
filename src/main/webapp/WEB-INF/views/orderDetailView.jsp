@@ -37,9 +37,6 @@
                                 </div>
                                 <div class="mt-2 mt-sm-0">
                                     <c:choose>
-                                        <c:when test="${requestScope.order.status == 0}">
-                                            <span class="badge bg-warning text-white py-2 px-3"><i class="fas fa-clock me-1"></i> Chờ xử lý</span>
-                                        </c:when>
                                         <c:when test="${requestScope.order.status == 1}">
                                             <span class="badge bg-warning text-white py-2 px-3"><i class="fas fa-truck me-1"></i> Đang giao hàng</span>
                                         </c:when>
@@ -135,7 +132,7 @@
 
                                         <div class="mt-4 d-flex justify-content-start">
                                             <c:choose>
-                                                <c:when test="${requestScope.order.status == 0 || requestScope.order.status == 1}">
+                                                <c:when test="${requestScope.order.status == 1}">
                                                     <c:choose>
                                                         <c:when test="${requestScope.payment.status == 1}">
                                                             <form action="${pageContext.request.contextPath}/vnpay/refund" method="post" class="d-inline">
@@ -240,7 +237,7 @@
                                                         <fmt:formatNumber pattern="#,##0" value="${requestScope.tempPrice + requestScope.order.deliveryPrice}"/> ₫
                                                     </strong>
                                                 </div>
-                                                <c:if test="${(requestScope.order.status == 0 || requestScope.order.status == 1) && (requestScope.payment.status == 0 || requestScope.isRetryAble) && !requestScope.payment.expired}">
+                                                <c:if test="${requestScope.order.status == 1 && (requestScope.payment.status == 0 || requestScope.isRetryAble) && !requestScope.payment.expired}">
                                                     <a id="payment-btn" href="${pageContext.request.contextPath}/vnpay/checkout?vnpTxnRef=${requestScope.payment.vnpTxnRef}" class="btn btn-primary btn-lg py-2.5 fs-6 fw-bold w-100 shadow-sm mt-2">
                                                         <c:choose>
                                                             <c:when test="${requestScope.payment.status == 2}">
@@ -251,6 +248,7 @@
                                                             </c:otherwise>
                                                         </c:choose>
                                                     </a>
+
                                                 </c:if>
                                             </div>
                                         </div>

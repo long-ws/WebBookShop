@@ -312,46 +312,4 @@ public class OrderDAO implements DAO<Order> {
             return false;
         }
     }
-    public int countByUserIdAndStatus(long id, int status) {
-        String sql = "SELECT COUNT(*) FROM orders WHERE userId = ? AND status = ?";
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setLong(1, id);
-            ps.setInt(2, status);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return 0;
-    }
-
-    public List<Order> getOrderedPartByUserIdAndStatus(long id, int status, int ordersPerPage, int offset) {
-        List<Order> list = new ArrayList<>();
-        String sql = "SELECT id, userId, deliveryPrice, status, createdAt FROM orders WHERE userId = ? AND status = ? ORDER BY id DESC LIMIT ? OFFSET ?";
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setLong(1, id);
-            ps.setInt(2, status);
-            ps.setInt(3, ordersPerPage);
-            ps.setInt(4, offset);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    Order order = new Order();
-                    order.setId(rs.getLong("id"));
-                    order.setUserId(rs.getLong("userId"));
-                    order.setDeliveryPrice(rs.getDouble("deliveryPrice"));
-                    order.setStatus(rs.getInt("status"));
-                    order.setCreatedAt(rs.getTimestamp("createdAt").toLocalDateTime());
-                    list.add(order);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
 }
