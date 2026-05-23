@@ -59,6 +59,11 @@ public class CartServlet extends HttpServlet {
 
 		try {
 			long cartId = Long.parseLong(request.getParameter("cartId"));
+            if(checkoutService.hasEnoughQty(cartId)){
+                session.setAttribute("errorMessage", "Đặt hàng thất bại, sản phấm hết hàng!");
+                response.sendRedirect(request.getContextPath() + "/cart");
+                return;
+            }
 			int deliveryMethod = Integer.parseInt(request.getParameter("deliveryMethod"));
 			double deliveryPrice = Double.parseDouble(request.getParameter("deliveryPrice"));
 

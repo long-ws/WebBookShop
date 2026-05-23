@@ -9,6 +9,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import jakarta.servlet.http.HttpServletRequest;
 
 public class VNPConfig {
@@ -16,6 +19,45 @@ public class VNPConfig {
     public static final String vnp_TmnCode = "4P9P9ZLY";
     public static final String secretKey = "KKRXD30HV5DKBT4Y648121MPBYWPVG1B";
     public static final String vnp_ApiUrl = "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction";
+    private static final int expireTime = 30;
+
+    private static final Map<String, String> vnp_response;
+    private static final Set<String> retryableCodes;
+
+    static {
+        vnp_response = new HashMap<>();
+
+        vnp_response.put("00", "Giao dịch thành công");
+        vnp_response.put("07", "Trừ tiền thành công. Giao dịch bị nghi ngờ (liên quan tới lừa đảo, giao dịch bất thường).");
+        vnp_response.put("09", "Giao dịch không thành công do: Thẻ/Tài khoản của khách hàng chưa đăng ký dịch vụ InternetBanking tại ngân hàng.");
+        vnp_response.put("10", "Giao dịch không thành công do: Khách hàng xác thực thông tin thẻ/tài khoản không đúng quá 3 lần");
+        vnp_response.put("11", "Giao dịch không thành công do: Đã hết hạn chờ thanh toán. Xin quý khách vui lòng thực hiện lại giao dịch.");
+        vnp_response.put("12", "Giao dịch không thành công do: Thẻ/Tài khoản của khách hàng bị khóa.");
+        vnp_response.put("13", "Giao dịch không thành công do Quý khách nhập sai mật khẩu xác thực giao dịch (OTP). Xin quý khách vui lòng thực hiện lại giao dịch.");
+        vnp_response.put("24", "Giao dịch không thành công do: Khách hàng hủy giao dịch");
+        vnp_response.put("51", "Giao dịch không thành công do: Tài khoản của quý khách không đủ số dư để thực hiện giao dịch.");
+        vnp_response.put("65", "Giao dịch không thành công do: Tài khoản của Quý khách đã vượt quá hạn mức giao dịch trong ngày.");
+        vnp_response.put("75", "Ngân hàng thanh toán đang bảo trì.");
+        vnp_response.put("79", "Giao dịch không thành công do: KH nhập sai mật khẩu thanh toán quá số lần quy định. Xin quý khách vui lòng thực hiện lại giao dịch");
+        vnp_response.put("99", "Các lỗi khác (lỗi còn lại, không có trong danh sách mã lỗi đã liệt kê)");
+
+        retryableCodes = new HashSet<>();
+        retryableCodes.add("09");
+        retryableCodes.add("10");
+        retryableCodes.add("12");
+        retryableCodes.add("13");
+        retryableCodes.add("24");
+        retryableCodes.add("51");
+        retryableCodes.add("65");
+        retryableCodes.add("75");
+        retryableCodes.add("79");
+    }
+    public static String getResponseMessage(String responseCode) {
+        return vnp_response.get(responseCode);
+    }
+    public static boolean isRetryAble(String responseCode) {
+        return retryableCodes.contains(responseCode);
+    }
 
     public static String vnp_ReturnUrl(String path){
         return path + "vnpay/result";
@@ -25,11 +67,12 @@ public class VNPConfig {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
         return timestamp.toLocalDateTime().format(formatter);
     }
-    public static String getVnpayExpireDate(Timestamp createdAt) {
+    public static String getFormatedExpireTime(Timestamp createdAt) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
-        LocalDateTime expireTime = createdAt.toLocalDateTime().plusMinutes(15);
-        return expireTime.format(formatter);
-
+        return getExpireTime(createdAt).toLocalDateTime().format(formatter);
+    }
+    public static Timestamp getExpireTime(Timestamp createdAt) {
+        return Timestamp.valueOf(createdAt.toLocalDateTime().plusMinutes(expireTime));
     }
     public static Timestamp parseVnpayDate(String dateStr) {
         if (dateStr == null || dateStr.isEmpty()) {
@@ -103,7 +146,7 @@ public class VNPConfig {
         return ipAdress;
     }
     public static String getRandomCode(long orderId, long userId, Timestamp time) {
-        SimpleDateFormat formatter = new java.text.SimpleDateFormat("yyMMddHHmm");
+        SimpleDateFormat formatter = new SimpleDateFormat("yyMMddHHmm");
         String datePart = formatter.format(time);
 
         return String.format("ORDER_%d_%d_%s", userId, orderId, datePart);
@@ -111,6 +154,38 @@ public class VNPConfig {
     public static boolean verifySignature(Map<String, String> fields, String vnp_SecureHash) {
         String signValue = hashAllFields(fields);
         return signValue.equalsIgnoreCase(vnp_SecureHash);
+    }
+    public static Map<String, String> parseJsonToMap(String jsonStr) {
+        Map<String, String> resultMap = new HashMap<>();
+        try {
+            JsonObject jsonObject = JsonParser.parseString(jsonStr).getAsJsonObject();
+
+            for (String key : jsonObject.keySet()) {
+                if (jsonObject.get(key) != null && !jsonObject.get(key).isJsonNull()) {
+                    resultMap.put(key, jsonObject.get(key).getAsString());
+                } else {
+                    resultMap.put(key, "");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return resultMap;
+    }
+    public static String hashRefundFields(Map<String, String> fields) {
+        StringBuilder sb = new StringBuilder();
+        Iterator<Map.Entry<String, String>> itr = fields.entrySet().iterator();
+        while (itr.hasNext()) {
+            Map.Entry<String, String> entry = itr.next();
+            String fieldValue = entry.getValue();
+            if (fieldValue != null) {
+                sb.append(fieldValue);
+            }
+            if (itr.hasNext()) {
+                sb.append("|");
+            }
+        }
+        return hmacSHA512(secretKey, sb.toString());
     }
 }
 

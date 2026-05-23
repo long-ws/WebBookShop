@@ -55,8 +55,8 @@ public class OrderService {
         return orderDAO.count();
     }
 
-    public boolean cancelOrder(long id) {
-        return orderDAO.cancelOrder(id);
+    public boolean cancelOrder(long oId, long pId) {
+        return orderDAO.cancelOrder(oId, pId);
     }
 
     public boolean confirm(long id) {
@@ -87,5 +87,18 @@ public class OrderService {
         }
 
         return totalPrice;
+    }
+    public boolean checkUser(long oId, long uId){
+        return orderDAO.checkUser(oId, uId);
+    }
+    public boolean rebuy(long uId, long oId){
+        return orderDAO.rebuy(uId, oId);
+    }
+    public List<Order> getOrderedPartByUserIdAndStatus(long id, Integer status, int ordersPerPage, int offset) {
+        return orderDAO.getOrderedPartByUserIdAndStatus(id, status, ordersPerPage, offset);
+    }
+
+    public int countByUserIdAndStatus(long id, Integer status) {
+        return orderDAO.countByUserIdAndStatus(id, status);
     }
 }
