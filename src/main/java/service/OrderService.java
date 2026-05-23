@@ -94,4 +94,11 @@ public class OrderService {
     public boolean rebuy(long uId, long oId){
         return orderDAO.rebuy(uId, oId);
     }
+    public List<Order> getOrderedPartByUserIdAndStatus(long id, Integer status, int ordersPerPage, int offset) {
+        return orderDAO.getOrderedPartByUserIdAndStatus(id, status, ordersPerPage, offset);
+    }
+
+    public int countByUserIdAndStatus(long id, Integer status) {
+        return orderDAO.countByUserIdAndStatus(id, status);
+    }
 }

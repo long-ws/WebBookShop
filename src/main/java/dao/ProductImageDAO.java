@@ -11,7 +11,7 @@ import java.util.List;
 import beans.ProductImage;
 import utils.DBConnection;
 
-public class ProductImageDAO implements DAO<Produ	ctImage> {
+public class ProductImageDAO implements DAO<ProductImage> {
 
     @Override
     public long insert(ProductImage img) throws SQLException {

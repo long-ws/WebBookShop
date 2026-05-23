@@ -59,7 +59,7 @@ public class CheckoutService {
 
         Order o = new Order();
         o.setUserId(userId);
-        o.setStatus(1);
+        o.setStatus(0);
         o.setDeliveryMethod(deliveryMethod);
         o.setDeliveryPrice(deliveryPrice);
         o.setTotalPrice(totalPrice);

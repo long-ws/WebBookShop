@@ -1,10 +1,10 @@
 package servlet.vnpay;
 
 import beans.vnpay.Refund;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import beans.vnpay.Payment;
 import beans.User;
-import com.google.gson.JsonParser;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -22,9 +22,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.TimeZone;
+import java.util.*;
 
 @WebServlet("/vnpay/refund")
 public class VNPAYRefundServlet extends HttpServlet {
@@ -86,26 +84,24 @@ public class VNPAYRefundServlet extends HttpServlet {
             }
             r.setId(rId);
 
-            JsonObject vnp_Params = new JsonObject();
-            vnp_Params.addProperty("vnp_RequestId", vnp_RequestId);
-            vnp_Params.addProperty("vnp_Version", vnp_Version);
-            vnp_Params.addProperty("vnp_Command", vnp_Command);
-            vnp_Params.addProperty("vnp_TmnCode", vnp_TmnCode);
-            vnp_Params.addProperty("vnp_TransactionType", vnp_TransactionType);
-            vnp_Params.addProperty("vnp_TxnRef", vnp_TxnRef);
-            vnp_Params.addProperty("vnp_Amount", vnp_Amount);
-            vnp_Params.addProperty("vnp_OrderInfo", vnp_OrderInfo);
-            vnp_Params.addProperty("vnp_TransactionNo", vnp_TransactionNo);
-            vnp_Params.addProperty("vnp_TransactionDate", vnp_TransactionDate);
-            vnp_Params.addProperty("vnp_CreateBy", vnp_CreateBy);
-            vnp_Params.addProperty("vnp_CreateDate", vnp_CreateDate);
-            vnp_Params.addProperty("vnp_IpAddr", vnp_IpAddr);
-            String hash_Data = vnp_RequestId + "|" + vnp_Version + "|" + vnp_Command + "|" + vnp_TmnCode + "|" +
-                    vnp_TransactionType + "|" + vnp_TxnRef + "|" + vnp_Amount + "|" + vnp_TransactionNo + "|" +
-                    vnp_TransactionDate + "|" + vnp_CreateBy + "|" + vnp_CreateDate + "|" + vnp_IpAddr + "|" + vnp_OrderInfo;
+            Map<String, String> paramsMap = new LinkedHashMap<>();
+            paramsMap.put("vnp_RequestId", vnp_RequestId);
+            paramsMap.put("vnp_Version", vnp_Version);
+            paramsMap.put("vnp_Command", vnp_Command);
+            paramsMap.put("vnp_TmnCode", vnp_TmnCode);
+            paramsMap.put("vnp_TransactionType", vnp_TransactionType);
+            paramsMap.put("vnp_TxnRef", vnp_TxnRef);
+            paramsMap.put("vnp_Amount", vnp_Amount);
+            paramsMap.put("vnp_TransactionNo", vnp_TransactionNo);
+            paramsMap.put("vnp_TransactionDate", vnp_TransactionDate);
+            paramsMap.put("vnp_CreateBy", vnp_CreateBy);
+            paramsMap.put("vnp_CreateDate", vnp_CreateDate);
+            paramsMap.put("vnp_IpAddr", vnp_IpAddr);
+            paramsMap.put("vnp_OrderInfo", vnp_OrderInfo);
+            String vnp_SecureHash = VNPConfig.hashRefundFields(paramsMap);
+            paramsMap.put("vnp_SecureHash", vnp_SecureHash);
 
-            String vnp_SecureHash = VNPConfig.hmacSHA512(VNPConfig.secretKey, hash_Data);
-            vnp_Params.addProperty("vnp_SecureHash", vnp_SecureHash);
+            JsonObject vnp_Params = new Gson().toJsonTree(paramsMap).getAsJsonObject();
 
             URL url = new URL(VNPConfig.vnp_ApiUrl);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -123,27 +119,30 @@ public class VNPAYRefundServlet extends HttpServlet {
                     res.append(output);
                 }
             }
-            JsonObject jsonResponse = JsonParser.parseString(res.toString()).getAsJsonObject();
-            if (jsonResponse.has("vnp_ResponseCode") && !jsonResponse.get("vnp_ResponseCode").isJsonNull()) {
-                r.setVnpResponseCode(jsonResponse.get("vnp_ResponseCode").getAsString());
+            Map<String, String> responseData = VNPConfig.parseJsonToMap(res.toString());
+
+            String responseCode = responseData.get("vnp_ResponseCode");
+            String transactionNo = responseData.get("vnp_TransactionNo");
+            String bankCode = responseData.get("vnp_BankCode");
+            String payDateStr = responseData.get("vnp_PayDate");
+            String transactionStatus = responseData.get("vnp_TransactionStatus");
+            if (responseCode != null && !responseCode.isEmpty()) {
+                r.setVnpResponseCode(responseCode);
             }
-            if (jsonResponse.has("vnp_TransactionNo") && !jsonResponse.get("vnp_TransactionNo").isJsonNull()) {
-                r.setVnpTransactionNo(jsonResponse.get("vnp_TransactionNo").getAsString());
+            if (transactionNo != null && !transactionNo.isEmpty()) {
+                r.setVnpTransactionNo(transactionNo);
             }
-            if (jsonResponse.has("vnp_BankCode") && !jsonResponse.get("vnp_BankCode").isJsonNull()) {
-                r.setBankCode(jsonResponse.get("vnp_BankCode").getAsString());
+            if (bankCode != null && !bankCode.isEmpty()) {
+                r.setBankCode(bankCode);
             }
-            if (jsonResponse.has("vnp_PayDate") && !jsonResponse.get("vnp_PayDate").isJsonNull()) {
-                String payDateStr = jsonResponse.get("vnp_PayDate").getAsString();
-                if (!payDateStr.isEmpty()) {
-                    r.setPayDate(VNPConfig.parseVnpayDate(payDateStr));
-                }
+            if (payDateStr != null && !payDateStr.isEmpty()) {
+                r.setPayDate(VNPConfig.parseVnpayDate(payDateStr));
             }
-            if (jsonResponse.has("vnp_TransactionStatus") && !jsonResponse.get("vnp_TransactionStatus").isJsonNull()) {
-                r.setVnpTransactionStatus(jsonResponse.get("vnp_TransactionStatus").getAsString());
+            if (transactionStatus != null && !transactionStatus.isEmpty()) {
+                r.setVnpTransactionStatus(transactionStatus);
             }
             boolean rs = refundService.updateRefundResult(r);
-            if(!rs){
+            if(!rs || !"00".equals(responseCode)){
                 response.sendRedirect(request.getContextPath() + "/error");
                 return;
             }
