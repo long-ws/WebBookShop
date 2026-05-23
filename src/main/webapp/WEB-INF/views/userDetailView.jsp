@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
+<%@ taglib uri="jakarta.tags.core" prefix="c"%>
+<%@ taglib uri="jakarta.tags.fmt" prefix="fmt"%>
 <fmt:setLocale value="vi_VN" />
 <!DOCTYPE html>
 <html lang="vi">
@@ -39,8 +39,14 @@
 						<dd class="col-md-9">${requestScope.user.phoneNumber}</dd>
 
 						<dt class="col-md-3">Giới tính</dt>
-						<dd class="col-md-9">${requestScope.user.gender != null and requestScope.user.gender.id == 1 ? 'Nữ' : 'Nam'}</dd>
+						<dd class="col-md-9">${requestScope.user.gender.id == 0 ? 'Nam' : 'Nữ'}</dd>
 					</dl>
+					<div class="mt-4">
+						<a class="btn btn-primary"
+							href="${pageContext.request.contextPath}/admin/user"> <i
+							class="bi bi-arrow-left me-1"></i> Quay lại
+						</a>
+					</div>
 				</div>
 			</div>
 			<!-- card.// -->
