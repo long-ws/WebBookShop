@@ -124,7 +124,7 @@ public class UpdateProductServlet extends HttpServlet {
                 product.setImageName(null);
             }
 
-            String newImage = ImageUtils.uploadSingle(request);
+            String newImage = ImageUtils.upload(request);
             if (newImage != null) {
                 if (currentImage != null) {
                     ImageUtils.delete(currentImage);

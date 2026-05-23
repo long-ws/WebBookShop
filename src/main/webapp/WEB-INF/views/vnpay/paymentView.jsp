@@ -8,6 +8,16 @@
 <head>
     <jsp:include page="../_meta.jsp" />
     <title>Thanh toán VNPAY</title>
+    <style>
+        .animate-pulse {
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+    </style>
 </head>
 <body class="bg-light">
 <jsp:include page="../_header.jsp" />
@@ -15,12 +25,38 @@
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-6">
-            <div class="card border-0 shadow-sm">
+            <div id="timeout-card" class="card border-0 shadow-sm d-none">
+                <div class="card-body p-5 text-center">
+                    <div class="text-danger mb-4">
+                        <i class="fas fa-exclamation-circle fa-4x animate-pulse"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-3">Đã hết thời gian thanh toán</h4>
+                    <p class="text-muted mb-4 small">
+                        Giao dịch này đã quá thời gian quy định của hệ thống. Đơn hàng của bạn có thể đã bị hủy hoặc tạm khóa. Vui lòng quay lại kiểm tra lịch sử đơn hàng.
+                    </p>
+                    <div class="d-grid">
+                        <a href="${pageContext.request.contextPath}/order" class="btn btn-outline-secondary">
+                            <i class="fas fa-history me-2"></i>Xem lịch sử đơn hàng
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="payment-card" class="card border-0 shadow-sm">
                 <div class="card-body p-4">
                     <div class="text-center mb-4">
                         <img src="https://stcd02206177151.cloud.edgevnpay.vn/assets/images/logo-icon/logo-primary.svg" alt="VNPAY" height="40">
                         <h5 class="fw-bold mt-3">Xác nhận thanh toán</h5>
                     </div>
+
+                    <c:if test="${not empty payment.expiredAt}">
+                        <div class="alert alert-danger py-2 px-3 border-0 d-flex justify-content-between align-items-center mb-3">
+                            <span class="small fw-medium text-danger">
+                                <i class="fas fa-clock me-1 animate-pulse"></i> Thời gian giữ đơn còn lại:
+                            </span>
+                            <span id="vnpay-countdown" class="font-monospace fw-bold fs-5 text-danger">--:--</span>
+                        </div>
+                    </c:if>
 
                     <div class="alert alert-secondary py-2 border-0">
                         <div class="d-flex justify-content-between small">
@@ -82,5 +118,67 @@
 </div>
 
 <jsp:include page="../_footer.jsp" />
+
+<c:if test="${not empty payment.expiredAt}">
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const expiredStr = "${payment.expiredAt}".replace(/-/g, "/");
+            if (!expiredStr) return;
+
+            const targetTime = new Date(expiredStr).getTime();
+            const clock = document.getElementById("vnpay-countdown");
+            const paymentCard = document.getElementById("payment-card");
+            const timeoutCard = document.getElementById("timeout-card");
+
+            const oId = "${payment.orderId}";
+
+            const timer = setInterval(function () {
+                const now = new Date().getTime();
+                const remain = targetTime - now;
+
+                const minutes = Math.floor((remain % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((remain % (1000 * 60)) / 1000);
+
+                const strMin = minutes < 10 ? "0" + minutes : minutes;
+                const strSec = seconds < 10 ? "0" + seconds : seconds;
+
+                if (clock) {
+                    clock.innerHTML = strMin + ":" + strSec;
+                }
+
+                if (remain <= 0) {
+
+                    clearInterval(timer);
+
+                    if (paymentCard && timeoutCard) {
+                        paymentCard.classList.add("d-none");
+                        timeoutCard.classList.remove("d-none");
+                    }
+                    updateExpiredPayment(oId);
+                }
+            }, 1000);
+            function updateExpiredPayment(oId) {
+                fetch("${pageContext.request.contextPath}/updateExpiredPayment", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: "orderId=" + encodeURIComponent(id)
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            console.log("Success");
+                        } else {
+                            console.error("Error " + response.status);
+                        }
+                    })
+                    .catch(error => {
+                        console.error(error);
+                    });
+            }
+        });
+
+    </script>
+</c:if>
 </body>
 </html>

@@ -22,4 +22,13 @@ public class PaymentService {
     public void updatePaymentResult(Payment p){
         dao.updatePaymentResult(p);
     }
+    public Payment getPaymentByOrderId(long oId){
+        return dao.getPaymentByOrderId(oId);
+    }
+    public boolean isPaymentExpired(long oId){
+        return dao.isPaymentExpired(oId);
+    }
+    public Payment getPaymentById(long id){
+        return dao.getPaymentById(id);
+    }
 }

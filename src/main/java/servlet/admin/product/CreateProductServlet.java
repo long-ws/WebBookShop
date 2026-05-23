@@ -102,7 +102,7 @@ public class CreateProductServlet extends HttpServlet {
 
 		/* ===== XỬ LÝ ===== */
 		if (errorCount == 0) {
-			String imageName = ImageUtils.uploadSingle(request);
+			String imageName = ImageUtils.upload(request);
 			if (imageName != null) {
 				product.setImageName(imageName);
 			}
