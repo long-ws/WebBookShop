@@ -9,6 +9,7 @@ public class UserProfile {
 	private long userId;
 	private String fullname;
 	private String phoneNumber;
+	private String email;
 	private Gender gender;
 	private Language preferredLanguage;
 	private String avatarUrl;
@@ -17,14 +18,23 @@ public class UserProfile {
 	public UserProfile() {
 	}
 
-	public UserProfile(long userId, String fullname, String phoneNumber, Gender gender, Language preferredLanguage,
+	public UserProfile(long userId, String fullname, String phoneNumber, String email, Gender gender, Language preferredLanguage,
 			Timestamp updatedAt) {
 		this.userId = userId;
 		this.fullname = fullname;
 		this.phoneNumber = phoneNumber;
+		this.email = email;
 		this.gender = gender;
 		this.preferredLanguage = preferredLanguage;
 		this.updatedAt = updatedAt;
+	}
+	
+	public String getEmail() {
+		return email;
+	}
+	
+	public void setEmail(String email) {
+		this.email = email;
 	}
 
 	public long getUserId() {

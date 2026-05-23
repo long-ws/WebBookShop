@@ -1,0 +1,46 @@
+package validator.user;
+
+import constants.UserConstants;
+import dto.user.ResetPasswordRequest;
+import validator.core.BaseValidator;
+import validator.core.ValidationResult;
+
+public class ResetPasswordValidator extends BaseValidator<ResetPasswordRequest> {
+
+	public ResetPasswordValidator() {
+	}
+
+	@Override
+	protected void validateFormat(ResetPasswordRequest dto, ValidationResult result) {
+		String newPassword = dto.getNewPassword();
+		if (newPassword == null || newPassword.trim().isEmpty()) {
+			result.addError("newPassword", "Mật khẩu mới không được để trống");
+		} else if (!newPassword.equals(newPassword.trim())) {
+			result.addError("newPassword", "Mật khẩu mới không có dấu cách ở hai đầu");
+		} else if (newPassword.length() < UserConstants.Validation.PASSWORD_MIN_LENGTH) {
+			result.addError("newPassword",
+					"Mật khẩu mới phải có ít nhất " + UserConstants.Validation.PASSWORD_MIN_LENGTH + " ký tự");
+		} else if (newPassword.length() > UserConstants.Validation.PASSWORD_MAX_LENGTH) {
+			result.addError("newPassword",
+					"Mật khẩu mới tối đa " + UserConstants.Validation.PASSWORD_MAX_LENGTH + " ký tự");
+		} else {
+			boolean hasUppercase = !newPassword.equals(newPassword.toLowerCase());
+			boolean hasLowercase = !newPassword.equals(newPassword.toUpperCase());
+			boolean hasDigit = newPassword.matches(".*\\d.*");
+			boolean hasSpecial = newPassword.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*");
+			int complexityScore = (hasUppercase ? 1 : 0) + (hasLowercase ? 1 : 0) + (hasDigit ? 1 : 0)
+					+ (hasSpecial ? 1 : 0);
+			if (complexityScore < 3) {
+				result.addError("newPassword",
+						"Mật khẩu mới phải chứa ít nhất 3 trong 4 loại: chữ hoa, chữ thường, số, ký tự đặc biệt");
+			}
+		}
+
+		String confirmPassword = dto.getConfirmPassword();
+		if (confirmPassword == null || confirmPassword.trim().isEmpty()) {
+			result.addError("confirmPassword", "Xác nhận mật khẩu không được để trống");
+		} else if (newPassword != null && !newPassword.equals(confirmPassword)) {
+			result.addError("confirmPassword", "Xác nhận mật khẩu không khớp với mật khẩu mới");
+		}
+	}
+}

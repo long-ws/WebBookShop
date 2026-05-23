@@ -1,12 +1,10 @@
 package service.oauth;
 
-import service.OAuthService;
-
 public class OAuthFactory {
     
-    private static final OAuthService oauthService = new OAuthService();
+    private static final GoogleOAuthProvider googleOAuthProvider = new GoogleOAuthProvider();
     
-    public static OAuthService get(String provider) {
+    public static OAuthProvider get(String provider) {
         if (provider == null) {
             throw new IllegalArgumentException("Provider không thể null");
         }
@@ -14,7 +12,7 @@ public class OAuthFactory {
         String providerUpper = provider.toUpperCase();
         switch (providerUpper) {
             case "GOOGLE":
-                return oauthService;
+                return googleOAuthProvider;
             default:
                 throw new IllegalArgumentException("Không hỗ trợ: " + provider);
         }

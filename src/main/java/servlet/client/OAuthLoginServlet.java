@@ -5,14 +5,10 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import service.OAuthService;
 import service.oauth.OAuthFactory;
+import service.oauth.OAuthProvider;
 import java.io.IOException;
 
-/**
- * Servlet for initiating OAuth login flow. Simplified to only handle 3rd party
- * login.
- */
 @WebServlet(name = "OAuthLoginServlet", value = "/oauth-login")
 public class OAuthLoginServlet extends HttpServlet {
 
@@ -33,14 +29,14 @@ public class OAuthLoginServlet extends HttpServlet {
 		}
 
 		try {
-			OAuthService oauthService = OAuthFactory.get(provider);
-			System.out.println("[OAuthLoginServlet]: Thực thi lấy service theo: " + provider);
+			OAuthProvider oauthProvider = OAuthFactory.get(provider);
+			System.out.println("[OAuthLoginServlet]: Thực thi lấy provider theo: " + provider);
 
 			String callbackUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort()
 					+ request.getContextPath() + "/oauth-callback";
 			System.out.println("[OAuthLoginServlet]: callbackUrl: " + callbackUrl);
 
-			String authUrl = oauthService.getAuthorizationUrl(provider, callbackUrl, provider.toUpperCase());
+			String authUrl = oauthProvider.getAuthorizationUrl(callbackUrl, provider.toUpperCase());
 			System.out.println("[OAuthLoginServlet]: Lấy url để chuyển hướng đăng nhập " + provider + " authUrl: " + authUrl);
 
 			response.sendRedirect(authUrl);

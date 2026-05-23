@@ -1,460 +1,125 @@
 package repository;
 
+import beans.User;
+import beans.user.UserAccount;
+import beans.user.UserLocalAuth;
+import beans.user.UserOAuthAuth;
+import beans.user.UserProfile;
+
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import beans.User;
-import beans.common.Role;
-import beans.common.UserStatus;
-import beans.user.UserAuthInfo;
-import beans.user.UserLocalAuth;
-import beans.user.UserProfile;
-import constants.UserConstants;
-import utils.DBConnection;
-
 public class UserRepositoryImpl implements UserRepository {
 
-	@Override
-	public long insert(User user) throws SQLException {
-		long userId;
-		try (Connection conn = DBConnection.getConnection()) {
-			String userSql = "INSERT INTO user_account (status_id, token_version, created_at, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
-			try (PreparedStatement ps = conn.prepareStatement(userSql, Statement.RETURN_GENERATED_KEYS)) {
-				ps.setInt(1, user.getStatus() != null ? user.getStatus().getId() : UserConstants.Status.ACTIVE);
-				ps.setInt(2, UserConstants.Security.TOKEN_VERSION_INITIAL);
-				ps.executeUpdate();
-				try (ResultSet rs = ps.getGeneratedKeys()) {
-					if (rs.next())
-						userId = rs.getLong(1);
-					else
-						throw new SQLException("Tạo user thất bại, không lấy được id.");
-				}
-			}
+	private final UserCrudRepository userCrudRepository;
+	private final UserAuthRepository userAuthRepository;
+	private final UserQueryRepository userQueryRepository;
+	private final UserCreationRepository userCreationRepository;
 
-			if (user.getAuthInfo() != null && user.getAuthInfo().getLocal() != null) {
-				String localSql = "INSERT INTO user_local (user_id, username, password_hash, email) VALUES (?, ?, ?, ?)";
-				try (PreparedStatement ps = conn.prepareStatement(localSql)) {
-					ps.setLong(1, userId);
-					ps.setString(2, user.getAuthInfo().getLocal().getUsername());
-					ps.setString(3, user.getAuthInfo().getLocal().getPasswordHash());
-					ps.setString(4, user.getAuthInfo().getLocal().getEmail());
-					ps.executeUpdate();
-				}
-			}
+	public UserRepositoryImpl() {
+		this(new UserCrudRepositoryImpl(), new UserAuthRepositoryImpl(), new UserQueryRepositoryImpl(),
+				new UserCreationRepositoryImpl());
+	}
 
-			String profileSql = "INSERT INTO user_profile (user_id, fullname, phone_number, gender_id, avatar_url) VALUES (?, ?, ?, ?, ?)";
-			try (PreparedStatement ps = conn.prepareStatement(profileSql)) {
-				ps.setLong(1, userId);
-				ps.setString(2, user.getProfile().getFullname());
-				ps.setString(3, user.getProfile().getPhoneNumber());
-				if (user.getProfile().getGender() != null) {
-					ps.setInt(4, user.getProfile().getGender().getId());
-				} else {
-					ps.setNull(4, java.sql.Types.INTEGER);
-				}
-				ps.setString(5, user.getProfile().getAvatarUrl());
-				ps.executeUpdate();
-			}
-
-			String roleSql = "INSERT INTO user_role_registry (user_id, role_id) SELECT ?, id FROM role_registry WHERE code = 'CUSTOMER'";
-			try (PreparedStatement ps = conn.prepareStatement(roleSql)) {
-				ps.setLong(1, userId);
-				ps.executeUpdate();
-			}
-
-			return userId;
-		}
+	public UserRepositoryImpl(UserCrudRepository userCrudRepository, UserAuthRepository userAuthRepository,
+			UserQueryRepository userQueryRepository, UserCreationRepository userCreationRepository) {
+		this.userCrudRepository = userCrudRepository;
+		this.userAuthRepository = userAuthRepository;
+		this.userQueryRepository = userQueryRepository;
+		this.userCreationRepository = userCreationRepository;
 	}
 
 	@Override
-	public void update(User user) throws SQLException {
-		try (Connection conn = DBConnection.getConnection()) {
-			String userSql = "UPDATE user_account SET status_id=?, token_version=?, updated_at=CURRENT_TIMESTAMP WHERE id=?";
-			try (PreparedStatement ps = conn.prepareStatement(userSql)) {
-				ps.setInt(1, user.getStatus() != null ? user.getStatus().getId() : UserConstants.Status.ACTIVE);
-				ps.setInt(2, user.getTokenVersion());
-				ps.setLong(3, user.getId());
-				ps.executeUpdate();
-			}
-
-			if (user.getAuthInfo() != null && user.getAuthInfo().getLocal() != null) {
-				String localSql = "UPDATE user_local SET username=?, email=? WHERE user_id=?";
-				try (PreparedStatement ps = conn.prepareStatement(localSql)) {
-					ps.setString(1, user.getAuthInfo().getLocal().getUsername());
-					ps.setString(2, user.getAuthInfo().getLocal().getEmail());
-					ps.setLong(3, user.getId());
-					ps.executeUpdate();
-					
-					if (user.getAuthInfo().getLocal().getPasswordHash() != null) {
-						String passwordSql = "UPDATE user_local SET password_hash=? WHERE user_id=?";
-						try (PreparedStatement ps2 = conn.prepareStatement(passwordSql)) {
-							ps2.setString(1, user.getAuthInfo().getLocal().getPasswordHash());
-							ps2.setLong(2, user.getId());
-							ps2.executeUpdate();
-						}
-					}
-				}
-			}
-
-			String profileSql = "UPDATE user_profile SET fullname=?, phone_number=?, gender_id=?, avatar_url=? WHERE user_id=?";
-			try (PreparedStatement ps = conn.prepareStatement(profileSql)) {
-				ps.setString(1, user.getProfile().getFullname());
-				ps.setString(2, user.getProfile().getPhoneNumber());
-				if (user.getProfile().getGender() != null) {
-					ps.setInt(3, user.getProfile().getGender().getId());
-				} else {
-					ps.setNull(3, java.sql.Types.INTEGER);
-				}
-				ps.setString(4, user.getProfile().getAvatarUrl());
-				ps.setLong(5, user.getId());
-				ps.executeUpdate();
-			}
-		}
+	public long insert(Connection conn, User user) throws SQLException {
+		return userCrudRepository.insert(conn, user);
 	}
 
 	@Override
-	public void delete(long id) throws SQLException {
-		String sql = "UPDATE user_account SET deleted_at=CURRENT_TIMESTAMP WHERE id=?";
-		try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-			ps.setLong(1, id);
-			ps.executeUpdate();
-		}
+	public void update(Connection conn, User user) throws SQLException {
+		userCrudRepository.update(conn, user);
 	}
 
 	@Override
-	public Optional<User> findById(long id) {
-		String sql = "SELECT u.*, ul.username, ul.email, up.fullname, up.phone_number, up.gender_id, up.avatar_url, up.preferred_language_id FROM user_account u "
-				+ "LEFT JOIN user_local ul ON u.id = ul.user_id "
-				+ "LEFT JOIN user_profile up ON u.id = up.user_id WHERE u.id = ? AND u.deleted_at IS NULL";
-		try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-			ps.setLong(1, id);
-			try (ResultSet rs = ps.executeQuery()) {
-				if (rs.next()) {
-					User user = mapResultSetToUser(rs);
-
-					String username = rs.getString("username");
-					String email = rs.getString("email");
-
-					UserAuthInfo authInfo = new UserAuthInfo();
-					UserLocalAuth localAuth = new UserLocalAuth();
-					localAuth.setUsername(username);
-					localAuth.setEmail(email);
-					authInfo.setLocal(localAuth);
-					user.setAuthInfo(authInfo);
-
-					user.setUsername(username);
-					user.setEmail(email);
-
-					UserProfile profile = user.getProfile() != null ? user.getProfile() : new UserProfile();
-					profile.setPhoneNumber(rs.getString("phone_number"));
-
-					int genderId = rs.getInt("gender_id");
-					if (!rs.wasNull()) {
-						beans.common.Gender gender = new beans.common.Gender();
-						gender.setId(genderId);
-						profile.setGender(gender);
-					}
-
-					int langId = rs.getInt("preferred_language_id");
-					if (!rs.wasNull()) {
-						beans.common.Language lang = new beans.common.Language();
-						lang.setId(langId);
-						profile.setPreferredLanguage(lang);
-					}
-
-					user.setProfile(profile);
-
-					user.setRole(getPrimaryRole(id, conn));
-					return Optional.of(user);
-				}
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return Optional.empty();
+	public boolean delete(Connection conn, List<Long> userIds) throws SQLException {
+		return userCrudRepository.delete(conn, userIds);
 	}
 
 	@Override
-	public List<User> findAll(int limit, int offset, String orderBy, String orderDir) {
-		List<User> users = new ArrayList<>();
-		String sql = "SELECT u.*, ul.username, ul.email, up.fullname, up.phone_number, up.gender_id, up.avatar_url FROM user_account u "
-				+ "LEFT JOIN user_local ul ON u.id = ul.user_id "
-				+ "LEFT JOIN user_profile up ON u.id = up.user_id WHERE u.deleted_at IS NULL " + "ORDER BY " + orderBy
-				+ " " + orderDir + " LIMIT ? OFFSET ?";
-		try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-			ps.setInt(1, limit);
-			ps.setInt(2, offset);
-			try (ResultSet rs = ps.executeQuery()) {
-				while (rs.next()) {
-					User user = mapResultSetToUser(rs);
-
-					String username = rs.getString("username");
-					String email = rs.getString("email");
-
-					UserAuthInfo authInfo = new UserAuthInfo();
-					UserLocalAuth localAuth = new UserLocalAuth();
-					localAuth.setUsername(username);
-					localAuth.setEmail(email);
-					authInfo.setLocal(localAuth);
-					user.setAuthInfo(authInfo);
-
-					user.setUsername(username);
-					user.setEmail(email);
-
-					UserProfile profile = user.getProfile() != null ? user.getProfile() : new UserProfile();
-					profile.setPhoneNumber(rs.getString("phone_number"));
-
-					int genderId = rs.getInt("gender_id");
-					if (!rs.wasNull()) {
-						beans.common.Gender gender = new beans.common.Gender();
-						gender.setId(genderId);
-						profile.setGender(gender);
-					}
-					user.setProfile(profile);
-
-					user.setRole(getPrimaryRole(user.getId(), conn));
-					users.add(user);
-				}
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return users;
+	public void changePassword(Connection conn, long userId, String hashedPassword) throws SQLException {
+		userAuthRepository.changePassword(conn, userId, hashedPassword);
 	}
 
 	@Override
-	public Optional<User> findByUsername(String username) {
-		String sql = "SELECT u.*, ul.username, ul.password_hash, ul.email, up.fullname, up.phone_number, up.gender_id, up.avatar_url, up.preferred_language_id "
-				+ "FROM user_account u " + "LEFT JOIN user_local ul ON u.id = ul.user_id "
-				+ "LEFT JOIN user_profile up ON u.id = up.user_id " + "WHERE ul.username = ? AND u.deleted_at IS NULL";
-		try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-			ps.setString(1, username);
-			try (ResultSet rs = ps.executeQuery()) {
-				if (rs.next()) {
-					User user = mapResultSetToUser(rs);
-
-					String usernameVal = rs.getString("username");
-					String emailVal = rs.getString("email");
-
-					UserAuthInfo authInfo = new UserAuthInfo();
-					UserLocalAuth localAuth = new UserLocalAuth();
-					localAuth.setUsername(usernameVal);
-					localAuth.setPasswordHash(rs.getString("password_hash"));
-					localAuth.setEmail(emailVal);
-					authInfo.setLocal(localAuth);
-					user.setAuthInfo(authInfo);
-
-					user.setUsername(usernameVal);
-					user.setEmail(emailVal);
-
-					UserProfile profile = user.getProfile() != null ? user.getProfile() : new UserProfile();
-					profile.setPhoneNumber(rs.getString("phone_number"));
-
-					int genderId = rs.getInt("gender_id");
-					if (!rs.wasNull()) {
-						beans.common.Gender gender = new beans.common.Gender();
-						gender.setId(genderId);
-						profile.setGender(gender);
-					}
-
-					int langId = rs.getInt("preferred_language_id");
-					if (!rs.wasNull()) {
-						beans.common.Language lang = new beans.common.Language();
-						lang.setId(langId);
-						profile.setPreferredLanguage(lang);
-					}
-
-					user.setProfile(profile);
-
-					user.setRole(getPrimaryRole(user.getId(), conn));
-					return Optional.of(user);
-				}
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return Optional.empty();
+	public boolean incrementTokenVersion(Connection conn, long userId) throws SQLException {
+		return userAuthRepository.incrementTokenVersion(conn, userId);
 	}
 
 	@Override
-	public Optional<User> findByEmail(String email) {
-		String sql = "SELECT u.*, ul.username, ul.email, up.fullname, up.phone_number, up.gender_id, up.avatar_url, up.preferred_language_id FROM user_account u "
-				+ "LEFT JOIN user_local ul ON u.id = ul.user_id " + "LEFT JOIN user_profile up ON u.id = up.user_id "
-				+ "WHERE ul.email = ? AND u.deleted_at IS NULL";
-		try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-			ps.setString(1, email);
-			try (ResultSet rs = ps.executeQuery()) {
-				if (rs.next()) {
-					User user = mapResultSetToUser(rs);
-
-					String usernameVal = rs.getString("username");
-					String emailVal = rs.getString("email");
-
-					UserAuthInfo authInfo = new UserAuthInfo();
-					UserLocalAuth localAuth = new UserLocalAuth();
-					localAuth.setUsername(usernameVal);
-					localAuth.setEmail(emailVal);
-					authInfo.setLocal(localAuth);
-					user.setAuthInfo(authInfo);
-
-					user.setUsername(usernameVal);
-					user.setEmail(emailVal);
-
-					UserProfile profile = user.getProfile() != null ? user.getProfile() : new UserProfile();
-					profile.setPhoneNumber(rs.getString("phone_number"));
-
-					int genderId = rs.getInt("gender_id");
-					if (!rs.wasNull()) {
-						beans.common.Gender gender = new beans.common.Gender();
-						gender.setId(genderId);
-						profile.setGender(gender);
-					}
-
-					int langId = rs.getInt("preferred_language_id");
-					if (!rs.wasNull()) {
-						beans.common.Language lang = new beans.common.Language();
-						lang.setId(langId);
-						profile.setPreferredLanguage(lang);
-					}
-
-					user.setProfile(profile);
-
-					user.setRole(getPrimaryRole(user.getId(), conn));
-					return Optional.of(user);
-				}
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return Optional.empty();
+	public long createLocalUser(Connection conn, UserAccount account, UserProfile profile, UserLocalAuth localAuth)
+			throws SQLException {
+		return userCreationRepository.createLocalUser(conn, account, profile, localAuth);
 	}
 
 	@Override
-	public boolean existsByUsername(String username) {
-		String sql = "SELECT COUNT(*) FROM user_local WHERE username = ?";
-		try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-			ps.setString(1, username);
-			try (ResultSet rs = ps.executeQuery()) {
-				if (rs.next()) {
-					return rs.getInt(1) > 0;
-				}
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return false;
+	public long createOAuthUser(Connection conn, UserAccount account, UserProfile profile, UserOAuthAuth oauthAuth)
+			throws SQLException {
+		return userCreationRepository.createOAuthUser(conn, account, profile, oauthAuth);
 	}
 
 	@Override
-	public boolean existsByEmail(String email) {
-		String sql = "SELECT COUNT(*) FROM user_local WHERE email = ?";
-		try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-			ps.setString(1, email);
-			try (ResultSet rs = ps.executeQuery()) {
-				if (rs.next()) {
-					return rs.getInt(1) > 0;
-				}
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return false;
+	public Optional<User> findById(Connection conn, long userId) throws SQLException {
+		return userCrudRepository.findById(conn, userId);
 	}
 
 	@Override
-	public long count() {
-		String sql = "SELECT COUNT(*) FROM user_account WHERE deleted_at IS NULL";
-		try (Connection conn = DBConnection.getConnection();
-				PreparedStatement ps = conn.prepareStatement(sql);
-				ResultSet rs = ps.executeQuery()) {
-			if (rs.next()) {
-				return rs.getLong(1);
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return 0;
+	public Optional<User> findByUsername(Connection conn, String username) throws SQLException {
+		return userQueryRepository.findByUsername(conn, username);
 	}
 
 	@Override
-	public void changePassword(long userId, String hashedPassword) {
-		String sql = "UPDATE user_local SET password_hash = ? WHERE user_id = ?";
-		try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-			ps.setString(1, hashedPassword);
-			ps.setLong(2, userId);
-			ps.executeUpdate();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+	public Optional<User> findByEmail(Connection conn, String email) throws SQLException {
+		return userQueryRepository.findByEmail(conn, email);
 	}
 
 	@Override
-	public boolean incrementTokenVersion(long userId) {
-		String sql = "UPDATE user_account SET token_version = COALESCE(token_version, 0) + 1 WHERE id = ?";
-		try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-			ps.setLong(1, userId);
-			int rows = ps.executeUpdate();
-			return rows > 0;
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return false;
-		}
+	public boolean existUserByUsername(Connection conn, String username) throws SQLException {
+		return userQueryRepository.existUserByUsername(conn, username);
 	}
 
 	@Override
-	public int getTokenVersion(long userId) {
-		String sql = "SELECT token_version FROM user_account WHERE id = ?";
-		try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-			ps.setLong(1, userId);
-			try (ResultSet rs = ps.executeQuery()) {
-				if (rs.next()) {
-					return rs.getInt("token_version");
-				}
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return 0;
+	public boolean existUserByUsername(Connection conn, String username, long excludeUserId) throws SQLException {
+		return userQueryRepository.existUserByUsername(conn, username, excludeUserId);
 	}
 
-	private Role getPrimaryRole(long userId, Connection conn) throws SQLException {
-		String sql = "SELECT r.code FROM role_registry r INNER JOIN user_role_registry ur ON r.id = ur.role_id WHERE ur.user_id = ?";
-		try (PreparedStatement ps = conn.prepareStatement(sql)) {
-			ps.setLong(1, userId);
-			try (ResultSet rs = ps.executeQuery()) {
-				if (rs.next()) {
-					Role role = new Role();
-					role.setCode(rs.getString("code"));
-					return role;
-				}
-			}
-		}
-		return null;
+	@Override
+	public boolean existUserByEmail(Connection conn, String email) throws SQLException {
+		return userQueryRepository.existUserByEmail(conn, email);
 	}
 
-	private User mapResultSetToUser(ResultSet rs) throws SQLException {
-		User user = new User();
-		user.setId(rs.getLong("id"));
+	@Override
+	public boolean existUserByEmail(Connection conn, String email, long excludeUserId) throws SQLException {
+		return userQueryRepository.existUserByEmail(conn, email, excludeUserId);
+	}
 
-		UserStatus status = new UserStatus();
-		status.setId(rs.getInt("status_id"));
-		user.setStatus(status);
+	@Override
+	public List<User> findAllUser(Connection conn) throws SQLException {
+		return userCrudRepository.findAllUser(conn);
+	}
 
-		Role role = new Role();
-		role.setCode("CUSTOMER");
-		user.setRole(role);
+	@Override
+	public List<User> findAllUser(Connection conn, String orderBy, String orderDir) throws SQLException {
+		return userCrudRepository.findAllUser(conn, orderBy, orderDir);
+	}
 
-		UserProfile profile = new UserProfile();
-		profile.setFullname(rs.getString("fullname"));
-		profile.setAvatarUrl(rs.getString("avatar_url"));
-		user.setProfile(profile);
+	@Override
+	public long count(Connection conn) throws SQLException {
+		return userCrudRepository.count(conn);
+	}
 
-		return user;
+	@Override
+	public int getTokenVersion(Connection conn, long userId) throws SQLException {
+		return userAuthRepository.getTokenVersion(conn, userId);
 	}
 }

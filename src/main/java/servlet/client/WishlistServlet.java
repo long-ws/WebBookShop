@@ -6,6 +6,7 @@ import java.util.List;
 import beans.Product;
 import beans.User;
 import beans.WishlistItem;
+import constants.SessionConstants;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -26,7 +27,7 @@ public class WishlistServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         HttpSession session = request.getSession();
-        User user = (User) session.getAttribute("currentUser");
+        User user = (User) session.getAttribute(SessionConstants.CURRENT_USER);
 
         if (user != null) {
             try {
@@ -54,7 +55,7 @@ public class WishlistServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             throws IOException {
         HttpSession session = request.getSession();
-        User user = (User) session.getAttribute("currentUser");
+        User user = (User) session.getAttribute(SessionConstants.CURRENT_USER);
 
         if (user == null) {
             response.sendRedirect(request.getContextPath() + "/signin");

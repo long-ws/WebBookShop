@@ -28,3 +28,10 @@
 <!-- Custom Styles -->
 <link href="${pageContext.request.contextPath}/css/styles.css"
 	type="text/css" rel="stylesheet">
+
+<style>
+
+html {
+	scrollbar-gutter: stable;
+}
+</style>

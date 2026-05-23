@@ -1,19 +1,18 @@
 package beans;
 
+import java.sql.Timestamp;
+
+import beans.common.Gender;
+import beans.common.Language;
 import beans.common.Role;
 import beans.common.UserStatus;
 import beans.user.UserAuthInfo;
 import beans.user.UserLocalAuth;
 import beans.user.UserProfile;
-import beans.common.Gender;
-import beans.common.Language;
-
-import java.sql.Timestamp;
 
 public class User {
 	private long id;
 	private String username;
-	private String email;
 
 	private int tokenVersion;
 	private Timestamp lastLoginAt;
@@ -33,11 +32,6 @@ public class User {
 	private UserProfile profile;
 	private UserAuthInfo authInfo;
 
-	private transient boolean profileLoaded = false;
-	private transient boolean authInfoLoaded = false;
-	private transient boolean statusLoaded = false;
-	private transient boolean roleLoaded = false;
-
 	public User() {
 	}
 
@@ -55,7 +49,6 @@ public class User {
 
 	public void setStatus(UserStatus status) {
 		this.status = status;
-		this.statusLoaded = true;
 	}
 
 	public int getTokenVersion() {
@@ -139,11 +132,14 @@ public class User {
 	}
 
 	public String getEmail() {
-		return email;
+		return profile != null ? profile.getEmail() : null;
 	}
 
 	public void setEmail(String email) {
-		this.email = email;
+		if (this.profile == null) {
+			this.profile = new UserProfile();
+		}
+		this.profile.setEmail(email);
 	}
 
 	public Role getRole() {
@@ -152,17 +148,14 @@ public class User {
 
 	public void setRole(Role role) {
 		this.role = role;
-		this.roleLoaded = true;
 	}
 
-	// Aggregates getters/setters
 	public UserProfile getProfile() {
 		return profile;
 	}
 
 	public void setProfile(UserProfile profile) {
 		this.profile = profile;
-		this.profileLoaded = true;
 	}
 
 	public UserAuthInfo getAuthInfo() {
@@ -171,40 +164,6 @@ public class User {
 
 	public void setAuthInfo(UserAuthInfo authInfo) {
 		this.authInfo = authInfo;
-		this.authInfoLoaded = true;
-	}
-
-	// Lazy loading flags
-	public boolean isProfileLoaded() {
-		return profileLoaded;
-	}
-
-	public void setProfileLoaded(boolean profileLoaded) {
-		this.profileLoaded = profileLoaded;
-	}
-
-	public boolean isAuthInfoLoaded() {
-		return authInfoLoaded;
-	}
-
-	public void setAuthInfoLoaded(boolean authInfoLoaded) {
-		this.authInfoLoaded = authInfoLoaded;
-	}
-
-	public boolean isStatusLoaded() {
-		return statusLoaded;
-	}
-
-	public void setStatusLoaded(boolean statusLoaded) {
-		this.statusLoaded = statusLoaded;
-	}
-
-	public boolean isRoleLoaded() {
-		return roleLoaded;
-	}
-
-	public void setRoleLoaded(boolean roleLoaded) {
-		this.roleLoaded = roleLoaded;
 	}
 
 	public boolean isDeleted() {

@@ -35,7 +35,7 @@ public final class UserConstants {
 		public static final int LOCK_DURATION_MINUTES = 30;
 		public static final int TOKEN_VERSION_INITIAL = 0;
 	}
-	
+
 	public static final class Validation {
 		public static final int USERNAME_MIN_LENGTH = 3;
 		public static final int USERNAME_MAX_LENGTH = 50;
