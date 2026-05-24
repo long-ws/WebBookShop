@@ -112,5 +112,126 @@
 
 <script>
 	var CONTEXT_PATH = '<c:out value="${contextPath}"/>';
+
+	function updateCartBadge(cartCount, animate) {
+		var badge = document.getElementById('total-cart-items-quantity');
+		if (badge) {
+			cartCount = parseInt(cartCount) || 0;
+
+			if (animate !== false) {
+				badge.classList.add('badge-updating');
+			}
+
+			badge.textContent = cartCount > 0 ? cartCount : '';
+
+			if (cartCount > 0) {
+				badge.className = 'position-absolute top-0 end-0 mt-2 badge rounded-pill bg-primary';
+			} else {
+				badge.className = 'position-absolute top-0 end-0 mt-2 badge rounded-pill bg-secondary';
+			}
+
+			if (animate !== false) {
+				setTimeout(function() {
+					badge.classList.remove('badge-updating');
+				}, 300);
+			}
+		}
+	}
+
+	function refreshCartBadge(async) {
+		async = (async !== false);
+		try {
+			var xhr = new XMLHttpRequest();
+			xhr.open('GET', CONTEXT_PATH + '/cartItem?action=getCartBadge', async);
+			xhr.onreadystatechange = function() {
+				if (xhr.readyState === 4 && xhr.status === 200) {
+					try {
+						var data = JSON.parse(xhr.responseText);
+						updateCartBadge(data.cartCount || 0);
+					} catch (e) {}
+				}
+			};
+			xhr.send(null);
+		} catch (e) {}
+	}
+
+	function hideMiniCart() {
+		var popup = document.getElementById('mini-cart-popup');
+		if (popup) popup.remove();
+	}
+
+	function showMiniCart(productName, productPrice, quantity, cartCount) {
+		updateCartBadge(cartCount);
+
+		var existing = document.getElementById('mini-cart-popup');
+		if (existing) existing.remove();
+
+		var popup = document.createElement('div');
+		popup.id = 'mini-cart-popup';
+		var priceFormatted = new Intl.NumberFormat('vi-VN').format(productPrice);
+		popup.innerHTML = '<div class="mini-cart-overlay" onclick="hideMiniCart()"></div>' +
+			'<div class="mini-cart-content">' +
+				'<div class="mini-cart-header">' +
+					'<h6 class="mb-0"><i class="bi bi-cart-check"></i> Đã thêm vào giỏ hàng!</h6>' +
+					'<button type="button" class="btn-close btn-close-white" onclick="hideMiniCart()"></button>' +
+				'</div>' +
+				'<div class="mini-cart-body">' +
+					'<div class="d-flex align-items-center gap-3 p-3 bg-light rounded mx-3 mt-3">' +
+						'<div class="flex-grow-1">' +
+							'<div class="fw-medium">' + productName + '</div>' +
+							'<div class="text-muted small">' + priceFormatted + ' x ' + quantity + '</div>' +
+						'</div>' +
+					'</div>' +
+					'<div class="p-3 border-top mx-3">' +
+						'<div class="d-flex justify-content-between mb-2">' +
+							'<span>Tổng số giỏ hàng:</span>' +
+							'<span class="badge bg-primary">' + cartCount + ' sản phẩm</span>' +
+						'</div>' +
+					'</div>' +
+				'</div>' +
+				'<div class="mini-cart-footer">' +
+					'<a href="' + CONTEXT_PATH + '/cart" class="btn btn-outline-secondary btn-sm flex-grow-1">' +
+						'<i class="bi bi-cart3"></i> Xem giỏ hàng' +
+					'</a>' +
+					'<button onclick="hideMiniCart()" class="btn btn-primary btn-sm flex-grow-1">' +
+						'<i class="bi bi-bag-plus"></i> Tiếp tục mua' +
+					'</button>' +
+				'</div>' +
+			'</div>';
+		popup.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999;';
+
+		var style = document.createElement('style');
+		style.textContent = '.mini-cart-overlay{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.3);}' +
+			'.mini-cart-content{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:white;border-radius:12px;width:380px;max-width:90vw;box-shadow:0 10px 40px rgba(0,0,0,0.2);animation:miniCartSlideIn 0.3s ease-out;}' +
+			'@keyframes miniCartSlideIn{from{opacity:0;transform:translate(-50%,-45%);}to{opacity:1;transform:translate(-50%,-50%);}}' +
+			'.mini-cart-header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid #eee;background:linear-gradient(135deg,#28a745 0%,#20c997 100%);color:white;border-radius:12px 12px 0 0;}' +
+			'.mini-cart-body{padding:0;}' +
+			'.mini-cart-footer{display:flex;gap:10px;padding:16px 20px;border-top:1px solid #eee;border-radius:0 0 12px 12px;}';
+		document.head.appendChild(style);
+		document.body.appendChild(popup);
+
+		document.addEventListener('keydown', function closeHandler(e) {
+			if (e.key === 'Escape') {
+				hideMiniCart();
+				document.removeEventListener('keydown', closeHandler);
+			}
+		});
+	}
+
+	window.updateCartBadge = updateCartBadge;
+	window.refreshCartBadge = refreshCartBadge;
+	window.showMiniCart = showMiniCart;
+	window.hideMiniCart = hideMiniCart;
+	document.addEventListener('DOMContentLoaded', function() {
+		refreshCartBadge();
+	});
 </script>
+<style>
+.badge-updating { animation: badgePulse 0.3s ease-out; }
+@keyframes badgePulse {
+	0% { transform: scale(1); }
+	50% { transform: scale(1.3); }
+	100% { transform: scale(1); }
+}
+</style>
 <script src="${contextPath}/js/search-autocomplete.js"></script>
