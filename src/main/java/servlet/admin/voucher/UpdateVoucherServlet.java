@@ -62,26 +62,42 @@ public class UpdateVoucherServlet extends HttpServlet {
             LocalDateTime startDate = LocalDateTime.parse(request.getParameter("startDate"), FORMATTER);
             LocalDateTime endDate = LocalDateTime.parse(request.getParameter("endDate"), FORMATTER);
 
-            String[] categoryIdsArr = request.getParameterValues("categoryIds");
+            if (code != null) code = code.toUpperCase().trim();
+
+            if (calculationMethod == 1) {
+                maxDiscount = value;
+            } else if (calculationMethod == 0) {
+                if (value > 100) value = 100;
+                else if (value < 0) value = 0;
+            }
+
+            if (endDate.isBefore(startDate)) {
+                request.getSession().setAttribute("errorMessage", "Ngày kết thúc phải sau ngày bắt đầu!");
+                response.sendRedirect(request.getContextPath() + "/admin/voucherManager/update?id=" + id);
+                return;
+            }
             List<CategoryDTO> categories = new ArrayList<>();
-            if (categoryIdsArr != null) {
-                for (String catId : categoryIdsArr) {
-                    CategoryDTO dto = new CategoryDTO();
-                    dto.setId(Long.parseLong(catId));
-                    categories.add(dto);
-                }
-            }
-
-            String[] productIdsArr = request.getParameterValues("productIds");
             List<ProductDTO> products = new ArrayList<>();
-            if (productIdsArr != null) {
-                for (String prodId : productIdsArr) {
-                    ProductDTO dto = new ProductDTO();
-                    dto.setId(Long.parseLong(prodId));
-                    products.add(dto);
+
+            String[] categoryIdsArr = request.getParameterValues("categoryIds");
+            String[] productIdsArr = request.getParameterValues("productIds");
+            if (applyTo == 1) {
+                if (productIdsArr != null) {
+                    for (String prodId : productIdsArr) {
+                        ProductDTO dto = new ProductDTO();
+                        dto.setId(Long.parseLong(prodId));
+                        products.add(dto);
+                    }
+                }
+            } else if (applyTo == 2) {
+                if (categoryIdsArr != null) {
+                    for (String catId : categoryIdsArr) {
+                        CategoryDTO dto = new CategoryDTO();
+                        dto.setId(Long.parseLong(catId));
+                        categories.add(dto);
+                    }
                 }
             }
-
             Voucher voucher = new Voucher();
             voucher.setId(id);
             voucher.setCode(code);

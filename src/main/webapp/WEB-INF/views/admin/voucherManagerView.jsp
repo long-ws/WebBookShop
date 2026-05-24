@@ -65,9 +65,23 @@
                             </c:choose>
                         </td>
                         <td>
-                            <span class="badge bg-secondary">
-                                    ${v.applyTo == 0 ? 'Đơn hàng' : 'Vận chuyển'}
-                            </span>
+                            <c:choose>
+                                <c:when test="${v.applyTo == 0}">
+                                    <span class="badge bg-success">Toàn bộ sản phẩm</span>
+                                </c:when>
+                                <c:when test="${v.applyTo == 1}">
+                                    <span class="badge bg-primary">Một số sản phẩm</span>
+                                </c:when>
+                                <c:when test="${v.applyTo == 2}">
+                                    <span class="badge bg-warning text-dark">Một số danh mục</span>
+                                </c:when>
+                                <c:when test="${v.applyTo == 3}">
+                                    <span class="badge bg-info text-dark">Phí vận chuyển</span>
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="badge bg-secondary">Không xác định</span>
+                                </c:otherwise>
+                            </c:choose>
                         </td>
                         <td class="small">
                             Từ: <fmt:parseDate value="${v.startDate}" pattern="yyyy-MM-dd'T'HH:mm" var="sDate" type="both" />
