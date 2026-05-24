@@ -4,6 +4,7 @@ import dto.CategoryDTO;
 import dto.ProductDTO;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -18,8 +19,8 @@ public class Voucher implements Serializable {
     private String description;
     private int calculationMethod;
     private int applyTo;
-    private LocalDateTime startDate;
-    private LocalDateTime endDate;
+    private Timestamp startDate;
+    private Timestamp endDate;
     private double value;
     private double minPurchase;
     private double maxDiscount;
@@ -83,19 +84,19 @@ public class Voucher implements Serializable {
         this.applyTo = applyTo;
     }
 
-    public LocalDateTime getStartDate() {
+    public Timestamp getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(LocalDateTime startDate) {
+    public void setStartDate(Timestamp startDate) {
         this.startDate = startDate;
     }
 
-    public LocalDateTime getEndDate() {
+    public Timestamp getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(LocalDateTime endDate) {
+    public void setEndDate(Timestamp endDate) {
         this.endDate = endDate;
     }
 

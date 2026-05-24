@@ -37,12 +37,6 @@
 <body>
 <jsp:include page="_header.jsp" />
 
-<section class="section-pagetop bg-light py-4">
-    <div class="container">
-        <h2 class="h4 mb-0">Đơn hàng của tôi</h2>
-    </div>
-</section>
-
 <section class="py-4 bg-white">
     <div class="container">
         <div class="row">

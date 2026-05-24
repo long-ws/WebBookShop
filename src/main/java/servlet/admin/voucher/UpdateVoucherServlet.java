@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import service.VoucherService;
 
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -59,8 +60,8 @@ public class UpdateVoucherServlet extends HttpServlet {
             int usageLimit = Integer.parseInt(request.getParameter("usageLimit"));
             int perUserLimit = Integer.parseInt(request.getParameter("perUserLimit"));
             boolean isActive = request.getParameter("isActive") != null;
-            LocalDateTime startDate = LocalDateTime.parse(request.getParameter("startDate"), FORMATTER);
-            LocalDateTime endDate = LocalDateTime.parse(request.getParameter("endDate"), FORMATTER);
+            Timestamp startDate = Timestamp.valueOf(LocalDateTime.parse(request.getParameter("startDate"), FORMATTER));
+            Timestamp endDate = Timestamp.valueOf(LocalDateTime.parse(request.getParameter("endDate"), FORMATTER));
 
             if (code != null) code = code.toUpperCase().trim();
 
@@ -71,7 +72,7 @@ public class UpdateVoucherServlet extends HttpServlet {
                 else if (value < 0) value = 0;
             }
 
-            if (endDate.isBefore(startDate)) {
+            if (endDate.before(startDate)) {
                 request.getSession().setAttribute("errorMessage", "Ngày kết thúc phải sau ngày bắt đầu!");
                 response.sendRedirect(request.getContextPath() + "/admin/voucherManager/update?id=" + id);
                 return;

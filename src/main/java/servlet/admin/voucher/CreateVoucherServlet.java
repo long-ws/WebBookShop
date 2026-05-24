@@ -14,6 +14,7 @@ import service.ProductService;
 import service.VoucherService;
 
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,9 +68,8 @@ public class CreateVoucherServlet extends HttpServlet {
             String maxDiscountParam = request.getParameter("maxDiscount");
             String usageLimitParam = request.getParameter("usageLimit");
             String perUserLimitParam = request.getParameter("perUserLimit");
-            LocalDateTime startDate = LocalDateTime.parse(request.getParameter("startDate"));
-            LocalDateTime endDate = LocalDateTime.parse(request.getParameter("endDate"));
-
+            Timestamp startDate = Timestamp.valueOf(java.time.LocalDateTime.parse(request.getParameter("startDate")));
+            Timestamp endDate = Timestamp.valueOf(java.time.LocalDateTime.parse(request.getParameter("endDate")));
             if (code != null) code = code.toUpperCase().trim();
 
             int calculationMethod = 0;
@@ -113,7 +113,7 @@ public class CreateVoucherServlet extends HttpServlet {
                 maxDiscount = value;
             }
 
-            if (endDate.isBefore(startDate)) {
+            if (endDate.before(startDate)) {
                 request.getSession().setAttribute("errorMessage", "EndDate phải sau startDate!");
                 response.sendRedirect(request.getContextPath() + "/admin/voucherManager/create");
                 return;

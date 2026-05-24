@@ -84,10 +84,8 @@
                             </c:choose>
                         </td>
                         <td class="small">
-                            Từ: <fmt:parseDate value="${v.startDate}" pattern="yyyy-MM-dd'T'HH:mm" var="sDate" type="both" />
-                            <fmt:formatDate value="${sDate}" pattern="dd/MM/yyyy HH:mm" /><br>
-                            Đến: <fmt:parseDate value="${v.endDate}" pattern="yyyy-MM-dd'T'HH:mm" var="eDate" type="both" />
-                            <fmt:formatDate value="${eDate}" pattern="dd/MM/yyyy HH:mm" />
+                            Từ: <fmt:formatDate value="${v.startDate}" pattern="dd/MM/yyyy HH:mm" /><br>
+                            Đến: <fmt:formatDate value="${v.endDate}" pattern="dd/MM/yyyy HH:mm" />
                         </td>
                         <td>
                             <div class="progress" style="height: 10px;">
