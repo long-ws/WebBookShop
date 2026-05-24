@@ -1,6 +1,7 @@
 package servlet.client;
 
 import beans.User;
+import constants.SessionConstants;
 import dto.oauth.OAuthUserResponse;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -41,10 +42,10 @@ public class OAuthCallbackServlet extends HttpServlet {
 			OAuthUserResponse oauthUser = oauthProvider.getUser(code, callbackUrl);
 			User user = oauthOrchestratorService.handleOAuthCallback(oauthUser, state);
 
-			request.getSession().setAttribute("currentUser", user);
+			request.getSession().setAttribute(SessionConstants.CURRENT_USER, user);
 
 			if (user.getRole() != null) {
-				request.getSession().setAttribute("userRole", user.getRole().getCode());
+				request.getSession().setAttribute(SessionConstants.USER_ROLE, user.getRole().getCode());
 			}
 			System.out.println("[OAuthCallbackServlet]: Đăng nhập thành công\nUser: " + user.getId() + ", Role: "
 					+ user.getRole().getCode());
@@ -52,7 +53,7 @@ public class OAuthCallbackServlet extends HttpServlet {
 			response.sendRedirect(request.getContextPath() + "/");
 		} catch (Exception e) {
 			e.printStackTrace();
-			request.getSession().setAttribute("oauthError", "Lỗi đăng nhập: " + e.getMessage());
+			request.getSession().setAttribute(SessionConstants.OAUTH_ERROR, "Đăng nhập Google thất bại. Vui lòng thử lại hoặc đăng nhập bằng tài khoản!");
 			response.sendRedirect(request.getContextPath() + "/signin?error=oauth_failed");
 		}
 	}

@@ -12,7 +12,7 @@ import java.util.Optional;
 
 public class UserOauthDAOImpl implements UserOauthDAO {
 
-    private static final String SQL_INSERT = "INSERT INTO user_oauth (user_id, provider_id, provider_user_id, email, display_name, avatar_url, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
+    private static final String SQL_INSERT = "INSERT INTO user_oauth (user_id, provider_id, provider_user_id, email, display_name, avatar_url) VALUES (?, ?, ?, ?, ?, ?)";
     private static final String SQL_DELETE = "DELETE FROM user_oauth WHERE id=?";
     private static final String SQL_FIND_BY_PROVIDER_AND_USER_ID = "SELECT * FROM user_oauth WHERE provider_id = ? AND provider_user_id = ?";
     private static final String SQL_FIND_USER_ID_BY_OAUTH = "SELECT user_id FROM user_oauth WHERE provider_id = ? AND provider_user_id = ?";

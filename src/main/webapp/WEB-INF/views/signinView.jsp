@@ -23,6 +23,14 @@
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     </c:if>
+                    
+                    <c:if test="${not empty sessionScope[SSN_OAUTH_ERROR]}">
+                        <div class="alert alert-danger alert-dismissible fade show shadow-sm mb-3" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>${sessionScope[SSN_OAUTH_ERROR]}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        <c:remove var="oauthError" scope="session" />
+                    </c:if>
 
                     <div class="card shadow-sm border-0 rounded-3">
                         <div class="card-body p-4">
