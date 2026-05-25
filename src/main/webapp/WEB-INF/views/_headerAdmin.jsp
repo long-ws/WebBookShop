@@ -99,20 +99,38 @@
 					<li class="nav-item">
 						<a class="nav-link rounded px-3 py-2 ${fn:startsWith(servletPath, '/admin/orderManager') ? 'active bg-primary text-white' : 'text-dark'}" 
 						   href="${pageContext.request.contextPath}/admin/orderManager/view">
-							<i class="bi bi-inboxes"></i> Đơn hàng
+							<i class="bi bi-inboxes me-1"></i> Đơn hàng
 						</a>
 					</li>
 				</c:if>
 
 				<c:if test="${canViewVouchers}">
 					<li class="nav-item">
-						<a class="nav-link rounded px-3 py-2 ${fn:startsWith(servletPath, '/admin/voucherManager') ? 'active bg-primary text-white' : 'text-dark'}"
+						<a class="nav-link rounded px-3 py-2 ${fn:startsWith(servletPath, '/admin/voucherManager') ? 'active bg-primary text-white' : 'text-dark'}" 
 						   href="${pageContext.request.contextPath}/admin/voucherManager/view">
-							<i class="bi bi-ticket"></i> Voucher
+							<i class="bi bi-ticket me-1"></i> Voucher
 						</a>
 					</li>
 				</c:if>
 				
+				<c:if test="${canViewShipments}">
+					<li class="nav-item">
+						<a class="nav-link rounded px-3 py-2 ${fn:startsWith(servletPath, '/admin/shipmentManager') ? 'active bg-primary text-white' : 'text-dark'}" 
+						   href="${pageContext.request.contextPath}/admin/shipmentManager">
+							<i class="bi bi-truck me-1"></i> Vận đơn
+						</a>
+					</li>
+				</c:if>
+
+				<c:if test="${canViewShippingConfigs}">
+					<li class="nav-item">
+						<a class="nav-link rounded px-3 py-2 ${fn:startsWith(servletPath, '/admin/shippingMethod') ? 'active bg-primary text-white' : 'text-dark'}" 
+						   href="${pageContext.request.contextPath}/admin/shippingMethod">
+							<i class="bi bi-gear me-1"></i> Cấu hình ship
+						</a>
+					</li>
+				</c:if>
+
 			</ul>
 		</div>
 	</div>

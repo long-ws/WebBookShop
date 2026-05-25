@@ -24,8 +24,8 @@ public class OrderDAO implements DAO<Order> {
     }
 
     public long insert(Connection conn, Order order) throws SQLException {
-        String sql = "INSERT INTO orders (userId, status, deliveryMethod, deliveryPrice, totalPrice, createdAt, updatedAt) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO orders (userId, status, deliveryMethod, deliveryPrice, createdAt, updatedAt) "
+                + "VALUES (?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -33,9 +33,8 @@ public class OrderDAO implements DAO<Order> {
             ps.setInt(2, order.getStatus());
             ps.setInt(3, order.getDeliveryMethod());
             ps.setDouble(4, order.getDeliveryPrice());
-            ps.setDouble(5, order.getTotalPrice());
-            ps.setTimestamp(6, Timestamp.valueOf(order.getCreatedAt()));
-            ps.setTimestamp(7, order.getUpdatedAt() != null ? Timestamp.valueOf(order.getUpdatedAt()) : null);
+            ps.setTimestamp(5, Timestamp.valueOf(order.getCreatedAt()));
+            ps.setTimestamp(6, order.getUpdatedAt() != null ? Timestamp.valueOf(order.getUpdatedAt()) : null);
 
             int rows = ps.executeUpdate();
             if (rows == 0)
@@ -115,6 +114,26 @@ public class OrderDAO implements DAO<Order> {
 
             while (rs.next()) {
                 list.add(mapResultSetToOrder(rs));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public List<Order> getByUserId(long userId) {
+        List<Order> list = new ArrayList<>();
+        String sql = "SELECT * FROM orders WHERE userId = ? ORDER BY createdAt DESC";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setLong(1, userId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToOrder(rs));
+                }
             }
 
         } catch (SQLException e) {
@@ -231,7 +250,7 @@ public class OrderDAO implements DAO<Order> {
         return updateStatus(id, 1);
     }
 
-    private boolean updateStatus(long id, int status) {
+    public boolean updateStatus(long id, int status) {
         String sql = "UPDATE orders SET status = ?, updatedAt = NOW() WHERE id = ?";
         try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 

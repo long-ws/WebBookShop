@@ -23,7 +23,7 @@ import jakarta.servlet.http.HttpSession;
 import service.AuthorizationService;
 import service.AuthorizationServiceImpl;
 
-@WebFilter(filterName = "PermissionFilter", value = { "/admin/*", "/WEB-INF/views/_headerAdmin.jsp" })
+@WebFilter(filterName = "PermissionFilter", value = "/admin/*")
 public class PermissionFilter implements Filter {
 
 	private final AuthorizationService authorizationService = new AuthorizationServiceImpl();
@@ -41,6 +41,11 @@ public class PermissionFilter implements Filter {
 		String contextPath = request.getContextPath();
 
 		String path = requestURI.substring(contextPath.length());
+
+		if (path.equals("/admin/403") || path.equals("/admin/401")) {
+			chain.doFilter(req, res);
+			return;
+		}
 
 		if (session == null) {
 			chain.doFilter(req, res);
@@ -102,6 +107,8 @@ public class PermissionFilter implements Filter {
 			request.setAttribute(ViewAttributeConstants.Security.CAN_VIEW_REVIEWS, securityContext.isCanViewReview());
 			request.setAttribute(ViewAttributeConstants.Security.CAN_VIEW_ORDERS, securityContext.isCanViewOrder());
 			request.setAttribute(ViewAttributeConstants.Security.CAN_VIEW_VOUCHERS, securityContext.isCanViewVoucher());
+			request.setAttribute(ViewAttributeConstants.Security.CAN_VIEW_SHIPMENTS, securityContext.isCanViewShipment());
+			request.setAttribute(ViewAttributeConstants.Security.CAN_VIEW_SHIPPING_CONFIGS, securityContext.isCanViewShippingConfig());
 
 			String primaryRole = UserConstants.Role.CUSTOMER;
 
@@ -118,11 +125,13 @@ public class PermissionFilter implements Filter {
 
 			if (path.startsWith("/admin")) {
 
-				boolean hasAdminPermission = securityContext.hasAnyAdminPermission();
+				boolean hasAdminPermission = securityContext.hasAnyAdminPermission()
+					|| securityContext.isCanViewShipment()
+					|| securityContext.isCanViewShippingConfig();
 
 				if (!hasAdminPermission) {
-
-					response.sendError(HttpServletResponse.SC_FORBIDDEN, "Từ chối truy cập");
+					// Sử dụng redirect thay vì sendError để hiển thị trang 403 tùy chỉnh
+					response.sendRedirect(request.getContextPath() + "/admin/403");
 					return;
 				}
 			}
