@@ -78,6 +78,18 @@ public final class PermissionConstants {
     public static final String SETTINGS_VIEW = "settings.view";
     public static final String SETTINGS_EDIT = "settings.edit";
 
+    // Shipment Management Permissions
+    public static final String SHIPMENT_MANAGE = "shipment.manage";
+    public static final String SHIPMENT_VIEW = "shipment.view";
+    public static final String SHIPMENT_EDIT = "shipment.edit";
+    public static final String SHIPMENT_CREATE = "shipment.create";
+    public static final String SHIPMENT_DELETE = "shipment.delete";
+
+    // Shipping Configuration Permissions
+    public static final String SHIPPING_CONFIG_MANAGE = "shipping_config.manage";
+    public static final String SHIPPING_CONFIG_VIEW = "shipping_config.view";
+    public static final String SHIPPING_CONFIG_EDIT = "shipping_config.edit";
+
     /** Bất kỳ quyền nào trong danh sách này cho phép truy cập khu vực Admin */
     public static final List<String> ADMIN_PORTAL_ACCESS_PERMISSIONS = List.of(
             USER_VIEW, USER_CREATE, USER_EDIT, USER_DELETE,
@@ -87,5 +99,7 @@ public final class PermissionConstants {
             PRODUCT_VIEW, PRODUCT_CREATE, PRODUCT_EDIT, PRODUCT_DELETE,
             ORDER_VIEW, ORDER_EDIT, ORDER_DELETE,
             REVIEW_VIEW, REVIEW_EDIT, REVIEW_DELETE,
-            VOUCHER_VIEW, VOUCHER_CREATE, VOUCHER_EDIT, VOUCHER_DELETE);
+            VOUCHER_VIEW, VOUCHER_CREATE, VOUCHER_EDIT, VOUCHER_DELETE,
+            SHIPMENT_VIEW, SHIPMENT_EDIT, SHIPMENT_CREATE, SHIPMENT_DELETE,
+            SHIPPING_CONFIG_VIEW, SHIPPING_CONFIG_EDIT);
 }

@@ -38,7 +38,7 @@ public class CategoryDAO implements DAO<Category> {
 	}
 
 	public void update(Category category) throws SQLException {
-		String sql = "UPDATE category SET name=?, description=?, imageName=? WHERE id=? and isDeleted = 0";
+		String sql = "UPDATE category SET name=?, description=?, imageName=? WHERE id=?";
 		try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
 			ps.setString(1, category.getName());
@@ -59,10 +59,10 @@ public class CategoryDAO implements DAO<Category> {
 	        "SELECT COUNT(*) " +
 	        "FROM product_category pc " +
 	        "JOIN product p ON pc.productId = p.id " +
-	        "WHERE pc.categoryId = ? AND p.isDeleted = 0";
+	        "WHERE pc.categoryId = ?";
 
 	    String deleteSql =
-	        "UPDATE category SET isDeleted = 1 WHERE id = ? AND isDeleted = 0";
+	        "DELETE FROM category WHERE id = ?";
 
 	    try (Connection conn = DBConnection.getConnection()) {
 	        conn.setAutoCommit(false);
@@ -91,7 +91,7 @@ public class CategoryDAO implements DAO<Category> {
 	}
 
 	public Category getById(long id) {
-		String sql = "SELECT * FROM category WHERE id = ? and isDeleted = 0";
+		String sql = "SELECT * FROM category WHERE id = ?";
 		try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
 			ps.setLong(1, id);
@@ -108,7 +108,7 @@ public class CategoryDAO implements DAO<Category> {
 
 	public List<Category> getAll() {
 		List<Category> list = new ArrayList<>();
-		String sql = "SELECT * FROM category WHERE isDeleted = 0";
+		String sql = "SELECT * FROM category";
 		try (Connection conn = DBConnection.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql);
 				ResultSet rs = ps.executeQuery()) {
@@ -125,7 +125,7 @@ public class CategoryDAO implements DAO<Category> {
 
 	public List<Category> getPart(int limit, int offset) {
 		List<Category> list = new ArrayList<>();
-		String sql = "SELECT * FROM category WHERE isDeleted = 0 LIMIT ? OFFSET ?";
+		String sql = "SELECT * FROM category LIMIT ? OFFSET ?";
 		try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
 			ps.setInt(1, limit);
@@ -145,7 +145,7 @@ public class CategoryDAO implements DAO<Category> {
 
 	public List<Category> getOrderedPart(int limit, int offset, String orderBy, String orderDir) {
 		List<Category> list = new ArrayList<>();
-		String sql = "SELECT * FROM category WHERE isDeleted = 0 ORDER BY " + orderBy + " " + orderDir + " LIMIT ? OFFSET ?";
+		String sql = "SELECT * FROM category ORDER BY " + orderBy + " " + orderDir + " LIMIT ? OFFSET ?";
 		try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
 			ps.setInt(1, limit);
@@ -164,7 +164,7 @@ public class CategoryDAO implements DAO<Category> {
 	}
 
 	public Category getByProductId(long productId) {
-		String sql = "SELECT c.* FROM product_category pc JOIN category c ON pc.categoryId = c.id WHERE productId = ? and isDeleted = 0";
+		String sql = "SELECT c.* FROM product_category pc JOIN category c ON pc.categoryId = c.id WHERE productId = ?";
 		try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
 			ps.setLong(1, productId);
@@ -180,7 +180,7 @@ public class CategoryDAO implements DAO<Category> {
 	}
 
 	public int count() {
-		String sql = "SELECT COUNT(id) FROM category WHERE isDeleted = 0";
+		String sql = "SELECT COUNT(id) FROM category";
 		try (Connection conn = DBConnection.getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql);
 				ResultSet rs = ps.executeQuery()) {
@@ -204,7 +204,7 @@ public class CategoryDAO implements DAO<Category> {
 	}
     public List<Category> searchByName(String keyword){
         List<Category> list = new ArrayList<>();
-        String sql = "SELECT id, name, imageName FROM category WHERE name LIKE ? AND isDeleted = 0 LIMIT 5";
+        String sql = "SELECT id, name, imageName FROM category WHERE name LIKE ? LIMIT 5";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -230,7 +230,7 @@ public class CategoryDAO implements DAO<Category> {
         if (keyword == null || keyword.trim().isEmpty()) {
             return list;
         }
-        String sql = "SELECT id, name, imageName FROM category WHERE isDeleted = 0 AND name LIKE ? ORDER BY name LIMIT 5";
+        String sql = "SELECT id, name, imageName FROM category WHERE name LIKE ? ORDER BY name LIMIT 5";
 
         try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 

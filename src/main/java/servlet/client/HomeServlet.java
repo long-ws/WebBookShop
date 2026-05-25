@@ -14,7 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import service.CategoryService;
 import service.ProductService;
 
-@WebServlet(name = "HomeServlet", value = "")
+@WebServlet(name = "HomeServlet", value = "/home")
 public class HomeServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
