@@ -44,8 +44,6 @@ public interface UserRepository {
 
 	List<User> findAllUser(Connection conn) throws SQLException;
 
-	List<User> findAllUser(Connection conn, String orderBy, String orderDir) throws SQLException;
-
 	long count(Connection conn) throws SQLException;
 
 	int getTokenVersion(Connection conn, long userId) throws SQLException;

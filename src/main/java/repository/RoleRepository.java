@@ -45,7 +45,5 @@ public interface RoleRepository {
 
 	boolean roleHasPermission(Connection conn, int roleId, String permissionCode) throws SQLException;
 
-	boolean roleHasPermission(Connection conn, int roleId, int permissionId) throws SQLException;
-
 	Map<Integer, List<Integer>> findAllRolePermissionMappings(Connection conn) throws SQLException;
 }
