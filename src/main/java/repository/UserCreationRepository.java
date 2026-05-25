@@ -9,9 +9,7 @@ import java.sql.SQLException;
 
 public interface UserCreationRepository {
 
-	long createLocalUser(Connection conn, UserAccount account, UserProfile profile, UserLocalAuth localAuth)
-			throws SQLException;
+	long createLocalUser(Connection conn, UserAccount account, UserProfile profile, UserLocalAuth localAuth) throws SQLException;
 
-	long createOAuthUser(Connection conn, UserAccount account, UserProfile profile, UserOAuthAuth oauthAuth)
-			throws SQLException;
+	long createOAuthUser(Connection conn, UserAccount account, UserProfile profile, UserOAuthAuth oauthAuth) throws SQLException;
 }

@@ -24,20 +24,24 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
 
 	@Override
 	public Optional<User> findByUsername(Connection conn, String username) throws SQLException {
-		Optional<Long> userIdOpt = localDAO.findUserIdByUsername(conn, username);
-		if (userIdOpt.isEmpty()) {
+		if (username == null || username.isBlank()) {
 			return Optional.empty();
 		}
-		return userCrudRepository.findById(conn, userIdOpt.get());
+		long userId = localDAO.findUserIdByUsername(conn, username);
+		return (userId <= 0) ? Optional.empty() : userCrudRepository.findById(conn, userId);
 	}
 
 	@Override
 	public Optional<User> findByEmail(Connection conn, String email) throws SQLException {
-		Optional<Long> userIdOpt = localDAO.findUserIdByEmail(conn, email);
-		if (userIdOpt.isEmpty()) {
+		if (email == null)
 			return Optional.empty();
-		}
-		return userCrudRepository.findById(conn, userIdOpt.get());
+
+		long userId = localDAO.findUserIdByEmail(conn, email);
+
+		if (userId <= 0)
+			return Optional.empty();
+
+		return userCrudRepository.findById(conn, userId);
 	}
 
 	@Override

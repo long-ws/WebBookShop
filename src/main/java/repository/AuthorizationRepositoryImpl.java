@@ -2,11 +2,8 @@ package repository;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import beans.common.Permission;
 import beans.common.Role;
@@ -30,8 +27,7 @@ public class AuthorizationRepositoryImpl implements AuthorizationRepository {
 		this(new UserRoleDAOImpl(), new RoleDAOImpl(), new PermissionDAOImpl(), new RolePermissionAssignmentDAOImpl());
 	}
 
-	public AuthorizationRepositoryImpl(UserRoleDAO userRoleDAO, RoleDAO roleDAO, PermissionDAO permissionDAO,
-			RolePermissionAssignmentDAO rolePermissionAssignmentDAO) {
+	public AuthorizationRepositoryImpl(UserRoleDAO userRoleDAO, RoleDAO roleDAO, PermissionDAO permissionDAO, RolePermissionAssignmentDAO rolePermissionAssignmentDAO) {
 		this.userRoleDAO = userRoleDAO;
 		this.roleDAO = roleDAO;
 		this.permissionDAO = permissionDAO;
@@ -40,17 +36,7 @@ public class AuthorizationRepositoryImpl implements AuthorizationRepository {
 
 	@Override
 	public boolean userHasPermission(Connection conn, long userId, String permissionCode) throws SQLException {
-		Optional<Permission> permissionOpt = permissionDAO.findByCode(conn, permissionCode);
-		if (permissionOpt.isEmpty() || !permissionOpt.get().isActive()) {
-			return false;
-		}
-		int permissionId = permissionOpt.get().getId();
-		for (Integer roleId : userRoleDAO.findRoleIdsByUserId(conn, userId)) {
-			if (rolePermissionAssignmentDAO.hasPermission(conn, roleId, permissionId)) {
-				return true;
-			}
-		}
-		return false;
+	    return rolePermissionAssignmentDAO.hasPermission(conn, userId, permissionCode);
 	}
 
 	@Override
@@ -78,23 +64,13 @@ public class AuthorizationRepositoryImpl implements AuthorizationRepository {
 
 	@Override
 	public boolean userIsSuperAdmin(Connection conn, long userId) throws SQLException {
-		return userHasRole(conn, userId, "SUPER_ADMIN");
+		return roleDAO.hasSystemRole(conn, userId);
 	}
 
 	@Override
 	public List<Permission> findPermissionsByUserId(Connection conn, long userId) throws SQLException {
-		Set<Integer> permissionIds = new LinkedHashSet<>();
-		for (Integer roleId : userRoleDAO.findRoleIdsByUserId(conn, userId)) {
-			permissionIds.addAll(rolePermissionAssignmentDAO.findPermissionIdsByRoleId(conn, roleId));
-		}
+		List<Permission> permissions = permissionDAO.findByUserId(conn, userId);
 
-		List<Permission> permissions = new ArrayList<>();
-		for (Integer permissionId : permissionIds) {
-			Optional<Permission> permissionOpt = permissionDAO.findById(conn, permissionId);
-			if (permissionOpt.isPresent() && permissionOpt.get().isActive()) {
-				permissions.add(permissionOpt.get());
-			}
-		}
 		permissions.sort((a, b) -> {
 			int moduleCompare = nullSafe(a.getModule()).compareToIgnoreCase(nullSafe(b.getModule()));
 			if (moduleCompare != 0) {
@@ -102,19 +78,19 @@ public class AuthorizationRepositoryImpl implements AuthorizationRepository {
 			}
 			return nullSafe(a.getCode()).compareToIgnoreCase(nullSafe(b.getCode()));
 		});
+
 		return permissions;
 	}
 
 	@Override
 	public List<Role> findRolesByUserId(Connection conn, long userId) throws SQLException {
-		List<Role> roles = new ArrayList<>();
-		for (Integer roleId : userRoleDAO.findRoleIdsByUserId(conn, userId)) {
-			Optional<Role> roleOpt = roleDAO.findById(conn, roleId);
-			if (roleOpt.isPresent() && roleOpt.get().isActive()) {
-				roles.add(roleOpt.get());
-			}
-		}
-		roles.sort((a, b) -> Integer.compare(a.getId(), b.getId()));
+		List<Role> roles = roleDAO.findByUserId(conn, userId);
+
+		roles.sort((role1, role2) -> {
+			int id1 = role1.getId();
+			int id2 = role2.getId();
+			return Integer.compare(id1, id2);
+		});
 		return roles;
 	}
 

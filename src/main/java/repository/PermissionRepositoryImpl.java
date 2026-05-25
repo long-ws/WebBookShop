@@ -21,8 +21,7 @@ public class PermissionRepositoryImpl implements PermissionRepository {
 		this(new PermissionDAOImpl(), new RolePermissionAssignmentDAOImpl());
 	}
 
-	public PermissionRepositoryImpl(PermissionDAO permissionDAO,
-			RolePermissionAssignmentDAO rolePermissionAssignmentDAO) {
+	public PermissionRepositoryImpl(PermissionDAO permissionDAO, RolePermissionAssignmentDAO rolePermissionAssignmentDAO) {
 		this.permissionDAO = permissionDAO;
 		this.rolePermissionAssignmentDAO = rolePermissionAssignmentDAO;
 	}
@@ -42,10 +41,7 @@ public class PermissionRepositoryImpl implements PermissionRepository {
 		if (permissionIds == null || permissionIds.isEmpty()) {
 			return false;
 		}
-		for (Integer id : permissionIds) {
-			permissionDAO.delete(conn, id);
-		}
-		return true;
+		return permissionDAO.deleteBatch(conn, permissionIds);
 	}
 
 	@Override
@@ -85,8 +81,7 @@ public class PermissionRepositoryImpl implements PermissionRepository {
 
 	@Override
 	public boolean isSystemPermission(Connection conn, int permissionId) throws SQLException {
-		Optional<Boolean> isSystemOpt = permissionDAO.isSystemPermission(conn, permissionId);
-		return isSystemOpt.orElse(false);
+		return permissionDAO.isSystemPermission(conn, permissionId);
 	}
 
 	@Override
