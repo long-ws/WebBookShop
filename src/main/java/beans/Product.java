@@ -22,12 +22,18 @@ public class Product {
 	private LocalDateTime startsAt;
 	private LocalDateTime endsAt;
 
+	private double weight;
+	private int length;
+	private int width;
+	private int height;
+
 	public Product() {
 	}
 
 	public Product(long id, String name, double price, double discount, int quantity, int totalBuy, String author,
 			int pages, String publisher, int yearPublishing, String description, String imageName, int shop,
-			LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime startsAt, LocalDateTime endsAt) {
+			LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime startsAt, LocalDateTime endsAt,
+			double weight, int length, int width, int height) {
 		this.id = id;
 		this.name = name;
 		this.price = price;
@@ -45,6 +51,10 @@ public class Product {
 		this.updatedAt = updatedAt;
 		this.startsAt = startsAt;
 		this.endsAt = endsAt;
+		this.weight = weight;
+		this.length = length;
+		this.width = width;
+		this.height = height;
 	}
 
 	public long getId() {
@@ -183,6 +193,38 @@ public class Product {
 		this.endsAt = endsAt;
 	}
 
+	public double getWeight() {
+		return weight;
+	}
+
+	public void setWeight(double weight) {
+		this.weight = weight;
+	}
+
+	public int getLength() {
+		return length;
+	}
+
+	public void setLength(int length) {
+		this.length = length;
+	}
+
+	public int getWidth() {
+		return width;
+	}
+
+	public void setWidth(int width) {
+		this.width = width;
+	}
+
+	public int getHeight() {
+		return height;
+	}
+
+	public void setHeight(int height) {
+		this.height = height;
+	}
+
 	@Override
 	public String toString() {
 		return new StringJoiner(", ", Product.class.getSimpleName() + "[", "]").add("id=" + id)
@@ -191,6 +233,7 @@ public class Product {
 				.add("pages=" + pages).add("publisher='" + publisher + "'").add("yearPublishing=" + yearPublishing)
 				.add("description='" + description + "'").add("imageName='" + imageName + "'").add("shop=" + shop)
 				.add("createdAt=" + createdAt).add("updatedAt=" + updatedAt).add("startsAt=" + startsAt)
-				.add("endsAt=" + endsAt).toString();
+				.add("endsAt=" + endsAt).add("weight=" + weight).add("length=" + length)
+				.add("width=" + width).add("height=" + height).toString();
 	}
 }
