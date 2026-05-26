@@ -16,9 +16,7 @@ import service.VoucherService;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @WebServlet("/admin/voucherManager/create")
 public class CreateVoucherServlet extends HttpServlet {
@@ -111,6 +109,8 @@ public class CreateVoucherServlet extends HttpServlet {
                 } else if (value < 0) {
                     value = 0;
                 }
+            } else if (calculationMethod == 1) {
+                maxDiscount = value;
             }
 
             if (endDate.isBefore(startDate)) {
@@ -118,28 +118,28 @@ public class CreateVoucherServlet extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/admin/voucherManager/create");
                 return;
             }
-
+            List<CategoryDTO> selectedCategories = new ArrayList<>();
+            List<ProductDTO> selectedProducts = new ArrayList<>();
             String[] categoryIdsParam = request.getParameterValues("categoryIds");
             String[] productIdsParam = request.getParameterValues("productIds");
 
-            List<CategoryDTO> selectedCategories = new ArrayList<>();
-            if (categoryIdsParam != null) {
-                for (String cId : categoryIdsParam) {
-                    CategoryDTO dto = new CategoryDTO();
-                    dto.setId(Long.parseLong(cId));
-                    selectedCategories.add(dto);
+            if (applyTo == 1) {
+                if (productIdsParam != null) {
+                    for (String pId : productIdsParam) {
+                        ProductDTO dto = new ProductDTO();
+                        dto.setId(Long.parseLong(pId));
+                        selectedProducts.add(dto);
+                    }
+                }
+            } else if (applyTo == 2) {
+                if (categoryIdsParam != null) {
+                    for (String cId : categoryIdsParam) {
+                        CategoryDTO dto = new CategoryDTO();
+                        dto.setId(Long.parseLong(cId));
+                        selectedCategories.add(dto);
+                    }
                 }
             }
-
-            List<ProductDTO> selectedProducts = new ArrayList<>();
-            if (productIdsParam != null) {
-                for (String pId : productIdsParam) {
-                    ProductDTO dto = new ProductDTO();
-                    dto.setId(Long.parseLong(pId));
-                    selectedProducts.add(dto);
-                }
-            }
-
             Voucher v = new Voucher();
             v.setCode(code);
             v.setName(name);
