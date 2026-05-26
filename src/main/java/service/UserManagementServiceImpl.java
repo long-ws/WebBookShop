@@ -245,9 +245,9 @@ public class UserManagementServiceImpl implements UserManagementService {
 	}
 
 	@Override
-	public List<UserManageResponse> getUsers(String orderBy, String orderDir) {
+	public List<UserManageResponse> getUsers() {
 		try (Connection conn = utils.DBConnection.getConnection()) {
-			List<User> users = userRepository.findAllUser(conn, orderBy, orderDir);
+			List<User> users = userRepository.findAllUser(conn);
 			List<UserManageResponse> dtos = new ArrayList<>();
 			for (User user : users) {
 				dtos.add(userMapper.toManageUserResponse(user));

@@ -33,7 +33,7 @@ public class ManageUserServlet extends HttpServlet {
 		final Map<String, String> errors = new HashMap<>();
 
 		try {
-			rawUsers = userManagementService.getUsers("id", "DESC");
+			rawUsers = userManagementService.getUsers();
 		} catch (BusinessException e) {
 			final Map<String, String> businessErrors = e.getErrors();
 			if (businessErrors != null && !businessErrors.isEmpty()) {
