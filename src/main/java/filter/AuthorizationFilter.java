@@ -65,10 +65,6 @@ public class AuthorizationFilter implements Filter {
 		PERMISSION_MAP.put("/admin/voucherManager/create", Arrays.asList(PermissionConstants.VOUCHER_CREATE));
 		PERMISSION_MAP.put("/admin/voucherManager/update", Arrays.asList(PermissionConstants.VOUCHER_EDIT));
 		PERMISSION_MAP.put("/admin/voucherManager/delete", Arrays.asList(PermissionConstants.VOUCHER_DELETE));
-
-		PERMISSION_MAP.put("/admin/shipmentManager", Arrays.asList(PermissionConstants.SHIPMENT_VIEW));
-		PERMISSION_MAP.put("/admin/shipmentManager/detail", Arrays.asList(PermissionConstants.SHIPMENT_VIEW));
-		PERMISSION_MAP.put("/admin/shippingMethod", Arrays.asList(PermissionConstants.SHIPPING_CONFIG_VIEW));
 	}
 
 	@Override
@@ -82,26 +78,16 @@ public class AuthorizationFilter implements Filter {
 		String loginURI = request.getContextPath() + "/admin/signin";
 		String signoutURI = request.getContextPath() + "/admin/signout";
 		String admin403URI = request.getContextPath() + "/admin/403";
-		String admin401URI = request.getContextPath() + "/admin/401";
 		String adminHomeURI = request.getContextPath() + "/admin";
-
-		String requestURI = request.getRequestURI();
-		String contextPath = request.getContextPath();
-		String path = requestURI.substring(contextPath.length());
-
-		if (path.equals("/admin/403") || path.equals("/admin/401")) {
-			chain.doFilter(req, res);
-			return;
-		}
 
 		User currentUser = null;
 		if (session != null) {
 			currentUser = (User) session.getAttribute(SessionConstants.CURRENT_USER);
 		}
 
-		boolean loginRequest = requestURI.equals(loginURI);
-		boolean signoutRequest = requestURI.equals(signoutURI);
-		boolean adminHomeRequest = requestURI.equals(adminHomeURI);
+		boolean loginRequest = request.getRequestURI().equals(loginURI);
+		boolean signoutRequest = request.getRequestURI().equals(signoutURI);
+		boolean adminHomeRequest = request.getRequestURI().equals(adminHomeURI);
 
 		if (currentUser == null) {
 			if (loginRequest) {
@@ -112,7 +98,7 @@ public class AuthorizationFilter implements Filter {
 			return;
 		}
 
-		if (loginRequest) {	
+		if (loginRequest) {
 			response.sendRedirect(adminHomeURI);
 			return;
 		}
@@ -122,24 +108,18 @@ public class AuthorizationFilter implements Filter {
 			return;
 		}
 
-		boolean isSuperAdmin = authorizationService.isSuperAdmin(currentUser.getId());
-		System.out.println("[AuthorizationFilter] User ID: " + currentUser.getId() + ", Username: " + currentUser.getUsername() + ", Is Super Admin: " + isSuperAdmin);
-
-		if (isSuperAdmin) {
-			System.out.println("[AuthorizationFilter] Super Admin detected - bypassing permission check for path: " + path);
-			chain.doFilter(req, res);
-			return;
-		}
+		String requestURI = request.getRequestURI();
+		String contextPath = request.getContextPath();
+		String path = requestURI.substring(contextPath.length());
 
 		boolean hasPermission = false;
 		List<String> sortedKeys = new java.util.ArrayList<>(PERMISSION_MAP.keySet());
 		sortedKeys.sort((a, b) -> Integer.compare(b.length(), a.length()));
-
+		
 		for (String key : sortedKeys) {
 			if (path.startsWith(key)) {
 				for (String permission : PERMISSION_MAP.get(key)) {
-					boolean userHasPermission = authorizationService.hasPermission(currentUser.getId(), permission);
-					if (userHasPermission) {
+					if (authorizationService.hasPermission(currentUser.getId(), permission)) {
 						hasPermission = true;
 						break;
 					}
@@ -153,7 +133,6 @@ public class AuthorizationFilter implements Filter {
 		if (hasPermission) {
 			chain.doFilter(request, response);
 		} else {
-			System.out.println("[AuthorizationFilter] User NO permission - redirecting to 403 for path: " + path);
 			response.sendRedirect(admin403URI);
 		}
 	}

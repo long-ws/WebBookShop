@@ -218,41 +218,7 @@ public class UserPermissionContext {
     public boolean isCanEditSettings() {
         return hasPermission(PermissionConstants.SETTINGS_EDIT);
     }
-
-    // Shipment Management
-    public boolean isCanManageShipment() {
-        return hasPermission(PermissionConstants.SHIPMENT_MANAGE);
-    }
-
-    public boolean isCanViewShipment() {
-        return isCanManageShipment() || hasPermission(PermissionConstants.SHIPMENT_VIEW);
-    }
-
-    public boolean isCanEditShipment() {
-        return isCanManageShipment() || hasPermission(PermissionConstants.SHIPMENT_EDIT);
-    }
-
-    public boolean isCanCreateShipment() {
-        return isCanManageShipment() || hasPermission(PermissionConstants.SHIPMENT_CREATE);
-    }
-
-    public boolean isCanDeleteShipment() {
-        return isCanManageShipment() || hasPermission(PermissionConstants.SHIPMENT_DELETE);
-    }
-
-    // Shipping Configuration Management
-    public boolean isCanManageShippingConfig() {
-        return hasPermission(PermissionConstants.SHIPPING_CONFIG_MANAGE);
-    }
-
-    public boolean isCanViewShippingConfig() {
-        return isCanManageShippingConfig() || hasPermission(PermissionConstants.SHIPPING_CONFIG_VIEW);
-    }
-
-    public boolean isCanEditShippingConfig() {
-        return isCanManageShippingConfig() || hasPermission(PermissionConstants.SHIPPING_CONFIG_EDIT);
-    }
-
+    
     // Check if user has any admin permissions
     public boolean hasAnyAdminPermission() {
         return isSuperAdmin ||
@@ -263,8 +229,6 @@ public class UserPermissionContext {
             isCanViewProduct() || isCanCreateProduct() || isCanEditProduct() || isCanDeleteProduct() ||
             isCanViewReview() || isCanEditReview() || isCanDeleteReview() ||
             isCanViewOrder() || isCanEditOrder() || isCanDeleteOrder() ||
-            isCanViewVoucher() || isCanCreateVoucher() || isCanEditVoucher() || isCanDeleteVoucher() ||
-            isCanViewShipment() || isCanEditShipment() || isCanCreateShipment() || isCanDeleteShipment() ||
-            isCanViewShippingConfig() || isCanEditShippingConfig();
+            isCanViewVoucher() || isCanCreateVoucher() || isCanEditVoucher() || isCanDeleteVoucher();
     }
 }
