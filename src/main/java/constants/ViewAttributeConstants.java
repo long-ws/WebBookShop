@@ -32,8 +32,6 @@ public final class ViewAttributeConstants {
 		public static final String CAN_VIEW_REVIEWS = "canViewReviews";
 		public static final String CAN_VIEW_ORDERS = "canViewOrders";
 		public static final String CAN_VIEW_VOUCHERS = "canViewVouchers";
-		public static final String CAN_VIEW_SHIPMENTS = "canViewShipments";
-		public static final String CAN_VIEW_SHIPPING_CONFIGS = "canViewShippingConfigs";
 	}
 
 	public static final class User {

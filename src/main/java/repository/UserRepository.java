@@ -30,8 +30,6 @@ public interface UserRepository {
 
 	Optional<User> findById(Connection conn, long userId) throws SQLException;
 
-	Optional<User> findById(long userId) throws SQLException;
-
 	Optional<User> findByUsername(Connection conn, String username) throws SQLException;
 
 	Optional<User> findByEmail(Connection conn, String email) throws SQLException;
