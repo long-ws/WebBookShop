@@ -1,12 +1,27 @@
 package dao.user;
 
+import static config.DatabaseConstants.COL_ACCOUNT_DELETED_AT;
+import static config.DatabaseConstants.COL_ACCOUNT_DELETED_BY;
+import static config.DatabaseConstants.COL_ACCOUNT_DELETION_SCHEDULED_AT;
+import static config.DatabaseConstants.COL_ACCOUNT_LAST_LOGIN_AT;
+import static config.DatabaseConstants.COL_ACCOUNT_REMEMBER_EXPIRES_AT;
+import static config.DatabaseConstants.COL_ACCOUNT_REMEMBER_TOKEN;
+import static config.DatabaseConstants.COL_ACCOUNT_STATUS_ID;
+import static config.DatabaseConstants.COL_ACCOUNT_TOKEN_VERSION;
+import static config.DatabaseConstants.COL_CREATED_AT;
+import static config.DatabaseConstants.COL_ID;
+import static config.DatabaseConstants.COL_UPDATED_AT;
+import static config.DatabaseConstants.TABLE_USER_ACCOUNT;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import beans.common.UserStatus;
@@ -14,17 +29,73 @@ import beans.user.UserAccount;
 
 public class UserAccountDAOImpl implements UserAccountDAO {
 
-	private static final String SQL_INSERT = "INSERT INTO user_account (status_id, token_version, created_at, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
-	private static final String SQL_UPDATE = "UPDATE user_account SET status_id=?, token_version=?, updated_at=CURRENT_TIMESTAMP WHERE id=?";
-	private static final String SQL_SOFT_DELETE = "UPDATE user_account SET deleted_at=CURRENT_TIMESTAMP WHERE id=?";
-	private static final String SQL_FIND_BY_ID = "SELECT * FROM user_account WHERE id=? AND deleted_at IS NULL";
-	private static final String SQL_FIND_ALL = "SELECT * FROM user_account WHERE deleted_at IS NULL ORDER BY id DESC";
-	private static final String SQL_COUNT = "SELECT COUNT(*) FROM user_account WHERE deleted_at IS NULL";
-	private static final String SQL_INCREMENT_TOKEN = "UPDATE user_account SET token_version = token_version + 1, updated_at=CURRENT_TIMESTAMP WHERE id=?";
-	private static final String SQL_GET_TOKEN_VERSION = "SELECT token_version FROM user_account WHERE id=?";
+	private static final String SELECT_FIELDS = "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s".formatted(COL_ID, COL_ACCOUNT_STATUS_ID, COL_ACCOUNT_TOKEN_VERSION, COL_ACCOUNT_LAST_LOGIN_AT,
+			COL_ACCOUNT_REMEMBER_TOKEN, COL_ACCOUNT_REMEMBER_EXPIRES_AT, COL_ACCOUNT_DELETED_AT, COL_ACCOUNT_DELETED_BY, COL_ACCOUNT_DELETION_SCHEDULED_AT, COL_CREATED_AT, COL_UPDATED_AT);
+
+	private static final String SQL_INSERT = """
+			INSERT INTO %s (
+				%s, %s, created_at, updated_at
+			) VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+			""".formatted(TABLE_USER_ACCOUNT, COL_ACCOUNT_STATUS_ID, COL_ACCOUNT_TOKEN_VERSION);
+
+	private static final String SQL_UPDATE = """
+			UPDATE %s
+			SET
+				%s = ?,
+				%s = ?,
+				updated_at = CURRENT_TIMESTAMP
+			WHERE %s = ?
+			""".formatted(TABLE_USER_ACCOUNT, COL_ACCOUNT_STATUS_ID, COL_ACCOUNT_TOKEN_VERSION, COL_ID);
+
+	private static final String SQL_SOFT_DELETE = """
+			UPDATE %s
+			SET
+				deleted_at = CURRENT_TIMESTAMP
+			WHERE %s = ?
+			""".formatted(TABLE_USER_ACCOUNT, COL_ID);
+
+	private static final String SQL_FIND_BY_ID = """
+			SELECT %s
+			FROM %s
+			WHERE %s = ?
+			  AND deleted_at IS NULL
+			""".formatted(SELECT_FIELDS, TABLE_USER_ACCOUNT, COL_ID);
+
+	private static final String SQL_FIND_ALL = """
+			SELECT %s
+			FROM %s
+			WHERE deleted_at IS NULL
+			ORDER BY %s DESC
+			""".formatted(SELECT_FIELDS, TABLE_USER_ACCOUNT, COL_ID);
+
+	private static final String SQL_COUNT = """
+			SELECT COUNT(*)
+			FROM %s
+			WHERE deleted_at IS NULL
+			""".formatted(TABLE_USER_ACCOUNT);
+
+	private static final String SQL_INCREMENT_TOKEN = """
+			UPDATE %s
+			SET
+				%s = %s + 1,
+				updated_at = CURRENT_TIMESTAMP
+			WHERE %s = ?
+			""".formatted(TABLE_USER_ACCOUNT, COL_ACCOUNT_TOKEN_VERSION, COL_ACCOUNT_TOKEN_VERSION, COL_ID);
+
+	private static final String SQL_GET_TOKEN_VERSION = """
+			SELECT %s
+			FROM %s
+			WHERE %s = ?
+			""".formatted(COL_ACCOUNT_TOKEN_VERSION, TABLE_USER_ACCOUNT, COL_ID);
+
+	private static final String SQL_FIND_ALL_IDS = "SELECT " + COL_ID + " FROM " + TABLE_USER_ACCOUNT + " WHERE deleted_at IS NULL ORDER BY " + COL_ID + " DESC";
+
+	private static final String SQL_FIND_BY_IDS = """
+			SELECT %s FROM %s WHERE %s IN (
+			""".formatted(SELECT_FIELDS, TABLE_USER_ACCOUNT, COL_ID);
 
 	@Override
-	public long insert(Connection conn, UserAccount account) throws SQLException {
+	public long insert(final Connection conn, final UserAccount account) throws SQLException {
 		try (PreparedStatement ps = conn.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS)) {
 			ps.setInt(1, account.getStatusId());
 			ps.setInt(2, account.getTokenVersion());
@@ -33,13 +104,13 @@ public class UserAccountDAOImpl implements UserAccountDAO {
 				if (rs.next()) {
 					return rs.getLong(1);
 				}
-				throw new SQLException("Tạo tài khoản thất bại");
+				throw new SQLException("Thao tác khởi tạo bản ghi tài khoản thất bại.");
 			}
 		}
 	}
 
 	@Override
-	public void update(Connection conn, UserAccount account) throws SQLException {
+	public void update(final Connection conn, final UserAccount account) throws SQLException {
 		try (PreparedStatement ps = conn.prepareStatement(SQL_UPDATE)) {
 			ps.setInt(1, account.getStatusId());
 			ps.setInt(2, account.getTokenVersion());
@@ -49,34 +120,38 @@ public class UserAccountDAOImpl implements UserAccountDAO {
 	}
 
 	@Override
-	public void softDeleteBatch(Connection conn, List<Long> userIds) throws SQLException {
+	public void softDeleteBatch(final Connection conn, final List<Long> userIds) throws SQLException {
 		if (userIds == null || userIds.isEmpty()) {
 			return;
 		}
 		try (PreparedStatement ps = conn.prepareStatement(SQL_SOFT_DELETE)) {
-			for (Long id : userIds) {
-				ps.setLong(1, id);
-				ps.addBatch();
+			for (final Long id : userIds) {
+				if (id != null) {
+					ps.setLong(1, id);
+					ps.addBatch();
+				}
 			}
 			ps.executeBatch();
 		}
 	}
 
 	@Override
-	public Optional<UserAccount> findById(Connection conn, long userId) throws SQLException {
+	public Optional<UserAccount> findById(final Connection conn, final long userId) throws SQLException {
 		try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_ID)) {
 			ps.setLong(1, userId);
 			try (ResultSet rs = ps.executeQuery()) {
-				return rs.next() ? Optional.of(mapRow(rs)) : Optional.empty();
+				if (rs.next()) {
+					return Optional.of(mapRow(rs));
+				}
 			}
 		}
+		return Optional.empty();
 	}
 
 	@Override
-	public List<UserAccount> findAllNotDeleted(Connection conn) throws SQLException {
-		List<UserAccount> list = new ArrayList<>();
-		try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL);
-				ResultSet rs = ps.executeQuery()) {
+	public List<UserAccount> findAllNotDeleted(final Connection conn) throws SQLException {
+		final List<UserAccount> list = new ArrayList<UserAccount>();
+		try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL); ResultSet rs = ps.executeQuery()) {
 			while (rs.next()) {
 				list.add(mapRow(rs));
 			}
@@ -85,18 +160,17 @@ public class UserAccountDAOImpl implements UserAccountDAO {
 	}
 
 	@Override
-	public long countNotDeleted(Connection conn) throws SQLException {
-		try (PreparedStatement ps = conn.prepareStatement(SQL_COUNT);
-				ResultSet rs = ps.executeQuery()) {
+	public long countNotDeleted(final Connection conn) throws SQLException {
+		try (PreparedStatement ps = conn.prepareStatement(SQL_COUNT); ResultSet rs = ps.executeQuery()) {
 			if (rs.next()) {
 				return rs.getLong(1);
 			}
-			return 0;
+			return 0L;
 		}
 	}
 
 	@Override
-	public boolean incrementTokenVersion(Connection conn, long userId) throws SQLException {
+	public boolean incrementTokenVersion(final Connection conn, final long userId) throws SQLException {
 		try (PreparedStatement ps = conn.prepareStatement(SQL_INCREMENT_TOKEN)) {
 			ps.setLong(1, userId);
 			return ps.executeUpdate() > 0;
@@ -104,37 +178,126 @@ public class UserAccountDAOImpl implements UserAccountDAO {
 	}
 
 	@Override
-	public int getTokenVersion(Connection conn, long userId) throws SQLException {
+	public int getTokenVersion(final Connection conn, final long userId) throws SQLException {
 		try (PreparedStatement ps = conn.prepareStatement(SQL_GET_TOKEN_VERSION)) {
 			ps.setLong(1, userId);
 			try (ResultSet rs = ps.executeQuery()) {
 				if (rs.next()) {
-					return rs.getInt(1);
+					return rs.getInt(COL_ACCOUNT_TOKEN_VERSION);
 				}
 				return 0;
 			}
 		}
 	}
 
-	private UserAccount mapRow(ResultSet rs) throws SQLException {
-		UserAccount account = new UserAccount();
-		account.setId(rs.getLong("id"));
-		account.setStatusId(rs.getInt("status_id"));
-		UserStatus status = new UserStatus();
-		status.setId(rs.getInt("status_id"));
+	@Override
+	public List<Long> findAllIds(Connection conn) throws SQLException {
+		List<Long> ids = new ArrayList<Long>();
+		try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL_IDS); ResultSet rs = ps.executeQuery()) {
+			while (rs.next()) {
+				ids.add(rs.getLong(COL_ID));
+			}
+		}
+		return ids;
+	}
+
+	@Override
+	public List<UserAccount> findAllAccountsByIds(Connection connection, List<Long> accountIds) throws SQLException {
+		if (accountIds == null || accountIds.isEmpty()) {
+			return new ArrayList<>();
+		}
+
+		Map<Long, UserAccount> accountMap = findByIdsAsMap(connection, accountIds);
+		List<UserAccount> ordered = new ArrayList<>();
+
+		for (int i = 0; i < accountIds.size(); i++) {
+			Long id = accountIds.get(i);
+			if (id != null) {
+				UserAccount account = accountMap.get(id);
+				if (account != null) {
+					ordered.add(account);
+				}
+			}
+		}
+
+		return ordered;
+	}
+
+	@Override
+	public Map<Long, UserAccount> findByIdsAsMap(Connection conn, List<Long> ids) throws SQLException {
+		Map<Long, UserAccount> result = new HashMap<>();
+		if (ids == null || ids.isEmpty()) {
+			return result;
+		}
+
+		final int MAX_BATCH_SIZE = 500;
+
+		for (int startIndex = 0; startIndex < ids.size(); startIndex = startIndex + MAX_BATCH_SIZE) {
+			int endIndex = Math.min(startIndex + MAX_BATCH_SIZE, ids.size());
+			List<Long> currentBatchIds = ids.subList(startIndex, endIndex);
+
+			List<Long> sanitizedIds = new ArrayList<>();
+			for (int i = 0; i < currentBatchIds.size(); i++) {
+				Long id = currentBatchIds.get(i);
+				if (id != null) {
+					sanitizedIds.add(id);
+				}
+			}
+			if (sanitizedIds.isEmpty()) {
+				continue;
+			}
+
+			StringBuilder placeholdersBuilder = new StringBuilder();
+			for (int i = 0; i < sanitizedIds.size(); i++) {
+				if (i > 0) {
+					placeholdersBuilder.append(',');
+				}
+				placeholdersBuilder.append('?');
+			}
+
+			String sqlQuery = SQL_FIND_BY_IDS + placeholdersBuilder.toString() + ")";
+			try (PreparedStatement ps = conn.prepareStatement(sqlQuery)) {
+				for (int i = 0; i < sanitizedIds.size(); i++) {
+					ps.setLong(i + 1, sanitizedIds.get(i));
+				}
+
+				try (ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						UserAccount account = mapRow(rs);
+						result.put(account.getId(), account);
+					}
+				}
+			}
+		}
+
+		return result;
+	}
+
+	private UserAccount mapRow(final ResultSet rs) throws SQLException {
+		final UserAccount account = new UserAccount();
+		account.setId(rs.getLong(COL_ID));
+
+		final int statusId = rs.getInt(COL_ACCOUNT_STATUS_ID);
+		account.setStatusId(statusId);
+
+		final UserStatus status = new UserStatus();
+		status.setId(statusId);
 		account.setStatus(status);
-		account.setTokenVersion(rs.getInt("token_version"));
-		account.setLastLoginAt(rs.getTimestamp("last_login_at"));
-		account.setRememberToken(rs.getString("remember_token"));
-		account.setRememberExpiresAt(rs.getTimestamp("remember_expires_at"));
-		account.setDeletedAt(rs.getTimestamp("deleted_at"));
-		long deletedBy = rs.getLong("deleted_by");
+
+		account.setTokenVersion(rs.getInt(COL_ACCOUNT_TOKEN_VERSION));
+		account.setLastLoginAt(rs.getTimestamp(COL_ACCOUNT_LAST_LOGIN_AT));
+		account.setRememberToken(rs.getString(COL_ACCOUNT_REMEMBER_TOKEN));
+		account.setRememberExpiresAt(rs.getTimestamp(COL_ACCOUNT_REMEMBER_EXPIRES_AT));
+		account.setDeletedAt(rs.getTimestamp(COL_ACCOUNT_DELETED_AT));
+
+		final long deletedBy = rs.getLong(COL_ACCOUNT_DELETED_BY);
 		if (!rs.wasNull()) {
 			account.setDeletedBy(deletedBy);
 		}
-		account.setDeletionScheduledAt(rs.getTimestamp("deletion_scheduled_at"));
-		account.setCreatedAt(rs.getTimestamp("created_at"));
-		account.setUpdatedAt(rs.getTimestamp("updated_at"));
+
+		account.setDeletionScheduledAt(rs.getTimestamp(COL_ACCOUNT_DELETION_SCHEDULED_AT));
+		account.setCreatedAt(rs.getTimestamp(COL_CREATED_AT));
+		account.setUpdatedAt(rs.getTimestamp(COL_UPDATED_AT));
 		return account;
 	}
 }

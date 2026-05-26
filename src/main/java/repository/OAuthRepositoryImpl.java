@@ -27,29 +27,25 @@ public class OAuthRepositoryImpl implements OAuthRepository {
 
 	@Override
 	public Optional<UserOAuthAuth> findByProviderAndProviderUserId(Connection conn, String provider, String providerUserId) throws SQLException {
-		Optional<Integer> providerIdOpt = oauthProviderDAO.findIdByCode(conn, provider);
-		if (providerIdOpt.isEmpty()) {
-			return Optional.empty();
-		}
-		return userOauthDAO.findByProviderAndProviderUserId(conn, providerIdOpt.get(), providerUserId);
+	    return userOauthDAO.findByProviderCode(conn, provider, providerUserId);
 	}
 
 	@Override
-	public Optional<Long> findUserIdByOAuth(Connection conn, String provider, String providerUserId) throws SQLException {
-		Optional<Integer> providerIdOpt = oauthProviderDAO.findIdByCode(conn, provider);
-		if (providerIdOpt.isEmpty()) {
-			return Optional.empty();
+	public long findUserIdByOAuth(Connection conn, String provider, String providerUserId) throws SQLException {
+		int providerId = oauthProviderDAO.findIdByCode(conn, provider);
+		if (providerId <= 0) {
+			return -1;
 		}
-		return userOauthDAO.findUserIdByOAuth(conn, providerIdOpt.get(), providerUserId);
+		return userOauthDAO.findUserIdByOAuth(conn, providerId, providerUserId);
 	}
 
 	@Override
 	public void linkOAuthAccount(Connection conn, long userId, String provider, String providerUserId, String email, String displayName, String avatarUrl) throws SQLException {
-		Optional<Integer> providerIdOpt = oauthProviderDAO.findIdByCode(conn, provider);
-		if (providerIdOpt.isEmpty()) {
+		int providerIdOpt = oauthProviderDAO.findIdByCode(conn, provider);
+		if (providerIdOpt <= 0) {
 			throw new SQLException("Không tìm thấy OAuth provider: " + provider);
 		}
-		int providerId = providerIdOpt.get();
+		int providerId = providerIdOpt;
 
 		if (userOauthDAO.hasOAuthProvider(conn, userId, providerId)) {
 			throw new SQLException("User already has " + provider + " account linked");
@@ -85,8 +81,13 @@ public class OAuthRepositoryImpl implements OAuthRepository {
 
 	@Override
 	public boolean hasOAuthProvider(Connection conn, long userId, String provider) throws SQLException {
-		Optional<Integer> providerIdOpt = oauthProviderDAO.findIdByCode(conn, provider);
-		return providerIdOpt.isPresent() && userOauthDAO.hasOAuthProvider(conn, userId, providerIdOpt.get());
+		int providerId = oauthProviderDAO.findIdByCode(conn, provider);
+
+		if (providerId <= 0) {
+			return false;
+		}
+
+		return userOauthDAO.hasOAuthProvider(conn, userId, providerId);
 	}
 
 	@Override
@@ -96,10 +97,12 @@ public class OAuthRepositoryImpl implements OAuthRepository {
 
 	@Override
 	public int getProviderId(Connection conn, String provider) throws SQLException {
-		Optional<Integer> providerIdOpt = oauthProviderDAO.findIdByCode(conn, provider);
-		if (providerIdOpt.isEmpty()) {
+		int providerId = oauthProviderDAO.findIdByCode(conn, provider);
+
+		if (providerId <= 0) {
 			throw new SQLException("Không tìm thấy OAuth provider: " + provider);
 		}
-		return providerIdOpt.get();
+
+		return providerId;
 	}
 }

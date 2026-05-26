@@ -24,6 +24,10 @@ public class UserAuthRepositoryImpl implements UserAuthRepository {
 
 	@Override
 	public void changePassword(Connection conn, long userId, String hashedPassword) throws SQLException {
+		if (userId <= 0)
+			throw new IllegalArgumentException("User ID phải lớn hơn 0");
+		if (hashedPassword == null || hashedPassword.isBlank())
+			throw new IllegalArgumentException("Mật khẩu không hợp lệ");
 		localDAO.updatePassword(conn, userId, hashedPassword);
 	}
 

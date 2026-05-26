@@ -25,12 +25,10 @@ public class OAuthService {
 	private final OAuthUserMapper oauthUserMapper;
 
 	public OAuthService() {
-		this(new UserRepositoryImpl(), new OAuthRepositoryImpl(), new UserRegistrationServiceImpl(),
-				new OAuthUserMapper());
+		this(new UserRepositoryImpl(), new OAuthRepositoryImpl(), new UserRegistrationServiceImpl(), new OAuthUserMapper());
 	}
 
-	public OAuthService(UserRepository userRepository, OAuthRepository oauthAuthRepository,
-			UserRegistrationService userRegistrationService, OAuthUserMapper oauthUserMapper) {
+	public OAuthService(UserRepository userRepository, OAuthRepository oauthAuthRepository, UserRegistrationService userRegistrationService, OAuthUserMapper oauthUserMapper) {
 		this.userRepository = userRepository;
 		this.oauthAuthRepository = oauthAuthRepository;
 		this.userRegistrationService = userRegistrationService;
@@ -52,12 +50,11 @@ public class OAuthService {
 		}
 	}
 
-	private User resolveOAuthUser(Connection conn, OAuthUserResponse oauthUser, String provider, String providerUserId)
-			throws SQLException {
-		Optional<Long> existingUserIdOptional = oauthAuthRepository.findUserIdByOAuth(conn, provider, providerUserId);
-		
-		if (existingUserIdOptional.isPresent()) {
-			long userId = existingUserIdOptional.get();
+	private User resolveOAuthUser(Connection conn, OAuthUserResponse oauthUser, String provider, String providerUserId) throws SQLException {
+		long existingUserIdOptional = oauthAuthRepository.findUserIdByOAuth(conn, provider, providerUserId);
+
+		if (existingUserIdOptional > 0) {
+			long userId = existingUserIdOptional;
 			Optional<User> userOptional = userRepository.findById(conn, userId);
 			if (userOptional.isPresent()) {
 				return userOptional.get();
@@ -66,15 +63,13 @@ public class OAuthService {
 		}
 
 		int providerId = oauthAuthRepository.getProviderId(conn, provider);
-		OAuthUserRegistrationRequest registrationRequest = oauthUserMapper.toOAuthUserRegistrationRequest(oauthUser,
-				providerId);
+		OAuthUserRegistrationRequest registrationRequest = oauthUserMapper.toOAuthUserRegistrationRequest(oauthUser, providerId);
 
 		long newUserId = userRegistrationService.registerOAuthUser(conn, registrationRequest);
-
 		Optional<User> createdUserOptional = userRepository.findById(conn, newUserId);
 		if (createdUserOptional.isPresent()) {
 			return createdUserOptional.get();
 		}
-		throw new BusinessException( "Đã xảy ra lỗi khi tạo tài khoản. Vui lòng thử lại sau");
+		throw new BusinessException("Đã xảy ra lỗi khi tạo tài khoản. Vui lòng thử lại sau");
 	}
 }

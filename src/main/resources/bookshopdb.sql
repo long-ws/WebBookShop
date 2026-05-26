@@ -120,7 +120,8 @@ CREATE TABLE user_account (
     CONSTRAINT fk_user_status FOREIGN KEY (status_id) REFERENCES user_account_status(id),
     
     INDEX idx_status (status_id),
-    INDEX idx_deleted (deleted_at)
+    INDEX idx_deleted (deleted_at),
+    INDEX idx_deleted_id (deleted_at, id)
 );
 
 CREATE TABLE user_role_registry (
@@ -205,6 +206,8 @@ CREATE TABLE user_token (
 		CONSTRAINT fk_profile_user FOREIGN KEY (user_id) REFERENCES user_account(id) ON DELETE CASCADE,
 		CONSTRAINT fk_gender FOREIGN KEY (gender_id) REFERENCES gender(id),
 		CONSTRAINT fk_profile_language FOREIGN KEY (preferred_language_id) REFERENCES language_registry(id)
+		,
+		INDEX idx_profile_fullname_userid (fullname, user_id)
 	);
 
 CREATE TABLE category

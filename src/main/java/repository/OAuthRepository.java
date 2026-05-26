@@ -8,17 +8,19 @@ import java.util.Optional;
 
 public interface OAuthRepository {
 
-	Optional<UserOAuthAuth> findByProviderAndProviderUserId(Connection conn, String provider, String providerUserId)
-			throws SQLException;
-	Optional<Long> findUserIdByOAuth(Connection conn, String provider, String providerUserId) throws SQLException;
+	Optional<UserOAuthAuth> findByProviderAndProviderUserId(Connection conn, String provider, String providerUserId) throws SQLException;
 
-	void linkOAuthAccount(Connection conn, long userId, String provider, String providerUserId, String email,
-			String displayName, String avatarUrl) throws SQLException;
+	long findUserIdByOAuth(Connection conn, String provider, String providerUserId) throws SQLException;
+
+	void linkOAuthAccount(Connection conn, long userId, String provider, String providerUserId, String email, String displayName, String avatarUrl) throws SQLException;
+
 	void delete(Connection conn, long oauthId) throws SQLException;
 
 	List<UserOAuthAuth> findByUserId(Connection conn, long userId) throws SQLException;
 
 	boolean hasOAuthProvider(Connection conn, long userId, String provider) throws SQLException;
+
 	int countByUserId(Connection conn, long userId) throws SQLException;
+
 	int getProviderId(Connection conn, String provider) throws SQLException;
 }
