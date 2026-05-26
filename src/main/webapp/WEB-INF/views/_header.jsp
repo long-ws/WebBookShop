@@ -55,7 +55,7 @@
 							<li><a href="${contextPath}/cart"
 								class="nav-link text-body position-relative"> <span
 									id="total-cart-items-quantity"
-									class="position-absolute top-0 end-0 mt-2 badge rounded-pill ${sessionScope.cartCount > 0 ? 'bg-primary' : 'bg-secondary'}">${sessionScope.cartCount > 0 ? (sessionScope.cartCount > 99 ? '99+' : sessionScope.cartCount) : ''}</span>
+									class="position-absolute top-0 end-0 mt-2 badge rounded-pill bg-primary">...</span>
 									<i
 									class="bi bi-cart d-block text-center fs-3 position-relative"></i>
 									Giỏ hàng
@@ -122,8 +122,7 @@
 				badge.classList.add('badge-updating');
 			}
 
-			var displayCount = cartCount > 99 ? '99+' : cartCount;
-			badge.textContent = cartCount > 0 ? displayCount : '';
+			badge.textContent = cartCount > 0 ? cartCount : '';
 
 			if (cartCount > 0) {
 				badge.className = 'position-absolute top-0 end-0 mt-2 badge rounded-pill bg-primary';

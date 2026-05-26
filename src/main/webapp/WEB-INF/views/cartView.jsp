@@ -5,229 +5,174 @@
 
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
 <jsp:include page="_meta.jsp" />
-<title>Giỏ hàng - Shop Bán Sách</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/cartView.css">
+<title>Giỏ hàng</title>
+<link rel="stylesheet"
+	href="${pageContext.request.contextPath}/css/cart.css">
 </head>
+
 <body>
-<jsp:include page="_header.jsp" />
+	<jsp:include page="_header.jsp" />
 
-<div class="loading-overlay" id="loadingOverlay">
-    <div class="loading-spinner"></div>
-</div>
+	<section class="section-pagetop bg-light" style="padding: 0.5rem 0">
+		<div class="container">
+			<h2 class="title-page">Giỏ hàng</h2>
+		</div>
+	</section>
 
-<section class="section-pagetop bg-light">
-    <div class="container">
-        <h2 class="title-page">Giỏ hàng của bạn</h2>
-    </div>
-</section>
+	<section class="section-content padding-y">
+		<div class="container">
+			<div class="row">
+				<c:choose>
+					<c:when test="${empty sessionScope.currentUser}">
+						<p>
+							Vui lòng <a href="${pageContext.request.contextPath}/signin">đăng
+								nhập</a> để sử dụng giỏ hàng.
+						</p>
+					</c:when>
 
-<section class="section-content padding-y">
-    <div class="container">
-        <c:if test="${not empty sessionScope.errorMessage}">
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                ${sessionScope.errorMessage}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-            <c:remove var="errorMessage" scope="session" />
-        </c:if>
-        <c:choose>
-            <c:when test="${empty sessionScope.currentUser}">
-                <div class="login-required">
-                    <i class="bi bi-person"></i>
-                    <p>Vui lòng đăng nhập để xem giỏ hàng của bạn</p>
-                    <a href="${pageContext.request.contextPath}/signin">Đăng nhập ngay</a>
-                </div>
-            </c:when>
+					<c:otherwise>
+						<c:if test="${empty cartItems}">
+							<p>
+								Giỏ hàng của bạn đang trống. <a
+									href="${pageContext.request.contextPath}/">Mua sắm ngay</a>
+							</p>
+						</c:if>
 
-            <c:when test="${empty cartItems}">
-                <div class="empty-cart">
-                    <i class="bi bi-cart-x"></i>
-                    <h5>Giỏ hàng trống</h5>
-                    <p>Hãy thêm sản phẩm vào giỏ hàng để bắt đầu mua sắm</p>
-                    <a href="${pageContext.request.contextPath}/" class="btn-shop">Bắt đầu mua sắm</a>
-                </div>
-            </c:when>
+						<c:if test="${not empty cartItems}">
+							<main class="col-lg-9 mb-lg-0 mb-3">
+								<div class="card">
+									<table class="table align-middle">
+										<thead>
+											<tr>
+												<th>Sản phẩm</th>
+												<th>Giá</th>
+												<th>Số lượng</th>
+												<th>Thành tiền</th>
+												<th>Hành động</th>
+											</tr>
+										</thead>
+										<tbody>
+											<c:set var="tempTotal" value="0" />
+											<c:forEach var="item" items="${cartItems}">
+												<tr>
+													<td>
+														<div class="d-flex align-items-center">
+															<c:choose>
+																<c:when test="${empty item.product.imageName}">
+																	<img
+																		src="${pageContext.request.contextPath}/img/placeholder.png"
+																		width="60" height="60" class="me-2" />
+																</c:when>
+																<c:otherwise>
+																	<img
+																		src="${pageContext.request.contextPath}/image/${item.product.imageName}"
+																		width="60" height="60" class="me-2" />
+																</c:otherwise>
+															</c:choose>
+															<a
+																href="${pageContext.request.contextPath}/product?id=${item.product.id}">${item.product.name}</a>
+														</div>
+													</td>
 
-            <c:otherwise>
-                <form id="checkoutForm" action="${pageContext.request.contextPath}/cart" method="post" data-submitting="false">
-                    <input type="hidden" name="cartId" value="${cartId}" />
-                    <input type="hidden" id="selectedServiceId" name="selectedServiceId" value="2" />
-                    <input type="hidden" id="deliveryPrice" name="deliveryPrice" value="0" />
-                    <input type="hidden" id="estimatedDays" name="estimatedDays" value="2" />
-                    <input type="hidden" id="toDistrictId" name="toDistrictId" value="" />
-                    <input type="hidden" id="toWardCode" name="toWardCode" value="" />
-                    <input type="hidden" id="addressDetailHidden" name="addressDetailHidden" value="" />
-                    <input type="hidden" id="provinceName" name="provinceName" value="" />
-                    <input type="hidden" id="districtName" name="districtName" value="" />
-                    <input type="hidden" id="wardName" name="wardName" value="" />
-                    <input type="hidden" id="deliveryMethod" name="deliveryMethod" value="2" />
+													<td><fmt:formatNumber value="${item.product.price}"
+															pattern="#,##0" />₫</td>
 
-                    <div class="row">
-                        <div class="col-lg-8">
-                            <div class="cart-main">
-                                <div class="cart-header">
-                                    <div class="col-product">Sản phẩm</div>
-                                    <div class="col-price">Đơn giá</div>
-                                    <div class="col-quantity">Số lượng</div>
-                                    <div class="col-total">Thành tiền</div>
-                                    <div class="col-action"></div>
-                                </div>
+													<td>
+														<form action="${pageContext.request.contextPath}/cartItem"
+															method="post" class="d-inline">
+															<input type="hidden" name="action" value="update" /> <input
+																type="hidden" name="cartItemId" value="${item.id}" /> <input
+																type="number" name="quantity" value="${item.quantity}"
+																min="1" style="width: 70px" />
+															<button type="submit" class="btn btn-sm btn-primary">Cập
+																nhật</button>
+														</form>
+													</td>
 
-                                <div class="cart-shop">
-                                    <div class="cart-shop-name">
-                                        <i class="bi bi-shop"></i>
-                                        Shop Bán Sách
-                                    </div>
-                                </div>
+													<td><fmt:formatNumber
+															value="${item.product.price * item.quantity}"
+															pattern="#,##0" /> ₫ <c:set var="tempTotal"
+															value="${tempTotal + (item.product.price * item.quantity)}" />
+													</td>
 
-                                <c:set var="tempTotal" value="0" />
-                                <c:forEach var="item" items="${cartItems}">
-                                    <c:set var="itemTotal" value="${item.product.price * item.quantity}" />
-                                    <c:set var="tempTotal" value="${tempTotal + itemTotal}" />
+													<td>
+														<form action="${pageContext.request.contextPath}/cartItem"
+															method="post" class="d-inline">
+															<input type="hidden" name="action" value="delete" /> <input
+																type="hidden" name="cartItemId" value="${item.id}" />
+															<button type="submit" class="btn btn-sm btn-danger">Xóa</button>
+														</form>
+													</td>
+												</tr>
+											</c:forEach>
+										</tbody>
+									</table>
 
-                                    <div class="cart-item" data-product-id="${item.productId}" data-weight="${item.product.weight > 0 ? item.product.weight : 300}" data-length="${item.product.length > 0 ? item.product.length : 20}" data-width="${item.product.width > 0 ? item.product.width : 15}" data-height="${item.product.height > 0 ? item.product.height : 10}">
-                                        <div class="item-checkbox">
-                                            <input type="checkbox" name="selectedItems" value="${item.id}" checked />
-                                        </div>
+									<div class="card-body border-top">
+										<form action="${pageContext.request.contextPath}/cart"
+											method="post">
+											<input type="hidden" name="cartId" value="${cartId}" />
+											<p>Hình thức giao hàng:</p>
+											<div class="form-check">
+												<input class="form-check-input" type="radio"
+													name="deliveryMethod" value="1" checked /> <label
+													class="form-check-label">Giao tiêu chuẩn</label>
+											</div>
+											<div class="form-check mb-2">
+												<input class="form-check-input" type="radio"
+													name="deliveryMethod" value="2" /> <label
+													class="form-check-label">Giao nhanh</label>
+											</div>
+											<input type="hidden" name="deliveryPrice" value="30000" />
+											<button type="submit" class="btn btn-primary float-end">Đặt
+												hàng</button>
+											<a href="${pageContext.request.contextPath}/"
+												class="btn btn-light">Tiếp tục mua sắm</a>
+										</form>
+									</div>
 
-                                        <div class="item-product">
-                                            <c:choose>
-                                                <c:when test="${empty item.product.imageName}">
-                                                    <img src="${pageContext.request.contextPath}/img/280px.png" class="item-image" alt="${item.product.name}" />
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <img src="${pageContext.request.contextPath}/image/${item.product.imageName}" class="item-image" alt="${item.product.name}" />
-                                                </c:otherwise>
-                                            </c:choose>
-                                            <div class="item-info">
-                                                <a href="${pageContext.request.contextPath}/product?id=${item.product.id}" class="item-name">${item.product.name}</a>
-                                                <small class="text-muted d-block mt-1">Tác giả: ${item.product.author}</small>
-                                            </div>
-                                        </div>
+								</div>
+							</main>
 
-                                        <div class="item-price">
-                                            <fmt:formatNumber value="${item.product.price}" pattern="#,##0" />₫
-                                        </div>
+							<aside class="col-lg-3">
+								<div class="card mb-3">
+									<div class="card-body">
+										<p class="card-title">Thông tin thanh toán</p>
+										<dl class="row mb-0">
+											<dt class="col-6">Tạm tính:</dt>
+											<dd class="col-6 text-end">
+												<fmt:formatNumber value="${tempTotal}" pattern="#,##0" />
+												₫
+											</dd>
 
-                                        <div class="item-quantity">
-                                            <div class="quantity-control">
-                                                <button type="button" class="qty-btn" onclick="updateQuantity(${item.id}, ${item.quantity}, -1)">-</button>
-                                                <input type="number" id="qty-${item.id}" value="${item.quantity}" min="1" max="${item.product.quantity > 0 ? item.product.quantity : 1}" onchange="updateQuantityDirect(${item.id})" />
-                                                <button type="button" class="qty-btn" onclick="updateQuantity(${item.id}, ${item.quantity}, 1)">+</button>
-                                            </div>
-                                        </div>
+											<dt class="col-6">Phí vận chuyển:</dt>
+											<dd class="col-6 text-end">
+												<fmt:formatNumber value="30000" pattern="#,##0" />
+												₫
+											</dd>
 
-                                        <div class="item-total">
-                                            <fmt:formatNumber value="${itemTotal}" pattern="#,##0" />₫
-                                        </div>
+											<dt class="col-6">Tổng cộng:</dt>
+											<dd class="col-6 text-end">
+												<strong> <fmt:formatNumber
+														value="${tempTotal + 30000}" pattern="#,##0" />₫
+												</strong>
+											</dd>
+										</dl>
+									</div>
+								</div>
+							</aside>
+						</c:if>
+					</c:otherwise>
+				</c:choose>
 
-                                        <div class="item-action">
-                                            <button type="button" class="btn-delete" onclick="deleteCartItem(${item.id})" title="Xóa sản phẩm">
-                                                <i class="bi bi-trash3"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </c:forEach>
-                            </div>
+			</div>
+		</div>
+	</section>
 
-                            <div class="shipping-section">
-                                <div class="shipping-header">
-                                    <i class="bi bi-geo-alt-fill"></i>
-                                    <span>Địa chỉ giao hàng</span>
-                                </div>
-                                <div class="shipping-body">
-                                    <div class="row g-3 address-form">
-                                        <div class="col-md-4">
-                                            <label class="form-label">Tỉnh/Thành phố</label>
-                                            <select class="form-select" id="province" name="province">
-                                                <option value="">-- Chọn Tỉnh/TP --</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label">Quận/Huyện</label>
-                                            <select class="form-select" id="district" name="district" disabled>
-                                                <option value="">-- Chọn Quận/Huyện --</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label">Phường/Xã</label>
-                                            <select class="form-select" id="ward" name="ward" disabled>
-                                                <option value="">-- Chọn Phường/Xã --</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-12">
-                                            <label class="form-label">Địa chỉ chi tiết (số nhà, tên đường)</label>
-                                            <input type="text" class="form-control" id="addressDetail" placeholder="Ví dụ: 123 Nguyễn Huệ, P.Bến Nghé, Q.1" />
-                                        </div>
-                                    </div>
-
-                                    <div class="shipping-options" id="shippingOptions">
-                                        <div class="shipping-options-title">
-                                            <i class="bi bi-truck"></i>
-                                            <span>Phương thức vận chuyển</span>
-                                        </div>
-                                        <div id="shippingOptionsList">
-                                            <div class="alert-info">
-                                                <i class="bi bi-info-circle"></i>
-                                                Vui lòng chọn địa chỉ giao hàng để xem các phương thức vận chuyển
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="alert-warning" id="shippingAlert">
-                                        <i class="bi bi-exclamation-triangle"></i>
-                                        <span id="shippingAlertText"></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-lg-4">
-                            <div class="order-summary">
-                                <div class="summary-section">
-                                    <div class="summary-row">
-                                        <span>Tạm tính (<span id="selectedCount">${cartItems.size()}</span> sản phẩm)</span>
-                                        <span class="value" id="subtotalDisplay">
-                                            <fmt:formatNumber value="${tempTotal}" pattern="#,##0" />₫
-                                        </span>
-                                    </div>
-                                    <div class="summary-row">
-                                        <span>Phí vận chuyển</span>
-                                        <span class="value" id="shippingFeeDisplay">---</span>
-                                    </div>
-                                </div>
-
-                                <div class="summary-section">
-                                    <div class="summary-row total">
-                                        <span>Tổng cộng</span>
-                                        <span class="value" id="totalDisplay">
-                                            <fmt:formatNumber value="${tempTotal}" pattern="#,##0" />₫
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <button type="button" class="btn-place-order" id="btnPlaceOrder" disabled onclick="submitOrder()">
-                                    <i class="bi bi-bag-check"></i>
-                                    Đặt hàng
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </c:otherwise>
-        </c:choose>
-    </div>
-</section>
-
-<jsp:include page="_footer.jsp" />
-<script>
-    var API_BASE = '${pageContext.request.contextPath}';
-    var GHN_API = API_BASE + '/api/ghn';
-    var SUBTOTAL = ${empty tempTotal ? 0 : tempTotal};
-</script>
-<script src="${pageContext.request.contextPath}/js/cartView.js"></script>
+	<jsp:include page="_footer.jsp" />
 </body>
+
 </html>

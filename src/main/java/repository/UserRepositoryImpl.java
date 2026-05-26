@@ -11,8 +11,6 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
-import utils.DBConnection;
-
 public class UserRepositoryImpl implements UserRepository {
 
 	private final UserCrudRepository userCrudRepository;
@@ -73,13 +71,6 @@ public class UserRepositoryImpl implements UserRepository {
 	@Override
 	public Optional<User> findById(Connection conn, long userId) throws SQLException {
 		return userCrudRepository.findById(conn, userId);
-	}
-
-	@Override
-	public Optional<User> findById(long userId) throws SQLException {
-		try (Connection conn = DBConnection.getConnection()) {
-			return userCrudRepository.findById(conn, userId);
-		}
 	}
 
 	@Override
