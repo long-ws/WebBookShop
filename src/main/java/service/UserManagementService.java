@@ -21,7 +21,7 @@ public interface UserManagementService {
 
 	UserDetailResponse getUserById(long id) throws BusinessException;
 
-	List<UserManageResponse> getUsers(String orderBy, String orderDir) throws BusinessException;
+	List<UserManageResponse> getUsers() throws BusinessException;
 
 	long countUsers() throws BusinessException;
 
