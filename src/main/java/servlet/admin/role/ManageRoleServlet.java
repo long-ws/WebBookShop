@@ -28,7 +28,7 @@ public class ManageRoleServlet extends HttpServlet {
 			throws ServletException, IOException {
 		List<ManageRoleResponse> roles;
 		try {
-			roles = roleService.getRoles("id", "ASC");
+			roles = roleService.getRoles();
 		} catch (BusinessException e) {
 			roles = new ArrayList<>();
 			MessageHelper.setErrorMessage(request.getSession(), e.getMessage());

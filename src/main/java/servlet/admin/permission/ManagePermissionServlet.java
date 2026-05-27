@@ -27,7 +27,7 @@ public class ManagePermissionServlet extends HttpServlet {
             throws ServletException, IOException {
         List<ManagePermissionResponse> permissions;
         try {
-            permissions = permissionService.getPermissions("id", "ASC");
+            permissions = permissionService.getAllPermissions();
         } catch (BusinessException e) {
             permissions = new java.util.ArrayList<>();
             MessageHelper.setErrorMessage(request.getSession(), e.getMessage());

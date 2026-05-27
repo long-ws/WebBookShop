@@ -6,7 +6,7 @@ public class OAuthFactory {
     
     public static OAuthProvider get(String provider) {
         if (provider == null) {
-            throw new IllegalArgumentException("Provider không thể null");
+            throw new IllegalArgumentException("Không thể lấy thông tin provider");
         }
         
         String providerUpper = provider.toUpperCase();
@@ -14,7 +14,7 @@ public class OAuthFactory {
             case "GOOGLE":
                 return googleOAuthProvider;
             default:
-                throw new IllegalArgumentException("Không hỗ trợ: " + provider);
+                throw new IllegalArgumentException("Không hỗ trợ đăng nhập bằng: " + provider);
         }
     }
 }

@@ -1,11 +1,21 @@
 package dao.user;
 
+import static config.DatabaseConstants.COL_LOCAL_EMAIL;
+import static config.DatabaseConstants.COL_LOCAL_EMAIL_VERIFY_STATUS_ID;
+import static config.DatabaseConstants.COL_LOCAL_LOCKED_UNTIL;
+import static config.DatabaseConstants.COL_LOCAL_PASSWORD_HASH;
+import static config.DatabaseConstants.COL_LOCAL_USERNAME;
+import static config.DatabaseConstants.COL_USER_ID;
+import static config.DatabaseConstants.TABLE_USER_LOCAL;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import beans.common.EmailVerifyStatus;
@@ -13,40 +23,80 @@ import beans.user.UserLocalAuth;
 
 public class UserLocalDAOImpl implements UserLocalDAO {
 
-	private static final String COL_USER_ID = "user_id";
-	private static final String COL_USERNAME = "username";
-	private static final String COL_PASSWORD_HASH = "password_hash";
-	private static final String COL_EMAIL = "email";
-	private static final String COL_LOCKED_UNTIL = "locked_until";
-	private static final String COL_VERIFY_STATUS_ID = "email_verify_status_id";
+	private static final String SELECT_FIELDS = "%s, %s, %s, %s, %s, %s".formatted(COL_USER_ID, COL_LOCAL_USERNAME, COL_LOCAL_PASSWORD_HASH, COL_LOCAL_EMAIL, COL_LOCAL_LOCKED_UNTIL,
+			COL_LOCAL_EMAIL_VERIFY_STATUS_ID);
 
-	private static final String ALL_COLUMNS = String.format("%s, %s, %s, %s, %s, %s", COL_USER_ID, COL_USERNAME,
-			COL_PASSWORD_HASH, COL_EMAIL, COL_LOCKED_UNTIL, COL_VERIFY_STATUS_ID);
+	private static final String SQL_INSERT = """
+			INSERT INTO %s (
+				%s, %s, %s, %s
+			) VALUES (?, ?, ?, ?)
+			""".formatted(TABLE_USER_LOCAL, COL_USER_ID, COL_LOCAL_USERNAME, COL_LOCAL_PASSWORD_HASH, COL_LOCAL_EMAIL);
 
-	private static final String INSERT_SQL = String.format(
-			"INSERT INTO user_local (%s, %s, %s, %s) VALUES (?, ?, ?, ?)", COL_USER_ID, COL_USERNAME, COL_PASSWORD_HASH,
-			COL_EMAIL);
+	private static final String SQL_UPDATE_EMAIL = """
+			UPDATE %s
+			SET %s = ?
+			WHERE %s = ?
+			""".formatted(TABLE_USER_LOCAL, COL_LOCAL_EMAIL, COL_USER_ID);
 
-	private static final String UPDATE_EMAIL_SQL = String.format("UPDATE user_local SET %s=? WHERE %s=?", COL_EMAIL,
-			COL_USER_ID);
-	private static final String UPDATE_PASSWORD_SQL = String.format("UPDATE user_local SET %s=? WHERE %s=?",
-			COL_PASSWORD_HASH, COL_USER_ID);
+	private static final String SQL_UPDATE_PASSWORD = """
+			UPDATE %s
+			SET %s = ?
+			WHERE %s = ?
+			""".formatted(TABLE_USER_LOCAL, COL_LOCAL_PASSWORD_HASH, COL_USER_ID);
 
-	private static final String FIND_BY_USER_ID = String.format("SELECT %s FROM user_local WHERE %s = ?", ALL_COLUMNS,
-			COL_USER_ID);
-	private static final String FIND_ID_BY_USERNAME = String.format("SELECT %s FROM user_local WHERE %s = ?",
-			COL_USER_ID, COL_USERNAME);
-	private static final String FIND_ID_BY_EMAIL = String.format("SELECT %s FROM user_local WHERE %s = ?", COL_USER_ID,
-			COL_EMAIL);
+	private static final String SQL_FIND_BY_USER_ID = """
+			SELECT %s
+			FROM %s
+			WHERE %s = ?
+			""".formatted(SELECT_FIELDS, TABLE_USER_LOCAL, COL_USER_ID);
+	
+	private static final String SQL_FIND_BY_USER_IDS = """
+			SELECT %s
+			FROM %s
+			WHERE %s IN (
+			""".formatted(SELECT_FIELDS, TABLE_USER_LOCAL, COL_USER_ID);
 
-	private static final String COUNT_BY_USERNAME = "SELECT COUNT(*) FROM user_local WHERE username = ?";
-	private static final String COUNT_BY_USERNAME_EXCLUDE = "SELECT COUNT(*) FROM user_local WHERE username = ? AND user_id != ?";
-	private static final String COUNT_BY_EMAIL = "SELECT COUNT(*) FROM user_local WHERE email = ?";
-	private static final String COUNT_BY_EMAIL_EXCLUDE = "SELECT COUNT(*) FROM user_local WHERE email = ? AND user_id != ?";
+	private static final String SQL_FIND_ID_BY_USERNAME = """
+			SELECT %s
+			FROM %s
+			WHERE %s = ?
+			""".formatted(COL_USER_ID, TABLE_USER_LOCAL, COL_LOCAL_USERNAME);
 
+	private static final String SQL_FIND_ID_BY_EMAIL = """
+			SELECT %s
+			FROM %s
+			WHERE %s = ?
+			""".formatted(COL_USER_ID, TABLE_USER_LOCAL, COL_LOCAL_EMAIL);
+
+	private static final String SQL_COUNT_BY_USERNAME = """
+			SELECT COUNT(*)
+			FROM %s
+			WHERE %s = ?
+			""".formatted(TABLE_USER_LOCAL, COL_LOCAL_USERNAME);
+
+	private static final String SQL_COUNT_BY_USERNAME_EXCLUDE = """
+			SELECT COUNT(*)
+			FROM %s
+			WHERE %s = ?
+			  AND %s != ?
+			""".formatted(TABLE_USER_LOCAL, COL_LOCAL_USERNAME, COL_USER_ID);
+
+	private static final String SQL_COUNT_BY_EMAIL = """
+			SELECT COUNT(*)
+			FROM %s
+			WHERE %s = ?
+			""".formatted(TABLE_USER_LOCAL, COL_LOCAL_EMAIL);
+
+	private static final String SQL_COUNT_BY_EMAIL_EXCLUDE = """
+			SELECT COUNT(*)
+			FROM %s
+			WHERE %s = ?
+			  AND %s != ?
+			""".formatted(TABLE_USER_LOCAL, COL_LOCAL_EMAIL, COL_USER_ID);
+	
 	@Override
-	public int insert(Connection conn, long userId, UserLocalAuth local) throws SQLException {
-		try (PreparedStatement ps = conn.prepareStatement(INSERT_SQL)) {
+	public int insert(final Connection conn, final long userId, final UserLocalAuth local) throws SQLException {
+		try (PreparedStatement ps = conn.prepareStatement(SQL_INSERT)) {
 			ps.setLong(1, userId);
 			ps.setString(2, local.getUsername());
 			ps.setString(3, local.getPasswordHash());
@@ -56,8 +106,8 @@ public class UserLocalDAOImpl implements UserLocalDAO {
 	}
 
 	@Override
-	public void updateEmail(Connection conn, long userId, String email) throws SQLException {
-		try (PreparedStatement ps = conn.prepareStatement(UPDATE_EMAIL_SQL)) {
+	public void updateEmail(final Connection conn, final long userId, final String email) throws SQLException {
+		try (PreparedStatement ps = conn.prepareStatement(SQL_UPDATE_EMAIL)) {
 			ps.setString(1, email);
 			ps.setLong(2, userId);
 			ps.executeUpdate();
@@ -65,8 +115,8 @@ public class UserLocalDAOImpl implements UserLocalDAO {
 	}
 
 	@Override
-	public void updatePassword(Connection conn, long userId, String passwordHash) throws SQLException {
-		try (PreparedStatement ps = conn.prepareStatement(UPDATE_PASSWORD_SQL)) {
+	public void updatePassword(final Connection conn, final long userId, final String passwordHash) throws SQLException {
+		try (PreparedStatement ps = conn.prepareStatement(SQL_UPDATE_PASSWORD)) {
 			ps.setString(1, passwordHash);
 			ps.setLong(2, userId);
 			ps.executeUpdate();
@@ -74,18 +124,18 @@ public class UserLocalDAOImpl implements UserLocalDAO {
 	}
 
 	@Override
-	public void update(Connection conn, long userId, UserLocalAuth local) throws SQLException {
-		StringBuilder sql = new StringBuilder("UPDATE user_local SET ");
-		List<Object> params = new ArrayList<>();
+	public void update(final Connection conn, final long userId, final UserLocalAuth local) throws SQLException {
+		final StringBuilder sql = new StringBuilder("UPDATE " + TABLE_USER_LOCAL + " SET ");
+		final List<Object> params = new ArrayList<>();
 
 		if (local.getEmail() != null) {
-			sql.append(COL_EMAIL).append(" = ?, ");
+			sql.append(COL_LOCAL_EMAIL).append(" = ?, ");
 			params.add(local.getEmail());
 		}
 
-		String passwordHash = local.getPasswordHash();
+		final String passwordHash = local.getPasswordHash();
 		if (passwordHash != null && !passwordHash.isEmpty()) {
-			sql.append(COL_PASSWORD_HASH).append(" = ?, ");
+			sql.append(COL_LOCAL_PASSWORD_HASH).append(" = ?, ");
 			params.add(passwordHash);
 		}
 
@@ -106,40 +156,58 @@ public class UserLocalDAOImpl implements UserLocalDAO {
 	}
 
 	@Override
-	public Optional<UserLocalAuth> findByUserId(Connection conn, long userId) throws SQLException {
-		try (PreparedStatement ps = conn.prepareStatement(FIND_BY_USER_ID)) {
+	public Optional<UserLocalAuth> findByUserId(final Connection conn, final long userId) throws SQLException {
+		try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_USER_ID)) {
 			ps.setLong(1, userId);
 			try (ResultSet rs = ps.executeQuery()) {
-				return rs.next() ? Optional.of(mapRow(rs)) : Optional.empty();
+				if (rs.next()) {
+					return Optional.of(mapRow(rs));
+				}
 			}
 		}
+		return Optional.empty();
 	}
 
 	@Override
-	public Optional<Long> findUserIdByUsername(Connection conn, String username) throws SQLException {
-		try (PreparedStatement ps = conn.prepareStatement(FIND_ID_BY_USERNAME)) {
-			ps.setString(1, username);
+	public long findUserIdByUsername(final Connection conn, final String username) throws SQLException {
+		if (username == null) {
+			return 0L;
+		}
+		try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_ID_BY_USERNAME)) {
+			ps.setString(1, username.trim());
 			try (ResultSet rs = ps.executeQuery()) {
-				return rs.next() ? Optional.of(rs.getLong(COL_USER_ID)) : Optional.empty();
+				if (rs.next()) {
+					return rs.getLong(COL_USER_ID);
+				}
 			}
 		}
+		return 0L;
 	}
 
 	@Override
-	public Optional<Long> findUserIdByEmail(Connection conn, String email) throws SQLException {
-		try (PreparedStatement ps = conn.prepareStatement(FIND_ID_BY_EMAIL)) {
-			ps.setString(1, email);
+	public long findUserIdByEmail(final Connection conn, final String email) throws SQLException {
+		if (email == null) {
+			return 0L;
+		}
+		try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_ID_BY_EMAIL)) {
+			ps.setString(1, email.trim().toLowerCase());
 			try (ResultSet rs = ps.executeQuery()) {
-				return rs.next() ? Optional.of(rs.getLong(COL_USER_ID)) : Optional.empty();
+				if (rs.next()) {
+					return rs.getLong(COL_USER_ID);
+				}
 			}
 		}
+		return 0L;
 	}
 
 	@Override
-	public boolean existsByUsername(Connection conn, String username, Long excludeUserId) throws SQLException {
-		String sql = (excludeUserId == null) ? COUNT_BY_USERNAME : COUNT_BY_USERNAME_EXCLUDE;
+	public boolean existsByUsername(final Connection conn, final String username, final Long excludeUserId) throws SQLException {
+		if (username == null) {
+			return false;
+		}
+		final String sql = (excludeUserId == null) ? SQL_COUNT_BY_USERNAME : SQL_COUNT_BY_USERNAME_EXCLUDE;
 		try (PreparedStatement ps = conn.prepareStatement(sql)) {
-			ps.setString(1, username);
+			ps.setString(1, username.trim());
 			if (excludeUserId != null) {
 				ps.setLong(2, excludeUserId);
 			}
@@ -150,10 +218,13 @@ public class UserLocalDAOImpl implements UserLocalDAO {
 	}
 
 	@Override
-	public boolean existsByEmail(Connection conn, String email, Long excludeUserId) throws SQLException {
-		String sql = (excludeUserId == null) ? COUNT_BY_EMAIL : COUNT_BY_EMAIL_EXCLUDE;
+	public boolean existsByEmail(final Connection conn, final String email, final Long excludeUserId) throws SQLException {
+		if (email == null) {
+			return false;
+		}
+		final String sql = (excludeUserId == null) ? SQL_COUNT_BY_EMAIL : SQL_COUNT_BY_EMAIL_EXCLUDE;
 		try (PreparedStatement ps = conn.prepareStatement(sql)) {
-			ps.setString(1, email);
+			ps.setString(1, email.trim().toLowerCase());
 			if (excludeUserId != null) {
 				ps.setLong(2, excludeUserId);
 			}
@@ -162,33 +233,68 @@ public class UserLocalDAOImpl implements UserLocalDAO {
 			}
 		}
 	}
-
+	
 	@Override
-	public List<Long> findAllUserIdsOrderByUsername(Connection conn, boolean ascending) throws SQLException {
-		// SQL Injection Safe bằng việc hardcode sẵn 2 lựa chọn ASC / DESC cố định thay
-		// vì cộng chuỗi vô định
-		String sql = "SELECT " + COL_USER_ID + " FROM user_local ORDER BY " + COL_USERNAME
-				+ (ascending ? " ASC" : " DESC");
-		List<Long> ids = new ArrayList<>();
-		try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
-			while (rs.next()) {
-				ids.add(rs.getLong(COL_USER_ID));
+	public Map<Long, UserLocalAuth> findByUserIdsAsMap(final Connection conn, final List<Long> userIds) throws SQLException {
+		Map<Long, UserLocalAuth> result = new HashMap<>();
+		if (userIds == null || userIds.isEmpty()) {
+			return result;
+		}
+		
+		final int MAX_BATCH_SIZE = 500;
+		
+		for (int startIndex = 0; startIndex < userIds.size(); startIndex = startIndex + MAX_BATCH_SIZE) {
+			int endIndex = Math.min(startIndex + MAX_BATCH_SIZE, userIds.size());
+			List<Long> currentBatchIds = userIds.subList(startIndex, endIndex);
+			
+			List<Long> sanitizedIds = new ArrayList<>();
+			for (int i = 0; i < currentBatchIds.size(); i++) {
+				Long id = currentBatchIds.get(i);
+				if (id != null) {
+					sanitizedIds.add(id);
+				}
+			}
+			if (sanitizedIds.isEmpty()) {
+				continue;
+			}
+			
+			StringBuilder placeholdersBuilder = new StringBuilder();
+			for (int i = 0; i < sanitizedIds.size(); i++) {
+				if (i > 0) {
+					placeholdersBuilder.append(',');
+				}
+				placeholdersBuilder.append('?');
+			}
+			
+			String sql = SQL_FIND_BY_USER_IDS + placeholdersBuilder.toString() + ")";
+			try (PreparedStatement ps = conn.prepareStatement(sql)) {
+				for (int i = 0; i < sanitizedIds.size(); i++) {
+					ps.setLong(i + 1, sanitizedIds.get(i));
+				}
+				
+				try (ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						UserLocalAuth local = mapRow(rs);
+						result.put(local.getUserId(), local);
+					}
+				}
 			}
 		}
-		return ids;
+		
+		return result;
 	}
 
-	private UserLocalAuth mapRow(ResultSet rs) throws SQLException {
-		UserLocalAuth local = new UserLocalAuth();
+	private UserLocalAuth mapRow(final ResultSet rs) throws SQLException {
+		final UserLocalAuth local = new UserLocalAuth();
 		local.setUserId(rs.getLong(COL_USER_ID));
-		local.setUsername(rs.getString(COL_USERNAME));
-		local.setPasswordHash(rs.getString(COL_PASSWORD_HASH));
-		local.setEmail(rs.getString(COL_EMAIL));
-		local.setLockedUntil(rs.getTimestamp(COL_LOCKED_UNTIL));
+		local.setUsername(rs.getString(COL_LOCAL_USERNAME));
+		local.setPasswordHash(rs.getString(COL_LOCAL_PASSWORD_HASH));
+		local.setEmail(rs.getString(COL_LOCAL_EMAIL));
+		local.setLockedUntil(rs.getTimestamp(COL_LOCAL_LOCKED_UNTIL));
 
-		int verifyStatusId = rs.getInt(COL_VERIFY_STATUS_ID);
+		final int verifyStatusId = rs.getInt(COL_LOCAL_EMAIL_VERIFY_STATUS_ID);
 		if (!rs.wasNull()) {
-			EmailVerifyStatus verifyStatus = new EmailVerifyStatus();
+			final EmailVerifyStatus verifyStatus = new EmailVerifyStatus();
 			verifyStatus.setId(verifyStatusId);
 			local.setEmailVerifyStatus(verifyStatus);
 		}

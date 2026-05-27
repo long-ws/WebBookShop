@@ -10,6 +10,10 @@
 			href="${pageContext.request.contextPath}/order" role="button">
 			<i class="bi bi-bag me-2"></i>Đơn hàng của tôi
 		</a>
+        <a class="list-group-item ${param.active == 'VOUCHER' ? 'active' : ''}"
+           href="${pageContext.request.contextPath}/vouchers" role="button">
+            <i class="bi bi-bag me-2"></i>Voucher của tôi
+        </a>
 		<a class="list-group-item ${param.active == 'WISHLIST' ? 'active' : ''}"
 			href="${pageContext.request.contextPath}/wishlist">
 			<i class="bi bi-heart me-2"></i>Sản phẩm yêu thích

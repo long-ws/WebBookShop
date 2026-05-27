@@ -32,8 +32,8 @@ public class VoucherDao {
                 psVoucher.setString(3, voucher.getDescription());
                 psVoucher.setInt(4, voucher.getCalculationMethod());
                 psVoucher.setInt(5, voucher.getApplyTo());
-                psVoucher.setTimestamp(6, Timestamp.valueOf(voucher.getStartDate()));
-                psVoucher.setTimestamp(7, Timestamp.valueOf(voucher.getEndDate()));
+                psVoucher.setTimestamp(6, voucher.getStartDate());
+                psVoucher.setTimestamp(7, voucher.getEndDate());
                 psVoucher.setDouble(8, voucher.getValue());
                 psVoucher.setDouble(9, voucher.getMinPurchase());
                 psVoucher.setDouble(10, voucher.getMaxDiscount());
@@ -142,8 +142,8 @@ public class VoucherDao {
                     v.setDescription(rs.getString("description"));
                     v.setCalculationMethod(rs.getInt("calculation_method"));
                     v.setApplyTo(rs.getInt("apply_to"));
-                    v.setStartDate(rs.getTimestamp("start_date").toLocalDateTime());
-                    v.setEndDate(rs.getTimestamp("end_date").toLocalDateTime());
+                    v.setStartDate(rs.getTimestamp("start_date"));
+                    v.setEndDate(rs.getTimestamp("end_date"));
                     v.setValue(rs.getDouble("value"));
                     v.setMinPurchase(rs.getDouble("min_purchase"));
                     v.setMaxDiscount(rs.getDouble("max_discount"));
@@ -200,8 +200,8 @@ public class VoucherDao {
                     v.setDescription(rs.getString("description"));
                     v.setCalculationMethod(rs.getInt("calculation_method"));
                     v.setApplyTo(rs.getInt("apply_to"));
-                    v.setStartDate(rs.getTimestamp("start_date").toLocalDateTime());
-                    v.setEndDate(rs.getTimestamp("end_date").toLocalDateTime());
+                    v.setStartDate(rs.getTimestamp("start_date"));
+                    v.setEndDate(rs.getTimestamp("end_date"));
                     v.setValue(rs.getDouble("value"));
                     v.setMinPurchase(rs.getDouble("min_purchase"));
                     v.setMaxDiscount(rs.getDouble("max_discount"));
@@ -285,8 +285,8 @@ public class VoucherDao {
                 ps.setString(3, voucher.getDescription());
                 ps.setInt(4, voucher.getCalculationMethod());
                 ps.setInt(5, voucher.getApplyTo());
-                ps.setTimestamp(6, Timestamp.valueOf(voucher.getStartDate()));
-                ps.setTimestamp(7, Timestamp.valueOf(voucher.getEndDate()));
+                ps.setTimestamp(6, voucher.getStartDate());
+                ps.setTimestamp(7, voucher.getEndDate());
                 ps.setDouble(8, voucher.getValue());
                 ps.setDouble(9, voucher.getMinPurchase());
                 ps.setDouble(10, voucher.getMaxDiscount());
@@ -343,5 +343,76 @@ public class VoucherDao {
             }
         }
         return false;
+    }
+    public List<Voucher> getVouchersForUser(Integer applyTo, int offset, int recordsPerPage) {
+        List<Voucher> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT * FROM vouchers WHERE is_active = 1 ");
+        if (applyTo != null) {
+            sql.append("AND apply_to = ? ");
+        }
+        sql.append("ORDER BY end_date DESC LIMIT ? OFFSET ?");
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int paramIndex = 1;
+            if (applyTo != null) {
+                ps.setInt(paramIndex++, applyTo);
+            }
+            ps.setInt(paramIndex++, recordsPerPage);
+            ps.setInt(paramIndex, offset);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Voucher v = new Voucher();
+                    v.setId(rs.getLong("id"));
+                    v.setCode(rs.getString("code"));
+                    v.setName(rs.getString("name"));
+                    v.setDescription(rs.getString("description"));
+                    v.setCalculationMethod(rs.getInt("calculation_method"));
+                    v.setApplyTo(rs.getInt("apply_to"));
+                    if (rs.getTimestamp("start_date") != null) {
+                        v.setStartDate(rs.getTimestamp("start_date"));
+                    }
+                    if (rs.getTimestamp("end_date") != null) {
+                        v.setEndDate(rs.getTimestamp("end_date"));
+                    }
+                    v.setValue(rs.getDouble("value"));
+                    v.setMinPurchase(rs.getDouble("min_purchase"));
+                    v.setMaxDiscount(rs.getDouble("max_discount"));
+                    v.setUsageLimit(rs.getInt("usage_limit"));
+                    v.setPerUserLimit(rs.getInt("per_user_limit"));
+                    v.setUsedCount(rs.getInt("used_count"));
+                    v.setActive(rs.getBoolean("is_active"));
+
+                    list.add(v);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+    public int getTotalVouchersCountForUser(Integer applyTo) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM vouchers WHERE is_active = 1 ");
+        if (applyTo != null) {
+            sql.append("AND apply_to = ?");
+        }
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+            if (applyTo != null) {
+                ps.setInt(1, applyTo);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 }

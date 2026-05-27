@@ -1,5 +1,11 @@
 package repository;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import beans.common.Permission;
 import beans.common.Role;
 import dao.common.PermissionDAO;
@@ -8,13 +14,6 @@ import dao.common.RoleDAO;
 import dao.common.RoleDAOImpl;
 import dao.common.RolePermissionAssignmentDAO;
 import dao.common.RolePermissionAssignmentDAOImpl;
-
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 public class RoleRepositoryImpl implements RoleRepository {
 
@@ -26,8 +25,7 @@ public class RoleRepositoryImpl implements RoleRepository {
 		this(new RoleDAOImpl(), new PermissionDAOImpl(), new RolePermissionAssignmentDAOImpl());
 	}
 
-	public RoleRepositoryImpl(RoleDAO roleDAO, PermissionDAO permissionDAO,
-			RolePermissionAssignmentDAO rolePermissionAssignmentDAO) {
+	public RoleRepositoryImpl(RoleDAO roleDAO, PermissionDAO permissionDAO, RolePermissionAssignmentDAO rolePermissionAssignmentDAO) {
 		this.roleDAO = roleDAO;
 		this.permissionDAO = permissionDAO;
 		this.rolePermissionAssignmentDAO = rolePermissionAssignmentDAO;
@@ -103,20 +101,12 @@ public class RoleRepositoryImpl implements RoleRepository {
 
 	@Override
 	public boolean isSystemRole(Connection conn, int roleId) throws SQLException {
-		Optional<Boolean> isSystemOpt = roleDAO.isSystemRole(conn, roleId);
-		return isSystemOpt.orElse(false);
+		return roleDAO.isSystemRole(conn, roleId);
 	}
 
 	@Override
 	public List<Permission> loadPermissionsForRole(Connection conn, int roleId) throws SQLException {
-		List<Permission> permissions = new ArrayList<>();
-		for (Integer permissionId : findPermissionIdsForRole(conn, roleId)) {
-			Optional<Permission> permissionOpt = permissionDAO.findById(conn, permissionId);
-			if (permissionOpt.isPresent() && permissionOpt.get().isActive()) {
-				permissions.add(permissionOpt.get());
-			}
-		}
-		return permissions;
+		return permissionDAO.findByRoleId(conn, roleId);
 	}
 
 	@Override
@@ -130,8 +120,7 @@ public class RoleRepositoryImpl implements RoleRepository {
 	}
 
 	@Override
-	public void revokePermissionsFromRole(Connection conn, int roleId, List<Integer> permissionIds)
-			throws SQLException {
+	public void revokePermissionsFromRole(Connection conn, int roleId, List<Integer> permissionIds) throws SQLException {
 		rolePermissionAssignmentDAO.removeBatch(conn, roleId, permissionIds);
 	}
 
@@ -142,16 +131,10 @@ public class RoleRepositoryImpl implements RoleRepository {
 
 	@Override
 	public boolean roleHasPermission(Connection conn, int roleId, String permissionCode) throws SQLException {
-		Optional<Permission> permissionOpt = permissionDAO.findByCode(conn, permissionCode);
-		if (permissionOpt.isEmpty() || !permissionOpt.get().isActive()) {
+		if (permissionCode == null || permissionCode.isBlank()) {
 			return false;
 		}
-		return rolePermissionAssignmentDAO.hasPermission(conn, roleId, permissionOpt.get().getId());
-	}
-
-	@Override
-	public boolean roleHasPermission(Connection conn, int roleId, int permissionId) throws SQLException {
-		return rolePermissionAssignmentDAO.hasPermission(conn, roleId, permissionId);
+		return rolePermissionAssignmentDAO.exists(conn, roleId, permissionCode);
 	}
 
 	@Override

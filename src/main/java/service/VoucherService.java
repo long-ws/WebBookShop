@@ -38,4 +38,12 @@ public class VoucherService {
     public Voucher getVoucherWithRelations(long vId){
         return voucherDao.getVoucherWithRelations(vId);
     }
+
+    public List<Voucher> getVouchersForUser(Integer applyTo, int offset, int recordsPerPage) {
+        return voucherDao.getVouchersForUser(applyTo, offset, recordsPerPage);
+    }
+
+    public int getTotalVouchersCountForUser(Integer applyTo) {
+        return voucherDao.getTotalVouchersCountForUser(applyTo);
+    }
 }

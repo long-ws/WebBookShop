@@ -1,19 +1,25 @@
 package servlet.client;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import beans.User;
+import constants.FormConstants;
+import constants.RequestParamConstants;
 import constants.SessionConstants;
+import constants.ViewAttributeConstants;
 import dto.user.ChangePasswordRequest;
 import exception.BusinessException;
+import helpers.MessageHelper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import service.PasswordService;
-import service.PasswordServiceImpl;
+import service.AuthenticationService;
+import service.AuthenticationServiceImpl;
 import service.UserProfileService;
 import service.UserProfileServiceImpl;
 
@@ -21,12 +27,13 @@ import service.UserProfileServiceImpl;
 public class SecurityServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
-    private final PasswordService passwordService = new PasswordServiceImpl();
+    private final AuthenticationService authenticationService = new AuthenticationServiceImpl();
     private final UserProfileService userProfileService = new UserProfileServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.getRequestDispatcher("WEB-INF/views/securityView.jsp").forward(request, response);
+        MessageHelper.cleanupFlashMessages(request.getSession());
+        request.getRequestDispatcher("/WEB-INF/views/securityView.jsp").forward(request, response);
     }
 
     @Override
@@ -42,38 +49,49 @@ public class SecurityServlet extends HttpServlet {
     }
 
     private void handleChangePassword(HttpServletRequest request, HttpServletResponse response, User currentUser) throws ServletException, IOException {
-        String currentPassword = request.getParameter("currentPassword");
-        String newPassword = request.getParameter("newPassword");
-        String newPasswordAgain = request.getParameter("newPasswordAgain");
+        String currentPassword = request.getParameter(RequestParamConstants.User.CURRENT_PASSWORD);
+        String newPassword = request.getParameter(RequestParamConstants.User.NEW_PASSWORD);
+        String confirmPassword = request.getParameter(RequestParamConstants.User.CONFIRM_PASSWORD);
 
+        final Map<String, String> values = new HashMap<>();
+        values.put(RequestParamConstants.User.CURRENT_PASSWORD, currentPassword);
+        values.put(RequestParamConstants.User.NEW_PASSWORD, newPassword);
+        values.put(RequestParamConstants.User.CONFIRM_PASSWORD, confirmPassword);
+
+        final Map<String, String> errors = new HashMap<>();
         boolean success = false;
 
-        // Thay thế constructor cũ bằng Builder Pattern bất biến
         ChangePasswordRequest changePasswordRequest = new ChangePasswordRequest.Builder()
                 .currentPassword(currentPassword)
                 .newPassword(newPassword)
-                .confirmPassword(newPasswordAgain)
+                .confirmPassword(confirmPassword)
                 .build();
         
         try {
-            passwordService.changePassword(currentUser.getId(), changePasswordRequest);
+            authenticationService.changePassword(currentUser.getId(), changePasswordRequest);
             User updatedUser = userProfileService.getById(currentUser.getId());
             if (updatedUser != null) {
                 request.getSession().setAttribute(SessionConstants.CURRENT_USER, updatedUser);
             }
             success = true;
+            MessageHelper.setSuccessMessage(request.getSession(), "Đổi mật khẩu thành công!");
         } catch (BusinessException e) {
-            request.setAttribute(SessionConstants.ERROR_MESSAGE, e.getMessage());
+            final Map<String, String> businessErrors = e.getErrors();
+            if (businessErrors != null && !businessErrors.isEmpty()) {
+                errors.putAll(businessErrors);
+            } else {
+                errors.put(FormConstants.ERROR_GLOBAL, e.getMessage());
+            }
         } catch (Exception e) {
             e.printStackTrace();
+            errors.put(FormConstants.ERROR_GLOBAL, "Đổi mật khẩu thất bại! Vui lòng kiểm tra lại thông tin.");
         }
 
-        if (success) {
-            request.setAttribute(SessionConstants.SUCCESS_MESSAGE, "Đổi mật khẩu thành công!");
-        } else if (request.getAttribute(SessionConstants.ERROR_MESSAGE) == null) {
-            request.setAttribute(SessionConstants.ERROR_MESSAGE, "Đổi mật khẩu thất bại! Vui lòng kiểm tra lại thông tin.");
+        if (!errors.isEmpty()) {
+            request.setAttribute(ViewAttributeConstants.VALUES, values);
+            request.setAttribute(ViewAttributeConstants.ERRORS, errors);
         }
 
-        request.getRequestDispatcher("WEB-INF/views/securityView.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/views/securityView.jsp").forward(request, response);
     }
 }
