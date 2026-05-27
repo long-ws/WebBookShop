@@ -15,6 +15,12 @@ public class BusinessException extends RuntimeException {
 		this.errors.put(FormConstants.ERROR_GLOBAL, message);
 	}
 
+	public BusinessException(String field, String message) {
+		super(message);
+		this.errors = new HashMap<>();
+		this.errors.put(field, message);
+	}
+
 	public BusinessException(Map<String, String> errors) {
 		super("Validation failed: " + errors.keySet());
 		this.errors = errors;
