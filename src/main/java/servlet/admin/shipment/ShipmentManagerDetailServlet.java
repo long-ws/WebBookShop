@@ -50,7 +50,7 @@ public class ShipmentManagerDetailServlet extends HttpServlet {
 			}
 
 			Order order = orderService.getById(shipment.getOrderId());
-			List<OrderItem> orderItems = orderItemService.getByOrderId(shipment.getOrderId());
+			List<OrderItem> orderItems = orderItemService.getByOrderIdWithProducts(shipment.getOrderId());
 			ShippingMethod method = methodService.getById(shipment.getShippingMethodId());
 
 			List<ShipmentTracking> timeline = shipmentService.getTrackingHistory(shipmentId);
