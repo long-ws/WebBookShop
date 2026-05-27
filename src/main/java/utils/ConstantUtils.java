@@ -12,5 +12,5 @@ public final class ConstantUtils {
 	public static final String DB_PASSWORD = "12345";
 
 	public static final String IMAGE_PATH = "/images";
-	public static final String IMAGE_ABSOLUTE_PATH = "C:\\Users\\Thanh Ngan\\git\\WebBookShop\\src\\main\\webapp\\images";
+	public static final String IMAGE_ABSOLUTE_PATH = "C:\\Users\\Thanh Ngan\\git\\WebBookShopFix\\src\\main\\webapp\\images";
 }
