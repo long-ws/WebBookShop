@@ -5,6 +5,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import beans.shipping.ShippingCalculationResult;
 import dao.ProvinceDAO;
 import service.ShippingCalculatorService;
 import jakarta.servlet.ServletException;
@@ -342,7 +343,7 @@ public class GHNAddressServlet extends HttpServlet {
             JsonArray shippingOptions = new JsonArray();
 
             // Option 1: Giao hàng nhanh (method_id = 1, service_type_id = 2)
-            ShippingCalculatorService.ShippingCalculationResult expressResult =
+            ShippingCalculationResult expressResult =
                 shippingCalculator.calculateFee(1, provinceCode, weightKg, volumeCm3);
             if (expressResult != null) {
                 JsonObject expressOption = new JsonObject();
@@ -359,7 +360,7 @@ public class GHNAddressServlet extends HttpServlet {
             }
 
             // Option 2: Giao hàng tiêu chuẩn (method_id = 2, service_type_id = 1)
-            ShippingCalculatorService.ShippingCalculationResult standardResult =
+            ShippingCalculationResult standardResult =
                 shippingCalculator.calculateFee(2, provinceCode, weightKg, volumeCm3);
             if (standardResult != null) {
                 JsonObject standardOption = new JsonObject();
@@ -485,7 +486,7 @@ public class GHNAddressServlet extends HttpServlet {
             long methodId = (serviceTypeId == SERVICE_TYPE_FAST) ? 1 : 2;
 
             // Tính phí sử dụng service của chúng ta
-            ShippingCalculatorService.ShippingCalculationResult calcResult =
+            ShippingCalculationResult calcResult =
                 shippingCalculator.calculateFee(methodId, "79", weightKg, volumeCm3);
 
             if (calcResult != null) {

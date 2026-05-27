@@ -7,8 +7,8 @@ import java.util.List;
 import com.google.gson.Gson;
 
 import beans.ShippingMethod;
+import beans.shipping.ShippingCalculationResult;
 import service.ShippingCalculatorService;
-import service.ShippingCalculatorService.ShippingCalculationResult;
 import service.ShippingMethodService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
