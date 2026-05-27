@@ -53,4 +53,8 @@ public class OrderItemService {
     public List<OrderItem> getByOrderId(long orderId) {
         return orderItemDAO.getByOrderId(orderId);
     }
+
+    public List<OrderItem> getByOrderIdWithProducts(long orderId) {
+        return orderItemDAO.getByOrderIdWithProducts(orderId);
+    }
 }

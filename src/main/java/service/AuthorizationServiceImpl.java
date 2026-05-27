@@ -2,10 +2,16 @@ package service;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import beans.common.Permission;
 import beans.common.Role;
+import dao.common.PermissionDAO;
+import dao.common.PermissionDAOImpl;
+import dao.common.RoleDAO;
+import dao.common.RoleDAOImpl;
+import exception.BusinessException;
 import repository.AuthorizationRepository;
 import repository.AuthorizationRepositoryImpl;
 import utils.DBConnection;
@@ -13,66 +19,146 @@ import utils.DBConnection;
 public class AuthorizationServiceImpl implements AuthorizationService {
 
 	private final AuthorizationRepository authorizationRepository;
+	private final PermissionDAO permissionDAO;
+	private final RoleDAO roleDAO;
 
 	public AuthorizationServiceImpl() {
-		this(new AuthorizationRepositoryImpl());
+		this(new AuthorizationRepositoryImpl(), new PermissionDAOImpl(), new RoleDAOImpl());
 	}
 
-	public AuthorizationServiceImpl(AuthorizationRepository authorizationRepository) {
+	public AuthorizationServiceImpl(AuthorizationRepository authorizationRepository, PermissionDAO permissionDAO,
+			RoleDAO roleDAO) {
 		this.authorizationRepository = authorizationRepository;
+		this.permissionDAO = permissionDAO;
+		this.roleDAO = roleDAO;
 	}
 
 	@Override
-	public boolean hasPermission(long userId, String permissionCode) {
+	public boolean hasPermission(long userId, String permissionCode) throws BusinessException {
 		try (Connection conn = DBConnection.getConnection()) {
-			return authorizationRepository.userHasPermission(conn, userId, permissionCode);
+			return hasPermission(conn, userId, permissionCode);
 		} catch (SQLException e) {
-			return false;
+			e.printStackTrace();
+			throw new BusinessException("Không thể kiểm tra quyền truy cập của bạn lúc này.");
 		}
 	}
 
 	@Override
-	public boolean hasAnyPermission(long userId, List<String> permissionCodes) {
+	public boolean hasAnyPermission(long userId, List<String> permissionCodes) throws BusinessException {
 		try (Connection conn = DBConnection.getConnection()) {
-			return authorizationRepository.userHasAnyPermission(conn, userId, permissionCodes);
+			return hasAnyPermission(conn, userId, permissionCodes);
 		} catch (SQLException e) {
-			return false;
+			e.printStackTrace();
+			throw new BusinessException("Không thể kiểm tra quyền truy cập của bạn lúc này.");
 		}
 	}
 
 	@Override
-	public boolean hasRole(long userId, String roleCode) {
+	public boolean hasRole(long userId, String roleCode) throws BusinessException {
 		try (Connection conn = DBConnection.getConnection()) {
-			return authorizationRepository.userHasRole(conn, userId, roleCode);
+			return hasRole(conn, userId, roleCode);
 		} catch (SQLException e) {
-			return false;
+			e.printStackTrace();
+			throw new BusinessException("Không thể kiểm tra quyền truy cập của bạn lúc này.");
 		}
 	}
 
 	@Override
-	public boolean isSuperAdmin(long userId) {
+	public boolean isSuperAdmin(long userId) throws BusinessException {
 		try (Connection conn = DBConnection.getConnection()) {
-			return authorizationRepository.userIsSuperAdmin(conn, userId);
+			return isSuperAdmin(conn, userId);
 		} catch (SQLException e) {
-			return false;
+			e.printStackTrace();
+			throw new BusinessException("Không thể kiểm tra quyền truy cập của bạn lúc này.");
 		}
 	}
 
 	@Override
-	public List<Permission> getPermissionsByUserId(long userId) {
+	public List<Permission> getPermissionsByUserId(long userId) throws BusinessException {
 		try (Connection conn = DBConnection.getConnection()) {
-			return authorizationRepository.findPermissionsByUserId(conn, userId);
+			return getPermissionsByUserId(conn, userId);
 		} catch (SQLException e) {
-			return new java.util.ArrayList<>();
+			e.printStackTrace();
+			throw new BusinessException("Không thể tải thông tin phân quyền lúc này.");
 		}
 	}
 
 	@Override
-	public List<Role> getRolesByUserId(long userId) {
+	public List<Role> getRolesByUserId(long userId) throws BusinessException {
 		try (Connection conn = DBConnection.getConnection()) {
-			return authorizationRepository.findRolesByUserId(conn, userId);
+			return getRolesByUserId(conn, userId);
 		} catch (SQLException e) {
-			return new java.util.ArrayList<>();
+			e.printStackTrace();
+			throw new BusinessException("Không thể tải thông tin phân quyền lúc này.");
 		}
+	}
+
+	@Override
+	public boolean hasPermission(Connection conn, long userId, String permissionCode) throws SQLException {
+		if (isSuperAdmin(conn, userId)) {
+			return true;
+		}
+		return authorizationRepository.userHasPermission(conn, userId, permissionCode);
+	}
+
+	@Override
+	public boolean hasAnyPermission(Connection conn, long userId, List<String> permissionCodes) throws SQLException {
+		if (isSuperAdmin(conn, userId)) {
+			return true;
+		}
+		return authorizationRepository.userHasAnyPermission(conn, userId, permissionCodes);
+	}
+
+	@Override
+	public boolean hasRole(Connection conn, long userId, String roleCode) throws SQLException {
+		if (isSuperAdmin(conn, userId)) {
+			return true;
+		}
+		return authorizationRepository.userHasRole(conn, userId, roleCode);
+	}
+
+	@Override
+	public boolean isSuperAdmin(Connection conn, long userId) throws SQLException {
+		return authorizationRepository.userIsSuperAdmin(conn, userId);
+	}
+
+	@Override
+	public List<Permission> getPermissionsByUserId(Connection conn, long userId) throws SQLException {
+		if (isSuperAdmin(conn, userId)) {
+			List<Permission> allPermissions = permissionDAO.findAll(conn);
+			List<Permission> activePermissions = new ArrayList<>();
+			for (Permission permission : allPermissions) {
+				if (permission.isActive()) {
+					activePermissions.add(permission);
+				}
+			}
+			activePermissions.sort((a, b) -> {
+				int moduleCompare = (a.getModule() == null ? "" : a.getModule())
+						.compareToIgnoreCase(b.getModule() == null ? "" : b.getModule());
+				if (moduleCompare != 0) {
+					return moduleCompare;
+				}
+				return (a.getCode() == null ? "" : a.getCode())
+						.compareToIgnoreCase(b.getCode() == null ? "" : b.getCode());
+			});
+			return activePermissions;
+		}
+		return authorizationRepository.findPermissionsByUserId(conn, userId);
+	}
+
+	@Override
+	public List<Role> getRolesByUserId(Connection conn, long userId) throws SQLException {
+		if (isSuperAdmin(conn, userId)) {
+			List<Role> allRoles = roleDAO.findAll(conn);
+			List<Role> activeRoles = new ArrayList<>();
+			for (Role role : allRoles) {
+				if (role.isActive()) {
+					activeRoles.add(role);
+				}
+			}
+			activeRoles.sort((a, b) -> Integer.compare(a.getId(), b.getId()));
+			return activeRoles;
+		}
+		return authorizationRepository.findRolesByUserId(conn, userId);
 	}
 }

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import beans.OrderItem;
+import beans.Product;
 import utils.DBConnection;
 
 public class OrderItemDAO implements DAO<OrderItem> {
@@ -181,6 +182,54 @@ public class OrderItemDAO implements DAO<OrderItem> {
 			e.printStackTrace();
 		}
 		return list;
+	}
+
+	// ================== GET BY ORDER ID WITH PRODUCTS ==================
+	public List<OrderItem> getByOrderIdWithProducts(long orderId) {
+		List<OrderItem> list = new ArrayList<>();
+		String sql = "SELECT oi.*, p.name as product_name, p.imageName as product_image " +
+				"FROM order_item oi " +
+				"LEFT JOIN product p ON oi.productId = p.id " +
+				"WHERE oi.orderId = ?";
+		try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+			ps.setLong(1, orderId);
+			try (ResultSet rs = ps.executeQuery()) {
+				while (rs.next()) {
+					list.add(mapResultSetToOrderItemWithProduct(rs));
+				}
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return list;
+	}
+
+	// ================== MAPPER WITH PRODUCT ==================
+	private OrderItem mapResultSetToOrderItemWithProduct(ResultSet rs) throws SQLException {
+		OrderItem item = new OrderItem();
+		item.setId(rs.getLong("id"));
+		item.setOrderId(rs.getLong("orderId"));
+		item.setProductId(rs.getLong("productId"));
+		item.setPrice(rs.getDouble("price"));
+		item.setDiscount(rs.getDouble("discount"));
+		item.setQuantity(rs.getInt("quantity"));
+		item.setCreatedAt(rs.getTimestamp("createdAt").toLocalDateTime());
+		Timestamp updatedAt = rs.getTimestamp("updatedAt");
+		if (updatedAt != null)
+			item.setUpdatedAt(updatedAt.toLocalDateTime());
+
+		String productName = rs.getString("product_name");
+		if (productName != null) {
+			Product product = new Product();
+			product.setId(rs.getLong("productId"));
+			product.setName(productName);
+			product.setImageName(rs.getString("product_image"));
+			item.setProduct(product);
+		}
+
+		return item;
 	}
 
 	// ================== GET PRODUCT NAMES BY ORDER ==================

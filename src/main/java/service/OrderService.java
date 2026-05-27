@@ -47,6 +47,10 @@ public class OrderService {
         return orderDAO.getOrderedPartByUserId(userId, limit, offset);
     }
 
+    public List<Order> getByUserId(long userId) {
+        return orderDAO.getByUserId(userId);
+    }
+
     public int countByUserId(long userId) {
         return orderDAO.countByUserId(userId);
     }
@@ -55,8 +59,20 @@ public class OrderService {
         return orderDAO.count();
     }
 
+    public boolean cancelOrder(long id) {
+        return orderDAO.cancelOrder(id);
+    }
+
     public boolean cancelOrder(long oId, long pId) {
         return orderDAO.cancelOrder(oId, pId);
+    }
+
+    public boolean checkUser(long oId, long uId) {
+        return orderDAO.checkUser(oId, uId);
+    }
+
+    public boolean rebuy(long uId, long oId) {
+        return orderDAO.rebuy(uId, oId);
     }
 
     public boolean confirm(long id) {
@@ -70,7 +86,23 @@ public class OrderService {
     public boolean reset(long id) {
         return orderDAO.reset(id);
     }
-    
+
+    public boolean updateToPickingUp(long id) {
+        return orderDAO.updateStatus(id, 3); // PICKED_UP
+    }
+
+    public boolean updateToShipping(long id) {
+        return orderDAO.updateStatus(id, 4); // SHIPPING
+    }
+
+    public boolean updateToDelivering(long id) {
+        return orderDAO.updateStatus(id, 5); // DELIVERING
+    }
+
+    public boolean updateToDelivered(long id) {
+        return orderDAO.updateStatus(id, 6); // DELIVERED
+    }
+
     public double calculateTotalPrice(List<OrderItem> orderItems, double deliveryPrice) {
         double totalPrice = deliveryPrice;
 
@@ -87,18 +119,5 @@ public class OrderService {
         }
 
         return totalPrice;
-    }
-    public boolean checkUser(long oId, long uId){
-        return orderDAO.checkUser(oId, uId);
-    }
-    public boolean rebuy(long uId, long oId){
-        return orderDAO.rebuy(uId, oId);
-    }
-    public List<Order> getOrderedPartByUserIdAndStatus(long id, Integer status, int ordersPerPage, int offset) {
-        return orderDAO.getOrderedPartByUserIdAndStatus(id, status, ordersPerPage, offset);
-    }
-
-    public int countByUserIdAndStatus(long id, Integer status) {
-        return orderDAO.countByUserIdAndStatus(id, status);
     }
 }
