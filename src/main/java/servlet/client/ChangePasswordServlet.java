@@ -11,14 +11,14 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import service.PasswordService;
-import service.PasswordServiceImpl;
+import service.AuthenticationService;
+import service.AuthenticationServiceImpl;
 
 @WebServlet(name = "ChangePassword", value = "/changePassword")
 public class ChangePasswordServlet extends HomeServlet {
 
     private static final long serialVersionUID = 1L;
-    private final PasswordService passwordService = new PasswordServiceImpl();
+    private final AuthenticationService authenticationService = new AuthenticationServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -48,7 +48,7 @@ public class ChangePasswordServlet extends HomeServlet {
                 .build();
         
         try {
-            passwordService.changePassword(user.getId(), changePasswordRequest);
+            authenticationService.changePassword(user.getId(), changePasswordRequest);
             success = true;
         } catch (BusinessException e) {
             request.setAttribute(SessionConstants.ERROR_MESSAGE, e.getMessage());
