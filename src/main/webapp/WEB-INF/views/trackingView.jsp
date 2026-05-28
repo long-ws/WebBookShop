@@ -18,9 +18,10 @@
 <body>
 <jsp:include page="_header.jsp" />
 
-<div class="tracking-page">
-    <div class="container">
-        <c:choose>
+<main class="tracking-wrapper">
+    <div class="tracking-page">
+        <div class="container">
+            <c:choose>
             <%-- Error State --%>
             <c:when test="${not empty requestScope.error}">
                 <div class="empty-state-card">
@@ -303,13 +304,6 @@
                         <i class="bi bi-arrow-left"></i>
                         Chi tiết đơn hàng
                     </a>
-                    <a href="${pageContext.request.contextPath}/invoice?id=${requestScope.order.id}" 
-                       class="action-btn invoice" 
-                       target="_blank"
-                       onclick="window.print(); return false;">
-                        <i class="bi bi-printer"></i>
-                        In hóa đơn
-                    </a>
                 </div>
             </c:when>
 
@@ -327,6 +321,7 @@
         </c:choose>
     </div>
 </div>
+</main>
 
 <jsp:include page="_footer.jsp" />
 </body>
