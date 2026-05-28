@@ -160,6 +160,17 @@
                                     </div>
                                 </div>
                             </div>
+                            <c:if test="${not empty requestScope.shipment.customerNote}">
+                            <div class="info-item">
+                                <div class="info-icon-box note">
+                                    <i class="bi bi-sticky"></i>
+                                </div>
+                                <div class="info-content">
+                                    <div class="info-label">Ghi chú giao hàng</div>
+                                    <div class="info-value">${requestScope.shipment.customerNote}</div>
+                                </div>
+                            </div>
+                            </c:if>
                         </div>
                     </div>
 

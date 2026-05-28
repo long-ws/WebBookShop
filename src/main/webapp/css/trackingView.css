@@ -323,6 +323,11 @@
     color: #0097a7;
 }
 
+.info-icon-box.note {
+    background: #fff8e1;
+    color: #f57c00;
+}
+
 .info-content {
     flex: 1;
     min-width: 0;

@@ -718,6 +718,12 @@
 					<div style="font-size: 12px; color: #666;">Địa chỉ</div>
 					<div style="font-size: 14px; color: #333;">${s.addressDetail}<c:if test="${not empty s.ward}">, ${s.ward}</c:if><c:if test="${not empty s.district}">, ${s.district}</c:if><c:if test="${not empty s.province}">, ${s.province}</c:if></div>
 				</div>
+				<c:if test="${not empty s.customerNote}">
+				<div style="margin-top: 15px; padding: 10px; background: #fff8e1; border-radius: 4px; border: 1px solid #ffc107;">
+					<div style="font-size: 12px; color: #f57c00; font-weight: 600;">Ghi chú giao hàng:</div>
+					<div style="font-size: 13px; color: #333; margin-top: 4px;">${s.customerNote}</div>
+				</div>
+				</c:if>
 			</div>
 			<div style="flex: 1; border: 1px solid #ddd; padding: 20px;">
 				<div style="font-size: 14px; font-weight: 700; color: #0F2C59; border-bottom: 2px solid #0F2C59; padding-bottom: 8px; margin-bottom: 15px;">THÔNG TIN VẬN CHUYỂN</div>

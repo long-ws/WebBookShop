@@ -157,6 +157,12 @@
                             <div class="info-value">${requestScope.shipment.totalWeight} kg</div>
                         </div>
                     </c:if>
+                    <c:if test="${not empty requestScope.shipment.customerNote}">
+                        <div class="info-row note-row">
+                            <div class="info-label">Ghi chú:</div>
+                            <div class="info-value note-value">${requestScope.shipment.customerNote}</div>
+                        </div>
+                    </c:if>
                     <div class="info-row">
                         <div class="info-label">Thanh toán:</div>
                         <div class="info-value">
