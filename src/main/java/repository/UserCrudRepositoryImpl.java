@@ -3,15 +3,19 @@ package repository;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import beans.User;
 import beans.common.Role;
 import beans.user.UserAccount;
 import beans.user.UserAuthInfo;
 import beans.user.UserLocalAuth;
+import beans.user.UserProfile;
+import constants.SystemConstants;
 import constants.UserConstants;
 import dao.common.RoleDAO;
 import dao.common.RoleDAOImpl;
@@ -33,12 +37,10 @@ public class UserCrudRepositoryImpl implements UserCrudRepository {
 	private final RoleDAO roleDAO;
 
 	public UserCrudRepositoryImpl() {
-		this(new UserAccountDAOImpl(), new UserProfileDAOImpl(), new UserLocalDAOImpl(), new UserRoleDAOImpl(),
-				new RoleDAOImpl());
+		this(new UserAccountDAOImpl(), new UserProfileDAOImpl(), new UserLocalDAOImpl(), new UserRoleDAOImpl(), new RoleDAOImpl());
 	}
 
-	public UserCrudRepositoryImpl(UserAccountDAO accountDAO, UserProfileDAO profileDAO, UserLocalDAO localDAO,
-			UserRoleDAO userRoleDAO, RoleDAO roleDAO) {
+	public UserCrudRepositoryImpl(UserAccountDAO accountDAO, UserProfileDAO profileDAO, UserLocalDAO localDAO, UserRoleDAO userRoleDAO, RoleDAO roleDAO) {
 		this.accountDAO = accountDAO;
 		this.profileDAO = profileDAO;
 		this.localDAO = localDAO;
@@ -60,7 +62,7 @@ public class UserCrudRepositoryImpl implements UserCrudRepository {
 		localDAO.insert(conn, userId, user.getAuthInfo().getLocal());
 		user.getProfile().setUserId(userId);
 		profileDAO.insert(conn, user.getProfile());
-		assignRole(conn, userId, user.getRole() != null ? user.getRole().getCode() : UserConstants.Role.CUSTOMER);
+		assignRole(conn, userId, user.getRole() != null ? user.getRole().getCode() : SystemConstants.DEFAULT_ROLE_CODE);
 		return userId;
 	}
 
@@ -87,9 +89,8 @@ public class UserCrudRepositoryImpl implements UserCrudRepository {
 
 	@Override
 	public boolean delete(Connection conn, List<Long> userIds) throws SQLException {
-		if (userIds == null || userIds.isEmpty()) {
+		if (userIds == null || userIds.isEmpty())
 			return false;
-		}
 		accountDAO.softDeleteBatch(conn, userIds);
 		return true;
 	}
@@ -97,24 +98,30 @@ public class UserCrudRepositoryImpl implements UserCrudRepository {
 	@Override
 	public Optional<User> findById(Connection conn, long userId) throws SQLException {
 		Optional<UserAccount> accountOpt = accountDAO.findById(conn, userId);
-		if (accountOpt.isEmpty()) {
+		if (!accountOpt.isPresent()) {
 			return Optional.empty();
 		}
-		return Optional.of(assembleUser(conn, accountOpt.get()));
+
+		List<Long> ids = new ArrayList<>();
+		ids.add(userId);
+
+		Map<Long, UserLocalAuth> localByUserId = localDAO.findByUserIdsAsMap(conn, ids);
+		Map<Long, UserProfile> profileByUserId = profileDAO.findByUserIdsAsMap(conn, ids);
+		Map<Long, Integer> primaryRoleIdByUserId = userRoleDAO.findPrimaryRoleIdByUserIdsAsMap(conn, ids);
+
+		List<Integer> roleIds = listUniqueRoleIds(ids, primaryRoleIdByUserId);
+		Map<Integer, Role> roleById = roleDAO.findByIdsAsMap(conn, roleIds);
+
+		return Optional.of(assembleUser(accountOpt.get(), localByUserId, profileByUserId, primaryRoleIdByUserId, roleById));
 	}
 
 	@Override
 	public List<User> findAllUser(Connection conn) throws SQLException {
-		return findAllUser(conn, null, null);
-	}
-
-	@Override
-	public List<User> findAllUser(Connection conn, String orderBy, String orderDir) throws SQLException {
-		List<User> users = new ArrayList<>();
-		for (Long userId : resolveOrderedUserIds(conn, orderBy, orderDir)) {
-			findById(conn, userId).ifPresent(users::add);
+		List<Long> userIds = accountDAO.findAllIds(conn);
+		if (userIds == null || userIds.isEmpty()) {
+			return new ArrayList<>();
 		}
-		return users;
+		return findUsersByIds(conn, userIds);
 	}
 
 	@Override
@@ -122,12 +129,89 @@ public class UserCrudRepositoryImpl implements UserCrudRepository {
 		return accountDAO.countNotDeleted(conn);
 	}
 
+	private List<User> findUsersByIds(final Connection conn, final List<Long> userIds) throws SQLException {
+
+		List<UserAccount> accounts = accountDAO.findAllAccountsByIds(conn, userIds);
+		if (accounts.isEmpty()) {
+			return new ArrayList<>();
+		}
+
+		Map<Long, UserLocalAuth> localByUserId = localDAO.findByUserIdsAsMap(conn, userIds);
+		Map<Long, UserProfile> profileByUserId = profileDAO.findByUserIdsAsMap(conn, userIds);
+		Map<Long, Integer> primaryRoleIdByUserId = userRoleDAO.findPrimaryRoleIdByUserIdsAsMap(conn, userIds);
+
+		List<Integer> roleIds = listUniqueRoleIds(userIds, primaryRoleIdByUserId);
+		Map<Integer, Role> roleById = roleDAO.findByIdsAsMap(conn, roleIds);
+
+		List<User> users = new ArrayList<>();
+		for (int i = 0; i < accounts.size(); i++) {
+			UserAccount account = accounts.get(i);
+			User user = assembleUser(account, localByUserId, profileByUserId, primaryRoleIdByUserId, roleById);
+			users.add(user);
+		}
+
+		return users;
+	}
+
+	private List<Integer> listUniqueRoleIds(final List<Long> userIds, final Map<Long, Integer> primaryRoleIdByUserId) {
+		Set<Integer> uniqueRoleIds = new HashSet<>();
+		for (int i = 0; i < userIds.size(); i++) {
+			Long userId = userIds.get(i);
+			if (userId != null) {
+				Integer roleId = primaryRoleIdByUserId.get(userId);
+				if (roleId != null) {
+					uniqueRoleIds.add(roleId);
+				}
+			}
+		}
+
+		List<Integer> roleIds = new ArrayList<>();
+		for (Integer roleId : uniqueRoleIds) {
+			roleIds.add(roleId);
+		}
+
+		return roleIds;
+	}
+
+	private User assembleUser(final UserAccount account, final Map<Long, UserLocalAuth> localByUserId, final Map<Long, UserProfile> profileByUserId, final Map<Long, Integer> primaryRoleIdByUserId,
+			final Map<Integer, Role> roleById) {
+		User user = new User();
+		user.setId(account.getId());
+		user.setStatus(account.getStatus());
+		user.setTokenVersion(account.getTokenVersion());
+		user.setCreatedAt(account.getCreatedAt());
+		user.setUpdatedAt(account.getUpdatedAt());
+
+		UserLocalAuth local = localByUserId != null ? localByUserId.get(account.getId()) : null;
+		if (local != null) {
+			UserAuthInfo auth = new UserAuthInfo();
+			auth.setLocal(local);
+			auth.setHasLocalAuth(local.getUsername() != null);
+			user.setAuthInfo(auth);
+			user.setUsername(local.getUsername());
+		}
+
+		UserProfile profile = profileByUserId != null ? profileByUserId.get(account.getId()) : null;
+		if (profile != null) {
+			user.setProfile(profile);
+		}
+
+		Integer roleId = primaryRoleIdByUserId != null ? primaryRoleIdByUserId.get(account.getId()) : null;
+		if (roleId != null) {
+			Role role = roleById != null ? roleById.get(roleId) : null;
+			if (role != null) {
+				user.setRole(role);
+			}
+		}
+
+		return user;
+	}
+
 	private void assignRole(Connection conn, long userId, String roleCode) throws SQLException {
 		Optional<Role> roleOpt = roleDAO.findByCode(conn, roleCode);
-		if (roleOpt.isEmpty()) {
-			throw new SQLException("Không tìm thấy vai trò: " + roleCode);
+		if (roleOpt.isPresent()) {
+			userRoleDAO.assignByRoleId(conn, userId, roleOpt.get().getId());
 		}
-		userRoleDAO.assignByRoleId(conn, userId, roleOpt.get().getId());
 	}
 
 	private UserAccount toAccount(User user) {
@@ -136,114 +220,5 @@ public class UserCrudRepositoryImpl implements UserCrudRepository {
 		account.setStatusId(user.getStatus() != null ? user.getStatus().getId() : UserConstants.Status.ACTIVE);
 		account.setTokenVersion(user.getTokenVersion());
 		return account;
-	}
-
-	private User assembleUser(Connection conn, UserAccount account) throws SQLException {
-		User user = new User();
-		user.setId(account.getId());
-		user.setStatus(account.getStatus());
-		user.setTokenVersion(account.getTokenVersion());
-		user.setLastLoginAt(account.getLastLoginAt());
-		user.setRememberToken(account.getRememberToken());
-		user.setRememberExpiresAt(account.getRememberExpiresAt());
-		user.setDeletedAt(account.getDeletedAt());
-		user.setCreatedAt(account.getCreatedAt());
-		user.setUpdatedAt(account.getUpdatedAt());
-
-		Optional<UserLocalAuth> localOpt = localDAO.findByUserId(conn, account.getId());
-		UserAuthInfo auth = new UserAuthInfo();
-		if (localOpt.isPresent()) {
-			UserLocalAuth local = localOpt.get();
-			auth.setLocal(local);
-			auth.setHasLocalAuth(local.getUsername() != null);
-			user.setUsername(local.getUsername());
-		} else {
-			auth.setHasLocalAuth(false);
-		}
-		user.setAuthInfo(auth);
-
-		profileDAO.findUserProfileById(conn, account.getId()).ifPresent(user::setProfile);
-
-		List<Integer> roleIds = userRoleDAO.findRoleIdsByUserId(conn, account.getId());
-		if (!roleIds.isEmpty()) {
-			roleDAO.findById(conn, roleIds.get(0)).ifPresent(user::setRole);
-		}
-
-		return user;
-	}
-
-	private List<Long> resolveOrderedUserIds(Connection conn, String orderBy, String orderDir) throws SQLException {
-		boolean ascending = orderDir != null && "ASC".equalsIgnoreCase(orderDir.trim());
-		if (orderBy == null) {
-			List<Long> ids = new ArrayList<>();
-			for (UserAccount account : accountDAO.findAllNotDeleted(conn)) {
-				ids.add(account.getId());
-			}
-			return ids;
-		}
-		switch (orderBy.trim().toLowerCase()) {
-		case "username":
-			return localDAO.findAllUserIdsOrderByUsername(conn, ascending);
-		case "fullname":
-			List<User> users = new ArrayList<>();
-			for (UserAccount account : accountDAO.findAllNotDeleted(conn)) {
-				users.add(assembleUser(conn, account));
-			}
-			users.sort(Comparator.comparing(u -> u.getProfile() != null ? nullSafe(u.getProfile().getFullname()) : "",
-					String.CASE_INSENSITIVE_ORDER));
-			if (!ascending) {
-				java.util.Collections.reverse(users);
-			}
-			List<Long> ids = new ArrayList<>();
-			for (User user : users) {
-				ids.add(user.getId());
-			}
-			return ids;
-		case "email":
-			List<User> byEmail = new ArrayList<>();
-			for (UserAccount account : accountDAO.findAllNotDeleted(conn)) {
-				byEmail.add(assembleUser(conn, account));
-			}
-			byEmail.sort(Comparator.comparing(
-					u -> u.getAuthInfo() != null && u.getAuthInfo().getLocal() != null
-							? nullSafe(u.getAuthInfo().getLocal().getEmail())
-							: "",
-					String.CASE_INSENSITIVE_ORDER));
-			if (!ascending) {
-				java.util.Collections.reverse(byEmail);
-			}
-			List<Long> emailIds = new ArrayList<>();
-			for (User user : byEmail) {
-				emailIds.add(user.getId());
-			}
-			return emailIds;
-		case "created_at":
-			List<UserAccount> accounts = accountDAO.findAllNotDeleted(conn);
-			accounts.sort(Comparator.comparing(UserAccount::getCreatedAt,
-					Comparator.nullsLast(Comparator.naturalOrder())));
-			if (!ascending) {
-				java.util.Collections.reverse(accounts);
-			}
-			List<Long> createdIds = new ArrayList<>();
-			for (UserAccount account : accounts) {
-				createdIds.add(account.getId());
-			}
-			return createdIds;
-		case "id":
-		default:
-			List<UserAccount> byId = accountDAO.findAllNotDeleted(conn);
-			if (!ascending) {
-				java.util.Collections.reverse(byId);
-			}
-			List<Long> defaultIds = new ArrayList<>();
-			for (UserAccount account : byId) {
-				defaultIds.add(account.getId());
-			}
-			return defaultIds;
-		}
-	}
-
-	private String nullSafe(String value) {
-		return value == null ? "" : value;
 	}
 }

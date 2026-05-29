@@ -251,17 +251,66 @@
                                         </div>
                                         <hr>
                                         <div class="mb-0">
-                                            <h6 class="text-muted mb-2"><i class="bi bi-credit-card me-2"></i>Thanh toán</h6>
-                                            <p class="mb-1 fw-medium">
-                                                <i class="bi bi-wallet2 me-2"></i>Thanh toán khi nhận hàng (COD)
-                                            </p>
+                                            <h6 class="text-muted mb-3"><i class="bi bi-credit-card me-2"></i>Thanh toán</h6>
+
+                                            <c:choose>
+                                                <c:when test="${requestScope.payment.status == 1}">
+                                                    <span class="badge bg-success w-100 py-2 mb-2 text-start"><i class="bi bi-check-circle-fill me-1"></i> Đã thanh toán</span>
+                                                    <p class="mb-1"><strong>Cổng:</strong> VNPay (${requestScope.payment.bankCode})</p>
+                                                    <p class="mb-1 text-truncate"><strong>Mã GD:</strong> ${requestScope.payment.vnpTransactionNo}</p>
+                                                    <p class="text-muted small mb-0"><i class="bi bi-clock me-1"></i> ${requestScope.payment.payDate}</p>
+                                                </c:when>
+
+                                                <c:when test="${requestScope.payment.status == 2}">
+                                                    <span class="badge bg-danger w-100 py-2 mb-2 text-start"><i class="bi bi-x-circle-fill me-1"></i> Thanh toán thất bại</span>
+                                                    <c:choose>
+                                                        <c:when test="${not empty requestScope.payment.vnpResponseCode}">
+                                                            <p class="text-danger mb-2">${requestScope.vnpMessage} (${requestScope.payment.vnpResponseCode})</p>
+                                                        </c:when>
+                                                        <c:when test="${requestScope.payment.expired}">
+                                                            <p class="text-danger mb-2">Hết hạn thanh toán</p>
+                                                        </c:when>
+                                                    </c:choose>
+                                                </c:when>
+
+                                                <c:when test="${requestScope.payment.status == 3}">
+                                                    <span class="badge bg-warning text-dark w-100 py-2 mb-2 text-start"><i class="bi bi-arrow-repeat me-1"></i> Đang xử lý hoàn tiền</span>
+                                                    <p class="text-muted mb-0">Hoàn tiền đang được xử lý qua VNPay</p>
+                                                </c:when>
+
+                                                <c:when test="${requestScope.payment.status == 4}">
+                                                    <span class="badge bg-secondary w-100 py-2 mb-2 text-start"><i class="bi bi-arrow-counterclockwise me-1"></i> Đã hoàn tiền</span>
+                                                    <p class="text-muted mb-0">Hoàn tiền thành công</p>
+                                                </c:when>
+
+                                                <c:otherwise>
+                                                    <span class="badge bg-warning text-dark w-100 py-2 mb-2 text-start"><i class="bi bi-exclamation-circle me-1"></i> Chưa thanh toán</span>
+                                                    <p class="text-muted mb-2">Chờ thanh toán qua VNPay</p>
+                                                    <c:if test="${not empty requestScope.payment.expiredAt}">
+                                                        <p class="small text-muted mb-0"><i class="bi bi-hourglass-split me-1"></i> Hạn: <span class="text-danger fw-bold">${requestScope.payment.expiredAt}</span></p>
+                                                    </c:if>
+                                                </c:otherwise>
+                                            </c:choose>
+
                                             <c:if test="${not empty requestScope.shipment.shippingStatus}">
-                                                <div class="mt-2">
+                                                <div class="mt-3">
                                                     <span class="badge ${requestScope.shipment.shippingStatus == 'PENDING' ? 'bg-warning text-dark' : requestScope.shipment.shippingStatus == 'SHIPPING' ? 'bg-info' : requestScope.shipment.shippingStatus == 'DELIVERED' ? 'bg-success' : 'bg-secondary'}">
                                                         <i class="bi bi-${requestScope.shipment.shippingStatus == 'PENDING' ? 'clock' : requestScope.shipment.shippingStatus == 'SHIPPING' ? 'truck' : requestScope.shipment.shippingStatus == 'DELIVERED' ? 'check-circle' : 'question-circle'} me-1"></i>
                                                         ${requestScope.shipment.shippingStatus == 'PENDING' ? 'Chờ xử lý' : requestScope.shipment.shippingStatus == 'SHIPPING' ? 'Đang giao' : requestScope.shipment.shippingStatus == 'DELIVERED' ? 'Đã giao' : requestScope.shipment.shippingStatus}
                                                     </span>
                                                 </div>
+                                            </c:if>
+                                            <c:if test="${(requestScope.order.status == 1 || requestScope.order.status == 2 || requestScope.order.status == 3 || requestScope.order.status == 4 || requestScope.order.status == 5) && (requestScope.payment.status == 0 || requestScope.isRetryAble) && !requestScope.payment.expired}">
+                                                <a id="payment-btn" href="${pageContext.request.contextPath}/vnpay/checkout?vnpTxnRef=${requestScope.payment.vnpTxnRef}" class="btn btn-primary w-100 mt-3 fw-bold">
+                                                    <c:choose>
+                                                        <c:when test="${requestScope.payment.status == 2}">
+                                                            <i class="bi bi-arrow-repeat me-1"></i> THANH TOÁN LẠI
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <i class="bi bi-credit-card-2-back me-1"></i> THANH TOÁN NGAY
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </a>
                                             </c:if>
                                         </div>
                                     </div>
@@ -355,43 +404,53 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="card-footer bg-white">
-                            <c:choose>
-                                <c:when test="${requestScope.order.status == 1}">
-                                    <form action="${pageContext.request.contextPath}/orderDetail" method="post" class="d-inline">
-                                        <input type="hidden" name="id" value="${requestScope.order.id}">
+                        <div class="card-footer bg-white d-flex flex-wrap justify-content-between align-items-center gap-2">
+                            <div class="d-flex flex-wrap gap-2">
+                                <c:choose>
+                                    <c:when test="${requestScope.order.status == 1 || requestScope.order.status == 2 || requestScope.order.status == 3 || requestScope.order.status == 4 || requestScope.order.status == 5}">
                                         <c:choose>
-                                            <c:when test="${empty requestScope.confirmCancel}">
-                                                <button type="submit" name="action" value="requestCancel" class="btn btn-outline-danger">
-                                                    <i class="bi bi-x-circle"></i> Hủy đơn hàng
-                                                </button>
+                                            <c:when test="${requestScope.payment.status == 1}">
+                                                <form action="${pageContext.request.contextPath}/vnpay/refund" method="post" class="d-inline">
+                                                    <input type="hidden" name="oId" value="${requestScope.order.id}">
+                                                    <input type="hidden" name="pId" value="${requestScope.payment.id}">
+                                                    <button type="submit" class="btn btn-danger" onclick="return confirm('Bạn có chắc chắn muốn hủy đơn và hoàn tiền không?')">
+                                                        <i class="bi bi-arrow-counterclockwise me-1"></i> Hủy đơn và hoàn tiền
+                                                    </button>
+                                                </form>
                                             </c:when>
                                             <c:otherwise>
-                                                <span class="text-muted me-3">Bạn có chắc chắn muốn hủy đơn?</span>
-                                                <button type="submit" name="action" value="confirmCancel" class="btn btn-danger me-2">
-                                                    Xác nhận hủy
-                                                </button>
-                                                <button type="submit" name="action" value="cancelCancel" class="btn btn-secondary">
-                                                    Hủy thao tác
-                                                </button>
+                                                <form action="${pageContext.request.contextPath}/cancelOrder" method="post" class="d-inline">
+                                                    <input type="hidden" name="oId" value="${requestScope.order.id}">
+                                                    <input type="hidden" name="pId" value="${requestScope.payment.id}">
+                                                    <c:choose>
+                                                        <c:when test="${empty requestScope.confirmCancel}">
+                                                            <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')">
+                                                                <i class="bi bi-x-circle me-1"></i> Hủy đơn hàng
+                                                            </button>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <span class="text-muted me-2">Bạn có chắc chắn muốn hủy đơn?</span>
+                                                            <button type="submit" class="btn btn-danger me-2">Xác nhận hủy</button>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </form>
                                             </c:otherwise>
                                         </c:choose>
-                                    </form>
-                                </c:when>
-                                <c:otherwise>
-                                    <a href="${pageContext.request.contextPath}/order" class="btn btn-outline-secondary">
-                                        <i class="bi bi-arrow-left"></i> Quay lại danh sách
-                                    </a>
-                                </c:otherwise>
-                            </c:choose>
-                            <a href="${pageContext.request.contextPath}/invoice?id=${requestScope.order.id}"
-                               class="btn btn-primary float-end" target="_blank">
-                                <i class="bi bi-printer"></i> In hóa đơn
-                            </a>
-                            <a href="${pageContext.request.contextPath}/"
-                               class="btn btn-outline-primary me-2 float-end">
-                                <i class="bi bi-bag-plus"></i> Tiếp tục mua sắm
-                            </a>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <form action="${pageContext.request.contextPath}/rebuy" method="post" class="d-inline">
+                                            <input type="hidden" name="oId" value="${requestScope.order.id}">
+                                            <button type="submit" class="btn btn-primary"><i class="bi bi-bag-plus me-1"></i> Mua lại đơn hàng</button>
+                                        </form>
+                                    </c:otherwise>
+                                </c:choose>
+                                <a href="${pageContext.request.contextPath}/order" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Quay lại danh sách</a>
+                            </div>
+
+                            <div class="d-flex flex-wrap gap-2">
+                                <a href="${pageContext.request.contextPath}/" class="btn btn-outline-primary"><i class="bi bi-bag-plus"></i> Tiếp tục mua sắm</a>
+                                <a href="${pageContext.request.contextPath}/invoice?id=${requestScope.order.id}" class="btn btn-primary" target="_blank"><i class="bi bi-printer"></i> In hóa đơn</a>
+                            </div>
                         </div>
                     </div>
                 </main>

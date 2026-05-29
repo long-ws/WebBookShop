@@ -7,6 +7,7 @@ import beans.Cart;
 import beans.CartItem;
 import beans.User;
 import beans.vnpay.Payment;
+import constants.SessionConstants;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -30,9 +31,9 @@ public class CartServlet extends HttpServlet {
 			throws ServletException, IOException {
 
 		HttpSession session = request.getSession();
-		User user = (User) session.getAttribute("currentUser");
+        User user = (User) session.getAttribute(SessionConstants.CURRENT_USER);
 
-		try {
+        try {
 			if (user != null) {
 				Cart cart = checkoutService.getCartWithItemsAndProducts(user.getId());
 				if (cart != null) {
@@ -69,9 +70,9 @@ public class CartServlet extends HttpServlet {
 		});
 
 		HttpSession session = request.getSession();
-		User user = (User) session.getAttribute("currentUser");
+        User user = (User) session.getAttribute(SessionConstants.CURRENT_USER);
 
-		System.out.println("[CartServlet] User from session: " + (user != null ? user.getId() + " - " + user.getEmail() : "NULL"));
+        System.out.println("[CartServlet] User from session: " + (user != null ? user.getId() + " - " + user.getEmail() : "NULL"));
 
 		if (user == null) {
 			System.out.println("[CartServlet] User not logged in, redirecting to signin");
@@ -109,7 +110,11 @@ public class CartServlet extends HttpServlet {
 			}
 
 			System.out.println("[CartServlet] cartId parsed successfully: " + cartId);
-
+            if(checkoutService.hasEnoughQty(cartId)){
+                session.setAttribute("errorMessage", "Đặt hàng thất bại, sản phấm hết hàng!");
+                response.sendRedirect(request.getContextPath() + "/cart");
+                return;
+            }
 			int deliveryMethod = 2;
 			if (deliveryMethodStr != null && !deliveryMethodStr.trim().isEmpty()) {
 				deliveryMethod = convertServiceTypeToMethodId(Integer.parseInt(deliveryMethodStr.trim()));
@@ -176,10 +181,28 @@ public class CartServlet extends HttpServlet {
 			System.out.println("  ward: '" + ward + "'");
 			System.out.println("  addressDetail: '" + addressDetail + "'");
 
+            String finalVoucherIdStr = request.getParameter("finalVoucherId");
+            String finalShipVoucherIdStr = request.getParameter("finalShipVoucherId");
+            Long finalVoucherId = null;
+            Long finalShipVoucherId = null;
+            if (finalVoucherIdStr != null && !finalVoucherIdStr.trim().isEmpty()) {
+                try {
+                    finalVoucherId = Long.parseLong(finalVoucherIdStr.trim());
+                } catch (NumberFormatException e) {
+                    finalVoucherId = null;
+                }
+            }
+            if (finalShipVoucherIdStr != null && !finalShipVoucherIdStr.trim().isEmpty()) {
+                try {
+                    finalShipVoucherId = Long.parseLong(finalShipVoucherIdStr.trim());
+                } catch (NumberFormatException e) {
+                    finalShipVoucherId = null;
+                }
+            }
 			System.out.println("[CartServlet] Calling checkoutService.checkoutFromCart...");
 			Payment p = checkoutService.checkoutFromCart(user.getId(), cartId, deliveryMethod, deliveryPrice,
 				receiverName, receiverPhone, province, district, ward, addressDetail, estimatedDays,
-				request.getParameter("customerNote"));
+				request.getParameter("customerNote"), finalVoucherId, finalShipVoucherId);
 			System.out.println("[CartServlet] Order created - orderId: " + p.getOrderId() +
 				", paymentRef: " + p.getVnpTxnRef());
 

@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import service.VoucherService;
 
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -59,29 +60,45 @@ public class UpdateVoucherServlet extends HttpServlet {
             int usageLimit = Integer.parseInt(request.getParameter("usageLimit"));
             int perUserLimit = Integer.parseInt(request.getParameter("perUserLimit"));
             boolean isActive = request.getParameter("isActive") != null;
-            LocalDateTime startDate = LocalDateTime.parse(request.getParameter("startDate"), FORMATTER);
-            LocalDateTime endDate = LocalDateTime.parse(request.getParameter("endDate"), FORMATTER);
+            Timestamp startDate = Timestamp.valueOf(LocalDateTime.parse(request.getParameter("startDate"), FORMATTER));
+            Timestamp endDate = Timestamp.valueOf(LocalDateTime.parse(request.getParameter("endDate"), FORMATTER));
+
+            if (code != null) code = code.toUpperCase().trim();
+
+            if (calculationMethod == 1) {
+                maxDiscount = value;
+            } else if (calculationMethod == 0) {
+                if (value > 100) value = 100;
+                else if (value < 0) value = 0;
+            }
+
+            if (endDate.before(startDate)) {
+                request.getSession().setAttribute("errorMessage", "Ngày kết thúc phải sau ngày bắt đầu!");
+                response.sendRedirect(request.getContextPath() + "/admin/voucherManager/update?id=" + id);
+                return;
+            }
+            List<CategoryDTO> categories = new ArrayList<>();
+            List<ProductDTO> products = new ArrayList<>();
 
             String[] categoryIdsArr = request.getParameterValues("categoryIds");
-            List<CategoryDTO> categories = new ArrayList<>();
-            if (categoryIdsArr != null) {
-                for (String catId : categoryIdsArr) {
-                    CategoryDTO dto = new CategoryDTO();
-                    dto.setId(Long.parseLong(catId));
-                    categories.add(dto);
-                }
-            }
-
             String[] productIdsArr = request.getParameterValues("productIds");
-            List<ProductDTO> products = new ArrayList<>();
-            if (productIdsArr != null) {
-                for (String prodId : productIdsArr) {
-                    ProductDTO dto = new ProductDTO();
-                    dto.setId(Long.parseLong(prodId));
-                    products.add(dto);
+            if (applyTo == 1) {
+                if (productIdsArr != null) {
+                    for (String prodId : productIdsArr) {
+                        ProductDTO dto = new ProductDTO();
+                        dto.setId(Long.parseLong(prodId));
+                        products.add(dto);
+                    }
+                }
+            } else if (applyTo == 2) {
+                if (categoryIdsArr != null) {
+                    for (String catId : categoryIdsArr) {
+                        CategoryDTO dto = new CategoryDTO();
+                        dto.setId(Long.parseLong(catId));
+                        categories.add(dto);
+                    }
                 }
             }
-
             Voucher voucher = new Voucher();
             voucher.setId(id);
             voucher.setCode(code);

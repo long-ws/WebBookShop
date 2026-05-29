@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
     resetSubmitState();
     checkCheckoutReady();
+    initVoucherFeatures();
 });
 
 function resetSubmitState() {
@@ -298,15 +299,11 @@ function selectShippingOption(element, option) {
 
 function updateShippingFee(fee) {
     var feeDisplay = document.getElementById('shippingFeeDisplay');
-    var totalDisplay = document.getElementById('totalDisplay');
-
     feeDisplay.textContent = formatCurrency(fee);
     feeDisplay.className = 'value';
     feeDisplay.style.color = '#ee4d2d';
     feeDisplay.style.fontWeight = '600';
-
-    var total = SUBTOTAL + fee;
-    totalDisplay.textContent = formatCurrency(total);
+    renderOrderSummary();
 }
 
 function calculateEstimatedDate(days) {
@@ -320,16 +317,15 @@ function resetShippingOptions() {
     var container = document.getElementById('shippingOptionsList');
     container.innerHTML =
         '<div class="alert-info">' +
-            '<i class="bi bi-info-circle"></i> ' +
-            'Vui lòng chọn địa chỉ giao hàng để xem các phương thức vận chuyển' +
+        '<i class="bi bi-info-circle"></i> ' +
+        'Vui lòng chọn địa chỉ giao hàng để xem các phương thức vận chuyển' +
         '</div>';
 
     document.getElementById('shippingFeeDisplay').textContent = '---';
     document.getElementById('shippingFeeDisplay').style.color = '';
     document.getElementById('shippingFeeDisplay').style.fontWeight = '';
-    document.getElementById('totalDisplay').textContent = formatCurrency(SUBTOTAL);
-    document.getElementById('selectedServiceId').value = '';
     document.getElementById('deliveryPrice').value = '0';
+    renderOrderSummary();
 }
 
 function checkCheckoutReady() {
@@ -500,4 +496,114 @@ function showLoading() {
 
 function hideLoading() {
     document.getElementById('loadingOverlay').classList.remove('show');
+}
+
+const voucherState = { discountVoucher: null, shipVoucher: null };
+
+function initVoucherFeatures() {
+    const voucherModal = document.getElementById('voucherModal');
+    if (!voucherModal) return;
+
+    voucherModal.addEventListener('show.bs.modal', loadVoucherList);
+    document.getElementById('btnApplyVoucher')?.addEventListener('click', () => {
+        applyVoucher();
+        bootstrap.Modal.getInstance(voucherModal)?.hide();
+    });
+}
+
+function loadVoucherList() {
+    const container = document.getElementById('voucherContainer');
+    container.innerHTML = `
+        <div class="text-center p-3 text-muted small">
+            <span class="spinner-border spinner-border-sm me-2"></span> Đang tải danh sách...
+        </div>`;
+
+    fetch(`${API_BASE}/loadVoucher?cartId=${CART_ID}`)
+        .then(res => { if (!res.ok) throw new Error(); return res.text(); })
+        .then(html => { container.innerHTML = html; })
+        .catch(() => {
+            container.innerHTML = `<div class="text-center p-3 text-danger small">Lỗi tải danh sách mã giảm giá.</div>`;
+        });
+}
+
+function applyVoucher() {
+    const subtotal = getSubtotal();
+    voucherState.discountVoucher = getSelectedVoucher('radDiscountVoucher');
+    voucherState.shipVoucher = getSelectedVoucher('radShipVoucher');
+
+    validateVoucher(voucherState.discountVoucher, subtotal, 'Đơn hàng không đủ điều kiện áp dụng mã giảm giá!');
+    validateVoucher(voucherState.shipVoucher, subtotal, 'Đơn hàng không đủ điều kiện áp dụng mã freeship!');
+
+    updateVoucherInputs();
+    renderOrderSummary();
+    updateVoucherLabel();
+}
+
+function getSelectedVoucher(name) {
+    return document.querySelector(`input[name="${name}"]:checked`);
+}
+
+function validateVoucher(voucher, subtotal, message) {
+    if (!voucher) return;
+    const minPurchase = parseFloat(voucher.dataset.minPurchase || 0);
+
+    if (subtotal < minPurchase) {
+        voucher.checked = false;
+        if (voucher.name === 'radDiscountVoucher') voucherState.discountVoucher = null;
+        else voucherState.shipVoucher = null;
+        alert(message);
+    }
+}
+
+function calculateDiscount(voucher, amount) {
+    if (!voucher) return 0;
+    const type = voucher.dataset.discountType;
+    const value = parseFloat(voucher.dataset.discountValue || 0);
+    if (type === 'PERCENT') {
+        const maxDiscount = parseFloat(voucher.dataset.maxDiscount || Infinity);
+        return Math.min((amount * value) / 100, maxDiscount, amount);
+    }
+    return Math.min(value, amount);
+}
+
+function renderOrderSummary() {
+    const subtotal = getSubtotal();
+    const shippingFee = getShippingFee();
+    const hasShipping = shippingFee > 0;
+    const orderDiscount = calculateDiscount(voucherState.discountVoucher, subtotal);
+    const shipDiscount = hasShipping ? calculateDiscount(voucherState.shipVoucher, shippingFee) : 0;
+    const finalTotal = subtotal + shippingFee - orderDiscount - shipDiscount;
+
+    setText('discountDisplay', orderDiscount > 0 ? '-' + formatCurrency(orderDiscount) : '0₫');
+    setText('shipDiscountDisplay', shipDiscount > 0 ? '-' + formatCurrency(shipDiscount) : '0₫');
+    setText('shippingFeeDisplay', !hasShipping ? '---' : formatCurrency(shippingFee));
+    setText('totalDisplay', formatCurrency(Math.max(0, finalTotal)));
+}
+
+function updateVoucherInputs() {
+    document.getElementById('finalVoucherId').value = voucherState.discountVoucher?.value || '';
+    document.getElementById('finalShipVoucherId').value = voucherState.shipVoucher?.value || '';
+}
+
+function updateVoucherLabel() {
+    const hasDiscount = !!voucherState.discountVoucher;
+    const hasShip = !!voucherState.shipVoucher;
+    let text = 'Chọn hoặc nhập mã';
+
+    if (hasDiscount && hasShip) text = 'Áp dụng: 2 mã';
+    else if (hasDiscount) text = 'Áp dụng: Giảm đơn';
+    else if (hasShip) text = 'Áp dụng: Giảm ship';
+
+    setText('lblVoucherStatus', text);
+}
+
+function getSubtotal() {
+    return parseFloat(document.getElementById('inputSubTotal')?.value || 0);
+}
+function getShippingFee() {
+    return parseFloat(document.getElementById('deliveryPrice')?.value || 0);
+}
+function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
 }

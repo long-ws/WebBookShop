@@ -60,8 +60,10 @@
                         <div class="col-md-4">
                             <div class="form-floating">
                                 <select name="applyTo" id="applyTo" class="form-select">
-                                    <option value="0" ${voucher.applyTo == 0 ? 'selected' : ''}>Đơn hàng</option>
-                                    <option value="1" ${voucher.applyTo == 1 ? 'selected' : ''}>Vận chuyển</option>
+                                    <option value="0" ${voucher.applyTo == 0 ? 'selected' : ''}>Toàn bộ sản phẩm</option>
+                                    <option value="1" ${voucher.applyTo == 1 ? 'selected' : ''}>Một số sản phẩm</option>
+                                    <option value="2" ${voucher.applyTo == 2 ? 'selected' : ''}>Một số danh mục</option>
+                                    <option value="3" ${voucher.applyTo == 3 ? 'selected' : ''}>Phí vận chuyển</option>
                                 </select>
                                 <label for="applyTo">Phạm vi áp dụng</label>
                             </div>
@@ -109,7 +111,7 @@
                                 <label for="floatingMin">Đơn tối thiểu</label>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-3" id="maxDiscountSection">
                             <div class="form-floating">
                                 <input type="number" name="maxDiscount" class="form-control" id="floatingMax" placeholder="Giảm tối đa"
                                        min="0" value="<fmt:formatNumber value="${voucher.maxDiscount}" pattern="#.##" />">
@@ -149,7 +151,7 @@
                         </div>
 
                         <div class="row g-4 mt-2">
-                            <div class="col-md-6">
+                            <div class="col-md-12" id="categorySection">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <label class="form-label fw-bold text-success mb-0">Danh mục áp dụng</label>
                                     <button type="button" class="btn btn-outline-success btn-sm"
@@ -163,7 +165,7 @@
                                 </ul>
                             </div>
 
-                            <div class="col-md-6">
+                            <div class="col-md-12" id="productSection">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <label class="form-label fw-bold text-primary mb-0">Sản phẩm áp dụng</label>
                                     <button type="button" class="btn btn-outline-primary btn-sm"
@@ -217,6 +219,7 @@
     </div>
 </div>
 <jsp:include page="../_footerAdmin.jsp"/>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     const contextPath = "${pageContext.request.contextPath}";
     const initialCategories = [

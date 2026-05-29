@@ -1,6 +1,7 @@
 <%@ taglib uri="jakarta.tags.core" prefix="c" %>
-<%@ page import="constants.FormConstants, constants.RequestParamConstants, constants.ViewAttributeConstants" %>
+<%@ page import="constants.FormConstants, constants.RequestParamConstants, constants.ViewAttributeConstants, constants.SessionConstants" %>
 <%-- Khóa form / validation — dùng trong name= và errors[...] / values[...] --%>
+<c:set var="SSN_OAUTH_ERROR" value="<%= SessionConstants.OAUTH_ERROR %>" />
 <c:set var="P_ID" value="<%= RequestParamConstants.ID %>" />
 <c:set var="P_CODE" value="<%= RequestParamConstants.CODE %>" />
 <c:set var="P_NAME" value="<%= RequestParamConstants.NAME %>" />

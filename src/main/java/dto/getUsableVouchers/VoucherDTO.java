@@ -1,18 +1,11 @@
-package beans;
+package dto.getUsableVouchers;
 
-import dto.CategoryDTO;
-import dto.ProductDTO;
+import beans.Voucher;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-public class Voucher implements Serializable {
+public class VoucherDTO implements Serializable {
     private long id;
     private String code;
     private String name;
@@ -28,13 +21,10 @@ public class Voucher implements Serializable {
     private int perUserLimit;
     private int usedCount;
     private boolean active;
-    private List<ProductDTO> products;
-    private List<CategoryDTO> categories;
+    private String productIdsCsv;
+    private String categoryIdsCsv;
 
-    public Voucher() {
-        categories =  new ArrayList<>();
-        products = new ArrayList<>();
-    }
+    public VoucherDTO() {}
 
     public long getId() {
         return id;
@@ -72,8 +62,8 @@ public class Voucher implements Serializable {
         return calculationMethod;
     }
 
-    public void setCalculationMethod(int caculationMethod) {
-        this.calculationMethod = caculationMethod;
+    public void setCalculationMethod(int calculationMethod) {
+        this.calculationMethod = calculationMethod;
     }
 
     public int getApplyTo() {
@@ -156,34 +146,19 @@ public class Voucher implements Serializable {
         this.active = active;
     }
 
-    public List<CategoryDTO> getCategories() {
-        return categories;
+    public String getProductIdsCsv() {
+        return productIdsCsv;
     }
 
-    public boolean setCategory(CategoryDTO category) {
-        return this.categories.add(category);
+    public void setProductIdsCsv(String productIdsCsv) {
+        this.productIdsCsv = productIdsCsv;
     }
 
-    public List<ProductDTO> getProducts() {
-        return products;
+    public String getCategoryIdsCsv() {
+        return categoryIdsCsv;
     }
 
-    public boolean setProduct(ProductDTO product) {
-        return this.products.add(product);
-    }
-
-    public void setCategories(List<CategoryDTO> categories) {
-        this.categories = categories;
-    }
-
-    public void setProducts(List<ProductDTO> products) {
-        this.products = products;
-    }
-    public List<Long> getCategoryIds() {
-        return categories.stream().map(CategoryDTO::getId).collect(Collectors.toList());
-    }
-
-    public List<Long> getProductIds() {
-        return products.stream().map(ProductDTO::getId).collect(Collectors.toList());
+    public void setCategoryIdsCsv(String categoryIdsCsv) {
+        this.categoryIdsCsv = categoryIdsCsv;
     }
 }

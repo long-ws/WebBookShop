@@ -1,5 +1,9 @@
 package service.oauth;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
 import com.github.scribejava.apis.GoogleApi20;
 import com.github.scribejava.core.builder.ServiceBuilder;
 import com.github.scribejava.core.model.OAuth2AccessToken;
@@ -9,12 +13,9 @@ import com.github.scribejava.core.model.Verb;
 import com.github.scribejava.core.oauth.OAuth20Service;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import dto.oauth.OAuthUserResponse;
-import mapper.user.OAuthUserMapper;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
+import dto.oauth.OAuthUserResponse;
+import exception.BusinessException;
 
 public class GoogleOAuthProvider implements OAuthProvider {
     private final Properties oauthProps;
@@ -74,7 +75,7 @@ public class GoogleOAuthProvider implements OAuthProvider {
 
         try (Response response = service.execute(request)) {
             if (!response.isSuccessful()) {
-                throw new RuntimeException("Lấy thông tin user thất bại: " + response.getBody());
+                throw new BusinessException("Xác thực thông tin user thất bại");
             }
 
             JsonObject json = gson.fromJson(response.getBody(), JsonObject.class);

@@ -24,8 +24,8 @@ public class OrderDAO implements DAO<Order> {
     }
 
     public long insert(Connection conn, Order order) throws SQLException {
-        String sql = "INSERT INTO orders (userId, status, deliveryMethod, deliveryPrice, createdAt, updatedAt) "
-                + "VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO orders (userId, status, deliveryMethod, deliveryPrice, totalPrice, createdAt, updatedAt) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -33,8 +33,9 @@ public class OrderDAO implements DAO<Order> {
             ps.setInt(2, order.getStatus());
             ps.setInt(3, order.getDeliveryMethod());
             ps.setDouble(4, order.getDeliveryPrice());
-            ps.setTimestamp(5, Timestamp.valueOf(order.getCreatedAt()));
-            ps.setTimestamp(6, order.getUpdatedAt() != null ? Timestamp.valueOf(order.getUpdatedAt()) : null);
+            ps.setDouble(5, order.getTotalPrice());
+            ps.setTimestamp(6, Timestamp.valueOf(order.getCreatedAt()));
+            ps.setTimestamp(7, order.getUpdatedAt() != null ? Timestamp.valueOf(order.getUpdatedAt()) : null);
 
             int rows = ps.executeUpdate();
             if (rows == 0)
@@ -287,7 +288,7 @@ public class OrderDAO implements DAO<Order> {
     public boolean cancelOrder(long oId, long pId){
         String sql = "UPDATE orders o " +
                 "JOIN payments p ON o.id = p.order_id " +
-                "SET o.status = 3, p.status = 2, p.is_expired = 1 " +
+                "SET o.status = 7, p.status = 2, p.is_expired = 1 " +
                 "WHERE o.id = ? AND p.id = ?";
         try(Connection con =  DBConnection.getConnection();
             PreparedStatement ps = con.prepareStatement(sql)) {

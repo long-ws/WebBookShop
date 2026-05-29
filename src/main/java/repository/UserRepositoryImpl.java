@@ -118,11 +118,6 @@ public class UserRepositoryImpl implements UserRepository {
 	}
 
 	@Override
-	public List<User> findAllUser(Connection conn, String orderBy, String orderDir) throws SQLException {
-		return userCrudRepository.findAllUser(conn, orderBy, orderDir);
-	}
-
-	@Override
 	public long count(Connection conn) throws SQLException {
 		return userCrudRepository.count(conn);
 	}

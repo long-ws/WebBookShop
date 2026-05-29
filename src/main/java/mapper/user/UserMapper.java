@@ -9,6 +9,7 @@ import beans.user.UserAuthInfo;
 import beans.user.UserLocalAuth;
 import beans.user.UserOAuthAuth;
 import beans.user.UserProfile;
+import constants.SystemConstants;
 import dto.user.LocalUserRegistrationRequest;
 import dto.user.OAuthUserRegistrationRequest;
 import dto.user.UserCreateRequest;
@@ -42,36 +43,6 @@ public class UserMapper {
 		profile.setAvatarUrl(request.getAvatarUrl());
 		profile.setGender(request.getGender());
 		profile.setPreferredLanguage(request.getPreferredLanguage());
-		return profile;
-	}
-
-	private UserProfile toUserProfile(UserCreateRequest dto) {
-		if (dto == null) {
-			return null;
-		}
-
-		UserProfile profile = new UserProfile();
-		profile.setFullname(dto.getFullname());
-		profile.setEmail(dto.getEmail());
-		profile.setPhoneNumber(dto.getPhoneNumber());
-		profile.setGender(dto.getGender());
-		profile.setPreferredLanguage(dto.getPreferredLanguage());
-		profile.setAvatarUrl(dto.getAvatarUrl());
-		return profile;
-	}
-
-	private UserProfile toUserProfile(UserUpdateRequest dto) {
-		if (dto == null) {
-			return null;
-		}
-
-		UserProfile profile = new UserProfile();
-		profile.setFullname(dto.getFullname());
-		profile.setEmail(dto.getEmail());
-		profile.setPhoneNumber(dto.getPhoneNumber());
-		profile.setGender(dto.getGender());
-		profile.setPreferredLanguage(dto.getPreferredLanguage());
-		profile.setAvatarUrl(dto.getAvatarUrl());
 		return profile;
 	}
 
@@ -121,7 +92,7 @@ public class UserMapper {
 
 		Role role = dto.getRole() != null ? dto.getRole() : new Role();
 		if (role.getCode() == null) {
-			role.setCode("CUSTOMER");
+			role.setCode(SystemConstants.DEFAULT_ROLE_CODE);
 		}
 		user.setRole(role);
 
@@ -179,8 +150,7 @@ public class UserMapper {
 			local.setPasswordHash(existing.getPasswordHash());
 		}
 
-		if (existing.getAuthInfo() != null && existing.getAuthInfo().getLocal() != null
-				&& existing.getAuthInfo().getLocal().getEmailVerifyStatus() != null) {
+		if (existing.getAuthInfo() != null && existing.getAuthInfo().getLocal() != null && existing.getAuthInfo().getLocal().getEmailVerifyStatus() != null) {
 			local.setEmailVerifyStatus(existing.getAuthInfo().getLocal().getEmailVerifyStatus());
 		} else {
 			EmailVerifyStatus verifyStatus = new EmailVerifyStatus();
@@ -255,16 +225,12 @@ public class UserMapper {
 			return null;
 		}
 
-		UserDetailResponse.Builder builder = new UserDetailResponse.Builder().id(user.getId())
-				.username(user.getUsername()).tokenVersion(user.getTokenVersion()).lastLoginAt(user.getLastLoginAt())
-				.createdAt(user.getCreatedAt()).updatedAt(user.getUpdatedAt()).isDeleted(user.isDeleted())
-				.isLocked(user.isLocked()).status(user.getStatus()).role(user.getRole());
+		UserDetailResponse.Builder builder = new UserDetailResponse.Builder().id(user.getId()).username(user.getUsername()).tokenVersion(user.getTokenVersion()).lastLoginAt(user.getLastLoginAt())
+				.createdAt(user.getCreatedAt()).updatedAt(user.getUpdatedAt()).isDeleted(user.isDeleted()).isLocked(user.isLocked()).status(user.getStatus()).role(user.getRole());
 
 		if (user.getProfile() != null) {
-			builder.fullname(user.getProfile().getFullname())
-					.email(user.getProfile().getEmail() != null ? user.getProfile().getEmail() : user.getEmail())
-					.phoneNumber(user.getProfile().getPhoneNumber()).gender(user.getProfile().getGender())
-					.preferredLanguage(user.getProfile().getPreferredLanguage())
+			builder.fullname(user.getProfile().getFullname()).email(user.getProfile().getEmail() != null ? user.getProfile().getEmail() : user.getEmail())
+					.phoneNumber(user.getProfile().getPhoneNumber()).gender(user.getProfile().getGender()).preferredLanguage(user.getProfile().getPreferredLanguage())
 					.avatarUrl(user.getProfile().getAvatarUrl());
 		} else {
 			builder.email(user.getEmail());
@@ -278,12 +244,10 @@ public class UserMapper {
 			return null;
 		}
 
-		UserManageResponse.Builder builder = new UserManageResponse.Builder().id(user.getId())
-				.username(user.getUsername()).status(user.getStatus()).createdAt(user.getCreatedAt());
+		UserManageResponse.Builder builder = new UserManageResponse.Builder().id(user.getId()).username(user.getUsername()).status(user.getStatus()).createdAt(user.getCreatedAt());
 
 		if (user.getProfile() != null) {
-			builder.fullname(user.getProfile().getFullname())
-					.email(user.getProfile().getEmail() != null ? user.getProfile().getEmail() : user.getEmail())
+			builder.fullname(user.getProfile().getFullname()).email(user.getProfile().getEmail() != null ? user.getProfile().getEmail() : user.getEmail())
 					.phoneNumber(user.getProfile().getPhoneNumber()).gender(user.getProfile().getGender());
 		} else {
 			builder.email(user.getEmail());
@@ -306,8 +270,7 @@ public class UserMapper {
 
 		if (user.getProfile() != null) {
 			builder.fullname(user.getProfile().getFullname()).phoneNumber(user.getProfile().getPhoneNumber())
-					.email(user.getProfile().getEmail() != null ? user.getProfile().getEmail() : user.getEmail())
-					.avatarUrl(user.getProfile().getAvatarUrl());
+					.email(user.getProfile().getEmail() != null ? user.getProfile().getEmail() : user.getEmail()).avatarUrl(user.getProfile().getAvatarUrl());
 
 			if (user.getProfile().getGender() != null) {
 				builder.genderCode(user.getProfile().getGender().getCode());
@@ -328,10 +291,8 @@ public class UserMapper {
 			return null;
 		}
 
-		return new UserCreateRequest.Builder().id(detail.getId()).username(detail.getUsername())
-				.fullname(detail.getFullname()).email(detail.getEmail()).phoneNumber(detail.getPhoneNumber())
-				.gender(detail.getGender()).preferredLanguage(detail.getPreferredLanguage())
-				.avatarUrl(detail.getAvatarUrl()).role(detail.getRole()).build();
+		return new UserCreateRequest.Builder().id(detail.getId()).username(detail.getUsername()).fullname(detail.getFullname()).email(detail.getEmail()).phoneNumber(detail.getPhoneNumber())
+				.gender(detail.getGender()).preferredLanguage(detail.getPreferredLanguage()).avatarUrl(detail.getAvatarUrl()).role(detail.getRole()).build();
 	}
 
 	public UserUpdateRequest toUserUpdateRequest(UserDetailResponse detail) {
@@ -339,9 +300,37 @@ public class UserMapper {
 			return null;
 		}
 
-		return new UserUpdateRequest.Builder().id(detail.getId()).username(detail.getUsername())
-				.fullname(detail.getFullname()).email(detail.getEmail()).phoneNumber(detail.getPhoneNumber())
-				.gender(detail.getGender()).preferredLanguage(detail.getPreferredLanguage())
-				.avatarUrl(detail.getAvatarUrl()).role(detail.getRole()).build();
+		return new UserUpdateRequest.Builder().id(detail.getId()).username(detail.getUsername()).fullname(detail.getFullname()).email(detail.getEmail()).phoneNumber(detail.getPhoneNumber())
+				.gender(detail.getGender()).preferredLanguage(detail.getPreferredLanguage()).avatarUrl(detail.getAvatarUrl()).role(detail.getRole()).build();
+	}
+
+	private UserProfile toUserProfile(UserCreateRequest dto) {
+		if (dto == null) {
+			return null;
+		}
+
+		UserProfile profile = new UserProfile();
+		profile.setFullname(dto.getFullname());
+		profile.setEmail(dto.getEmail());
+		profile.setPhoneNumber(dto.getPhoneNumber());
+		profile.setGender(dto.getGender());
+		profile.setPreferredLanguage(dto.getPreferredLanguage());
+		profile.setAvatarUrl(dto.getAvatarUrl());
+		return profile;
+	}
+
+	private UserProfile toUserProfile(UserUpdateRequest dto) {
+		if (dto == null) {
+			return null;
+		}
+
+		UserProfile profile = new UserProfile();
+		profile.setFullname(dto.getFullname());
+		profile.setEmail(dto.getEmail());
+		profile.setPhoneNumber(dto.getPhoneNumber());
+		profile.setGender(dto.getGender());
+		profile.setPreferredLanguage(dto.getPreferredLanguage());
+		profile.setAvatarUrl(dto.getAvatarUrl());
+		return profile;
 	}
 }

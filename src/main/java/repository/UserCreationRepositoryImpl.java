@@ -5,7 +5,7 @@ import beans.user.UserAccount;
 import beans.user.UserLocalAuth;
 import beans.user.UserOAuthAuth;
 import beans.user.UserProfile;
-import constants.UserConstants;
+import constants.SystemConstants;
 import dao.common.RoleDAO;
 import dao.common.RoleDAOImpl;
 import dao.user.UserAccountDAO;
@@ -33,12 +33,10 @@ public class UserCreationRepositoryImpl implements UserCreationRepository {
 	private final RoleDAO roleDAO;
 
 	public UserCreationRepositoryImpl() {
-		this(new UserAccountDAOImpl(), new UserProfileDAOImpl(), new UserLocalDAOImpl(), new UserRoleDAOImpl(),
-				new UserOauthDAOImpl(), new RoleDAOImpl());
+		this(new UserAccountDAOImpl(), new UserProfileDAOImpl(), new UserLocalDAOImpl(), new UserRoleDAOImpl(), new UserOauthDAOImpl(), new RoleDAOImpl());
 	}
 
-	public UserCreationRepositoryImpl(UserAccountDAO accountDAO, UserProfileDAO profileDAO, UserLocalDAO localDAO,
-			UserRoleDAO userRoleDAO, UserOauthDAO userOauthDAO, RoleDAO roleDAO) {
+	public UserCreationRepositoryImpl(UserAccountDAO accountDAO, UserProfileDAO profileDAO, UserLocalDAO localDAO, UserRoleDAO userRoleDAO, UserOauthDAO userOauthDAO, RoleDAO roleDAO) {
 		this.accountDAO = accountDAO;
 		this.profileDAO = profileDAO;
 		this.localDAO = localDAO;
@@ -48,26 +46,32 @@ public class UserCreationRepositoryImpl implements UserCreationRepository {
 	}
 
 	@Override
-	public long createLocalUser(Connection conn, UserAccount account, UserProfile profile, UserLocalAuth localAuth)
-			throws SQLException {
-		long userId = accountDAO.insert(conn, account);
-		localDAO.insert(conn, userId, localAuth);
-		profile.setUserId(userId);
-		profileDAO.insert(conn, profile);
-		assignRole(conn, userId, UserConstants.Role.CUSTOMER);
-		return userId;
+	public long createLocalUser(Connection conn, UserAccount account, UserProfile profile, UserLocalAuth localAuth) throws SQLException {
+	    long userId = accountDAO.insert(conn, account);
+	    
+	    localAuth.setUserId(userId);
+	    profile.setUserId(userId);
+	    
+	    localDAO.insert(conn, userId, localAuth);
+	    profileDAO.insert(conn, profile);
+	    assignRole(conn, userId, SystemConstants.DEFAULT_ROLE_CODE);
+	    
+	    return userId;
 	}
-
+	
 	@Override
-	public long createOAuthUser(Connection conn, UserAccount account, UserProfile profile, UserOAuthAuth oauthAuth)
-			throws SQLException {
-		long userId = accountDAO.insert(conn, account);
-		oauthAuth.setUserId(userId);
-		userOauthDAO.insert(conn, oauthAuth);
-		profile.setUserId(userId);
-		profileDAO.insert(conn, profile);
-		assignRole(conn, userId, UserConstants.Role.CUSTOMER);
-		return userId;
+	public long createOAuthUser(Connection conn, UserAccount account, UserProfile profile, UserOAuthAuth oauthAuth) throws SQLException {
+	    long userId = accountDAO.insert(conn, account);
+	    
+	    oauthAuth.setUserId(userId);
+	    userOauthDAO.insert(conn, oauthAuth);
+	    
+	    profile.setUserId(userId);
+	    profileDAO.insert(conn, profile);
+	    
+	    assignRole(conn, userId, SystemConstants.DEFAULT_ROLE_CODE);
+	    
+	    return userId;
 	}
 
 	private void assignRole(Connection conn, long userId, String roleCode) throws SQLException {
