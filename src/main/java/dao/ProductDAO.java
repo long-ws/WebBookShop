@@ -948,4 +948,19 @@ public class ProductDAO implements DAO<Product> {
             return false;
         }
     }
+    public long getCategoryIdByProductId(long productId) {
+        String sql = "SELECT categoryId FROM product_category WHERE productId = ? LIMIT 1";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, productId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getLong("categoryId");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
 }

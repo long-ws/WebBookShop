@@ -10,6 +10,7 @@ import beans.OrderItem;
 import beans.Product;
 import beans.Shipment;
 import beans.ShipmentTracking;
+import beans.vnpay.Payment;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -17,8 +18,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import service.OrderItemService;
 import service.OrderService;
+import service.PaymentService;
 import service.ProductService;
 import service.ShipmentService;
+import servlet.vnpay.VNPConfig;
 
 @WebServlet(name = "OrderDetailServlet", value = "/orderDetail")
 public class OrderDetailServlet extends HttpServlet {
@@ -28,7 +31,7 @@ public class OrderDetailServlet extends HttpServlet {
     private final OrderItemService orderItemService = new OrderItemService();
     private final ProductService productService = new ProductService();
     private final ShipmentService shipmentService = new ShipmentService();
-
+    private final PaymentService  paymentService = new PaymentService();
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         long id = 0;
@@ -38,6 +41,7 @@ public class OrderDetailServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/");
             return;
         }
+        paymentService.isPaymentExpired(id);
 
         Order order = null;
         try {
@@ -86,7 +90,22 @@ public class OrderDetailServlet extends HttpServlet {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
+            Payment p = null;
+            try{
+                p = paymentService.getPaymentByOrderId(id);
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+            if(p != null){
+                String vnpMessage = VNPConfig.getResponseMessage(p.getVnpResponseCode());
+                boolean isRetryAble = VNPConfig.isRetryAble(p.getVnpResponseCode());
+                request.setAttribute("payment", p);
+                request.setAttribute("isRetryAble",  isRetryAble);
+                request.setAttribute("vnpMessage", vnpMessage);
+            }else{
+                response.sendRedirect(request.getContextPath() + "/error");
+                return;
+            }
             request.setAttribute("order", order);
             request.setAttribute("createdAt", order.getCreatedAt().format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")));
             request.setAttribute("tempPrice", tempPrice);

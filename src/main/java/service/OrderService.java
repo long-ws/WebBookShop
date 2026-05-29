@@ -120,4 +120,11 @@ public class OrderService {
 
         return totalPrice;
     }
+    public List<Order> getOrderedPartByUserIdAndStatus(long id, Integer status, int ordersPerPage, int offset) {
+        return orderDAO.getOrderedPartByUserIdAndStatus(id, status, ordersPerPage, offset);
+    }
+
+    public int countByUserIdAndStatus(long id, Integer status) {
+        return orderDAO.countByUserIdAndStatus(id, status);
+    }
 }

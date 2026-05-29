@@ -44,7 +44,7 @@ public class RefundDao {
                 "JOIN payments p ON r.vnp_TxnRef = p.vnp_TxnRef " +
                 "JOIN orders o ON p.order_id = o.id " +
                 "SET r.vnp_ResponseCode = ?, r.vnp_TransactionNo = ?, r.bank_code = ?, " +
-                "r.pay_date = ?, r.vnp_TransactionStatus = ?, p.status = 3, o.status = 3 " +
+                "r.pay_date = ?, r.vnp_TransactionStatus = ?, p.status = 3, o.status = 7 " +
                 "WHERE r.id = ?";
 
         try (Connection con = DBConnection.getConnection();
