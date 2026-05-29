@@ -6,10 +6,10 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<jsp:include page="_meta.jsp" />
-<title>Giỏ hàng - Shop Bán Sách</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/cartView.css">
+    <jsp:include page="_meta.jsp" />
+    <title>Giỏ hàng - Shop Bán Sách</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/cartView.css">
 </head>
 <body>
 <jsp:include page="_header.jsp" />
@@ -28,7 +28,7 @@
     <div class="container">
         <c:if test="${not empty sessionScope.errorMessage}">
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                ${sessionScope.errorMessage}
+                    ${sessionScope.errorMessage}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             <c:remove var="errorMessage" scope="session" />
@@ -65,6 +65,10 @@
                     <input type="hidden" id="wardName" name="wardName" value="" />
                     <input type="hidden" id="deliveryMethod" name="deliveryMethod" value="2" />
 
+                    <input type="hidden" name="selectedVoucherId" id="inputVoucherId" value="" />
+                    <input type="hidden" name="selectedShipVoucherId" id="inputShipVoucherId" value="" />
+                    <input type="hidden" id="finalVoucherId" name="finalVoucherId" value="">
+                    <input type="hidden" id="finalShipVoucherId" name="finalShipVoucherId" value="">
                     <div class="row">
                         <div class="col-lg-8">
                             <div class="cart-main">
@@ -131,6 +135,7 @@
                                         </div>
                                     </div>
                                 </c:forEach>
+                                <input type="hidden" id="inputSubTotal" value="${tempTotal}">
                             </div>
 
                             <div class="shipping-section">
@@ -198,14 +203,35 @@
                                         <span>Phí vận chuyển</span>
                                         <span class="value" id="shippingFeeDisplay">---</span>
                                     </div>
+                                    <div class="summary-row text-danger">
+                                        <span>Giảm giá đơn hàng</span>
+                                        <span class="value" id="discountDisplay">0₫</span>
+                                    </div>
+
+                                    <div class="summary-row text-danger">
+                                        <span>Giảm phí vận chuyển</span>
+                                        <span class="value" id="shipDiscountDisplay">0₫</span>
+                                    </div>
+                                </div>
+
+                                <div class="summary-section border-top pt-2 mb-2">
+                                    <div class="p-2 d-flex align-items-center justify-content-between rounded"
+                                         style="background-color: #fff5f3; border: 1px dashed #ee4d2d; cursor: pointer;"
+                                         data-bs-toggle="modal" data-bs-target="#voucherModal">
+                                        <div class="d-flex align-items-center" style="color: #ee4d2d;">
+                                            <i class="bi bi-tag fs-5 me-2"></i>
+                                            <span class="small fw-bold" id="lblVoucherStatus">Chọn voucher</span>
+                                        </div>
+                                        <i class="bi bi-chevron-right text-muted small"></i>
+                                    </div>
                                 </div>
 
                                 <div class="summary-section">
                                     <div class="summary-row total">
                                         <span>Tổng cộng</span>
                                         <span class="value" id="totalDisplay">
-                                            <fmt:formatNumber value="${tempTotal}" pattern="#,##0" />₫
-                                        </span>
+                    <fmt:formatNumber value="${tempTotal}" pattern="#,##0" />₫
+                </span>
                                     </div>
                                 </div>
 
@@ -222,11 +248,15 @@
     </div>
 </section>
 
+<jsp:include page="modal/selectVoucher.jsp" />
+
 <jsp:include page="_footer.jsp" />
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     var API_BASE = '${pageContext.request.contextPath}';
     var GHN_API = API_BASE + '/api/ghn';
     var SUBTOTAL = ${empty tempTotal ? 0 : tempTotal};
+    var CART_ID = '${cartId}';
 </script>
 <script src="${pageContext.request.contextPath}/js/cartView.js"></script>
 </body>
