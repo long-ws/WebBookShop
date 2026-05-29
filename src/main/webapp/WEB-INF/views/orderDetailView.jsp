@@ -214,6 +214,12 @@
                                                 <strong class="text-primary fs-6">${requestScope.shipment.trackingCode}</strong>
                                             </div>
                                         </c:if>
+                                        <c:if test="${not empty requestScope.shipment.customerNote}">
+                                            <div class="mt-3 p-2 bg-warning bg-opacity-10 rounded border border-warning">
+                                                <small class="text-muted d-block mb-1"><i class="bi bi-sticky me-1"></i>Ghi chú giao hàng:</small>
+                                                <strong class="text-dark">${requestScope.shipment.customerNote}</strong>
+                                            </div>
+                                        </c:if>
                                     </div>
                                 </div>
                             </div>

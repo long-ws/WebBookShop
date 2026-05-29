@@ -202,7 +202,7 @@ public class CartServlet extends HttpServlet {
 			System.out.println("[CartServlet] Calling checkoutService.checkoutFromCart...");
 			Payment p = checkoutService.checkoutFromCart(user.getId(), cartId, deliveryMethod, deliveryPrice,
 				receiverName, receiverPhone, province, district, ward, addressDetail, estimatedDays,
-                    finalVoucherId, finalShipVoucherId);
+				request.getParameter("customerNote"), finalVoucherId, finalShipVoucherId);
 			System.out.println("[CartServlet] Order created - orderId: " + p.getOrderId() +
 				", paymentRef: " + p.getVnpTxnRef());
 

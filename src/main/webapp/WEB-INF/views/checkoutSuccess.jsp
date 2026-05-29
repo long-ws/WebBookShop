@@ -36,8 +36,6 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/checkoutSuccess.css">
 </head>
 <body class="bg-slate-100 min-h-screen">
-
-    <!-- ========== HEADER BANNER - MODERN E-COMMERCE SUCCESS ========== -->
     <header class="w-full relative overflow-hidden bg-success">
         <!-- Decorative blobs -->
         <div class="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
@@ -115,10 +113,8 @@
         </div>
     </header>
 
-    <!-- ========== MAIN CONTENT ========== -->
     <main class="container mx-auto px-4 py-8 max-w-6xl">
-        
-        <!-- ========== CARD 1: PRODUCTS ORDERED ========== -->
+          
         <section class="bg-white rounded-xl shadow-card mb-6 overflow-hidden card-hover">
             <div class="bg-success px-6 py-4 flex items-center justify-between">
                 <div class="flex items-center gap-3">
@@ -165,7 +161,6 @@
             </div>
         </section>
 
-        <!-- ========== GRID 3 COLUMNS: INFO DETAILS ========== -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             
             <!-- Column 1: Receiver Info -->
@@ -204,6 +199,17 @@
                             </span>
                         </div>
                     </div>
+                    <c:if test="${not empty requestScope.shipment.customerNote}">
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-sticky-note text-amber-600 text-sm"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs text-slate-400 uppercase tracking-wide block mb-0.5">Ghi chú giao hàng</span>
+                            <span class="font-medium text-slate-800 leading-relaxed">${requestScope.shipment.customerNote}</span>
+                        </div>
+                    </div>
+                    </c:if>
                 </div>
             </section>
 
@@ -307,7 +313,6 @@
             </section>
         </div>
 
-        <!-- ========== PAYMENT STATUS & CTA ========== -->
         <c:if test="${requestScope.payment.status == 0}">
             <section class="bg-white rounded-xl shadow-card p-6 mb-6 border-2 border-amber-200">
                 <div class="flex flex-col lg:flex-row items-start lg:items-center gap-6">
@@ -340,7 +345,6 @@
             </section>
         </c:if>
 
-        <!-- ========== FOOTER ACTION BAR ========== -->
         <footer class="flex flex-col sm:flex-row items-center justify-center gap-3 py-6">
             <a href="${pageContext.request.contextPath}/tracking?order=${requestScope.order.id}" class="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white font-semibold px-8 py-3.5 rounded-xl shadow-lg shadow-red-200 hover:shadow-xl hover:shadow-red-300 transition-all duration-300 flex items-center justify-center gap-2 group">
                 <i class="fas fa-location-arrow group-hover:animate-bounce"></i>

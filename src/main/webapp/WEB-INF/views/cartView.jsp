@@ -182,6 +182,14 @@
                                         </div>
                                     </div>
 
+                                    <div class="shipping-note">
+                                        <label class="form-label">
+                                            <i class="bi bi-sticky"></i>
+                                            <span>Ghi chú giao hàng (tùy chọn)</span>
+                                        </label>
+                                        <textarea class="form-control" id="customerNote" name="customerNote" rows="2" placeholder="Ví dụ: Gọi điện trước khi giao, giao giờ hành chính..."></textarea>
+                                    </div>
+
                                     <div class="alert-warning" id="shippingAlert">
                                         <i class="bi bi-exclamation-triangle"></i>
                                         <span id="shippingAlertText"></span>

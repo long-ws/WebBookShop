@@ -257,6 +257,35 @@ body {
 .shipping-options {
     margin-top: 20px;
 }
+.shipping-note {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px dashed var(--border-color);
+}
+.shipping-note .form-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.shipping-note .form-label i {
+    color: var(--primary);
+}
+.shipping-note .form-control {
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    padding: 10px 12px;
+    font-size: 0.875rem;
+    resize: vertical;
+    min-height: 60px;
+}
+.shipping-note .form-control:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(238, 77, 45, 0.1);
+}
 .shipping-options-title {
     font-size: 0.875rem;
     font-weight: 600;

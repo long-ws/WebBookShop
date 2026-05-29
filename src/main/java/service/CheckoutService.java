@@ -96,11 +96,11 @@ public class CheckoutService {
     }
 
     /**
-     * Checkout đầy đủ tham số (signature cũ)
+     * Checkout đầy đủ tham số (signature mới - có customerNote)
      */
     public Payment checkoutFromCart(long userId, long cartId, int deliveryMethod, double deliveryPrice,
-                                    String receiverName, String receiverPhone, String province, String district,
-                                    String ward, String addressDetail, int estimatedDays, Long finalVoucherId, Long finalShipVoucherId) throws SQLException {
+            String receiverName, String receiverPhone, String province, String district,
+            String ward, String addressDetail, int estimatedDays, Long finalVoucherId, Long finalShipVoucherId, String customerNote) throws SQLException {
 
         Cart cart = cartDAO.getById(cartId);
         if (cart == null) {
@@ -232,7 +232,6 @@ public class CheckoutService {
             voucherDao.incrementUsedCount(shipVoucher.getId());
         }
 
-        // Tạo shipment
         String trackingCode = "WEB" + String.format("%08d", orderId);
         LocalDateTime estimatedDelivery = LocalDateTime.now().plusDays(estimatedDays > 0 ? estimatedDays : 3);
 
@@ -252,6 +251,7 @@ public class CheckoutService {
         shipment.setTotalWeight(totalWeight);
         shipment.setEstimatedDeliveryDate(estimatedDelivery);
         shipment.setCreatedAt(LocalDateTime.now());
+        shipment.setCustomerNote(customerNote != null ? customerNote.trim() : "");
 
         try {
             long shipmentId = shipmentDAO.insert(shipment);
@@ -269,7 +269,6 @@ public class CheckoutService {
             e.printStackTrace();
         }
 
-        // Tạo payment
         Timestamp now = new Timestamp(System.currentTimeMillis());
         Payment payment = new Payment();
         payment.setOrderId(orderId);
@@ -284,17 +283,27 @@ public class CheckoutService {
     }
 
     /**
+     * Checkout đầy đủ tham số (signature cũ - không có customerNote)
+     */
+    public Payment checkoutFromCart(long userId, long cartId, int deliveryMethod, double deliveryPrice,
+            String receiverName, String receiverPhone, String province, String district,
+            String ward, String addressDetail, int estimatedDays) throws SQLException {
+        return checkoutFromCart(userId, cartId, deliveryMethod, deliveryPrice,
+                receiverName, receiverPhone, province, district, ward, addressDetail, estimatedDays, null);
+    }
+
+    /**
      * Legacy method - tương thích với signature cũ
      */
     public Payment checkoutFromCart(long userId, long cartId, int deliveryMethod, double deliveryPrice) throws SQLException {
-        return checkoutFromCart(userId, cartId, deliveryMethod, deliveryPrice, null, null, null, null, null, null, 3, null,null);
+        return checkoutFromCart(userId, cartId, deliveryMethod, deliveryPrice, null, null, null, null, null, null, 3, null, null, null);
     }
 
     public Payment checkoutFromCart(long userId, long cartId, int deliveryMethod, double deliveryPrice,
                                     String receiverName, String receiverPhone, String province, String district,
                                     String ward, String addressDetail) throws SQLException {
         return checkoutFromCart(userId, cartId, deliveryMethod, deliveryPrice,
-                receiverName, receiverPhone, province, district, ward, addressDetail, 3, null, null);
+                receiverName, receiverPhone, province, district, ward, addressDetail, 3, null, null, null);
     }
 
     /**
@@ -310,7 +319,7 @@ public class CheckoutService {
 
         return checkoutFromCart(userId, cartId, (int) shippingInfo.getMethodId(), shippingInfo.getShippingFee(),
                 receiverName, receiverPhone, province, district, ward, addressDetail,
-                shippingInfo.getEstimatedDaysMax(),null ,null);
+                shippingInfo.getEstimatedDaysMax(),null ,null, null);
     }
     public boolean hasEnoughQty(long cartId) {
         Cart cart = cartDAO.getById(cartId);

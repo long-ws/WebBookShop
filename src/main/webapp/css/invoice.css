@@ -142,6 +142,9 @@ body {
 }
 .status-badge.paid { background: #d1e7dd; color: #0f5132; }
 .status-badge.pending { background: #fff3cd; color: #664d03; }
+.info-row.note-row { background: #fff8e1; padding: 6px; border-radius: 4px; margin-top: 6px; }
+.info-row.note-row .info-label { color: #f57c00; }
+.info-value.note-value { color: #e65100; font-style: italic; }
 
 /* Bảng sản phẩm */
 .section-title {
