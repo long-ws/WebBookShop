@@ -7,6 +7,7 @@ import beans.Cart;
 import beans.CartItem;
 import beans.User;
 import beans.vnpay.Payment;
+import constants.SessionConstants;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -22,14 +23,15 @@ public class CartServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
 	private final CheckoutService checkoutService = new CheckoutService();
-	private final PaymentService  paymentService = new PaymentService();
+	private final PaymentService paymentService = new PaymentService();
 	private final CartService cartService = new CartService();
+
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
 		HttpSession session = request.getSession();
-		User user = (User) session.getAttribute("currentUser");
+		User user = (User) session.getAttribute(SessionConstants.CURRENT_USER);
 
 		try {
 			if (user != null) {
@@ -38,7 +40,8 @@ public class CartServlet extends HttpServlet {
 					request.setAttribute("cartItems", cart.getCartItems());
 					request.setAttribute("cartId", cart.getId());
 				}
-				
+
+				// Cap nhat cartCount vao session
 				int cartCount = cartService.countCartItemQuantityByUserId(user.getId());
 				session.setAttribute("cartCount", cartCount);
 			}
@@ -67,9 +70,10 @@ public class CartServlet extends HttpServlet {
 		});
 
 		HttpSession session = request.getSession();
-		User user = (User) session.getAttribute("currentUser");
+		User user = (User) session.getAttribute(SessionConstants.CURRENT_USER);
 
-		System.out.println("[CartServlet] User from session: " + (user != null ? user.getId() + " - " + user.getEmail() : "NULL"));
+		System.out.println(
+				"[CartServlet] User from session: " + (user != null ? user.getId() + " - " + user.getEmail() : "NULL"));
 
 		if (user == null) {
 			System.out.println("[CartServlet] User not logged in, redirecting to signin");
@@ -107,7 +111,11 @@ public class CartServlet extends HttpServlet {
 			}
 
 			System.out.println("[CartServlet] cartId parsed successfully: " + cartId);
-
+			if (checkoutService.hasEnoughQty(cartId)) {
+				session.setAttribute("errorMessage", "Đặt hàng thất bại, sản phấm hết hàng!");
+				response.sendRedirect(request.getContextPath() + "/cart");
+				return;
+			}
 			int deliveryMethod = 2;
 			if (deliveryMethodStr != null && !deliveryMethodStr.trim().isEmpty()) {
 				deliveryMethod = convertServiceTypeToMethodId(Integer.parseInt(deliveryMethodStr.trim()));
@@ -135,7 +143,8 @@ public class CartServlet extends HttpServlet {
 					estimatedDays = 3;
 				}
 			}
-			
+
+			// Lấy thông tin từ form
 			String receiverName = user.getProfile() != null ? user.getProfile().getFullname() : "Khach hang";
 			String receiverPhone = user.getProfile() != null ? user.getProfile().getPhoneNumber() : "";
 			String province = request.getParameter("provinceName");
@@ -143,6 +152,7 @@ public class CartServlet extends HttpServlet {
 			String ward = request.getParameter("wardName");
 			String addressDetail = request.getParameter("addressDetailHidden");
 
+			// Fallback nếu hidden field trống
 			if (province == null || province.trim().isEmpty()) {
 				province = request.getParameter("province");
 			}
@@ -156,6 +166,7 @@ public class CartServlet extends HttpServlet {
 				addressDetail = request.getParameter("addressDetail");
 			}
 
+			// Đảm bảo không null
 			province = province != null ? province.trim() : "";
 			district = district != null ? district.trim() : "";
 			ward = ward != null ? ward.trim() : "";
@@ -171,42 +182,56 @@ public class CartServlet extends HttpServlet {
 			System.out.println("  ward: '" + ward + "'");
 			System.out.println("  addressDetail: '" + addressDetail + "'");
 
+			String finalVoucherIdStr = request.getParameter("finalVoucherId");
+			String finalShipVoucherIdStr = request.getParameter("finalShipVoucherId");
+			Long finalVoucherId = null;
+			Long finalShipVoucherId = null;
+			if (finalVoucherIdStr != null && !finalVoucherIdStr.trim().isEmpty()) {
+				try {
+					finalVoucherId = Long.parseLong(finalVoucherIdStr.trim());
+				} catch (NumberFormatException e) {
+					finalVoucherId = null;
+				}
+			}
+			if (finalShipVoucherIdStr != null && !finalShipVoucherIdStr.trim().isEmpty()) {
+				try {
+					finalShipVoucherId = Long.parseLong(finalShipVoucherIdStr.trim());
+				} catch (NumberFormatException e) {
+					finalShipVoucherId = null;
+				}
+			}
 			System.out.println("[CartServlet] Calling checkoutService.checkoutFromCart...");
 			Payment p = checkoutService.checkoutFromCart(user.getId(), cartId, deliveryMethod, deliveryPrice,
-				receiverName, receiverPhone, province, district, ward, addressDetail, estimatedDays);
-			System.out.println("[CartServlet] Order created - orderId: " + p.getOrderId() +
-				", paymentRef: " + p.getVnpTxnRef());
+					receiverName, receiverPhone, province, district, ward, addressDetail, estimatedDays, finalVoucherId,
+					finalShipVoucherId, request.getParameter("customerNote"));
+			System.out.println(
+					"[CartServlet] Order created - orderId: " + p.getOrderId() + ", paymentRef: " + p.getVnpTxnRef());
 
-            System.out.println("[CartServlet] Creating payment record...");
-            boolean paymentCreated = paymentService.createPayment(p);
-            System.out.println("[CartServlet] Payment created: " + paymentCreated);
-			long cartId = Long.parseLong(request.getParameter("cartId"));
-            if(checkoutService.hasEnoughQty(cartId)){
-                session.setAttribute("errorMessage", "Đặt hàng thất bại, sản phấm hết hàng!");
-                response.sendRedirect(request.getContextPath() + "/cart");
-                return;
-            }
-			int deliveryMethod = Integer.parseInt(request.getParameter("deliveryMethod"));
-			double deliveryPrice = Double.parseDouble(request.getParameter("deliveryPrice"));
+			System.out.println("[CartServlet] Creating payment record...");
+			boolean paymentCreated = paymentService.createPayment(p);
+			System.out.println("[CartServlet] Payment created: " + paymentCreated);
 
-            session.setAttribute("latestPayment", p);
-            session.setAttribute("latestOrderId", p.getOrderId());
-            session.setAttribute("cartCount", 0);
-            session.setAttribute("checkoutSuccess", true);
+			// Lưu vào session
+			session.setAttribute("latestPayment", p);
+			session.setAttribute("latestOrderId", p.getOrderId());
+			session.setAttribute("cartCount", 0);
+			session.setAttribute("checkoutSuccess", true);
 
-            System.out.println("[CartServlet] Redirecting to checkoutSuccess with orderId: " + p.getOrderId());
-            System.out.println("========== [CartServlet] END ==========");
+			System.out.println("[CartServlet] Redirecting to checkoutSuccess with orderId: " + p.getOrderId());
+			System.out.println("========== [CartServlet] END ==========");
 
-            response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/checkoutSuccess?orderId=" + p.getOrderId()));
-            return;
+			// Redirect đến trang checkoutSuccess với orderId trong URL
+			response.sendRedirect(response
+					.encodeRedirectURL(request.getContextPath() + "/checkoutSuccess?orderId=" + p.getOrderId()));
+			return;
 
-        } catch (NumberFormatException e) {
+		} catch (NumberFormatException e) {
 			System.out.println("[CartServlet] NumberFormatException: " + e.getMessage());
 			e.printStackTrace();
 			session.setAttribute("errorMessage", "Dữ liệu không hợp lệ: " + e.getMessage());
 			response.sendRedirect(request.getContextPath() + "/cart");
 			return;
-        } catch (Exception e) {
+		} catch (Exception e) {
 			System.out.println("[CartServlet] Exception: " + e.getMessage());
 			e.printStackTrace();
 			session.setAttribute("errorMessage", "Đặt hàng thất bại: " + e.getMessage());
@@ -215,12 +240,17 @@ public class CartServlet extends HttpServlet {
 		}
 	}
 
+	/**
+	 * Convert GHN service_type_id sang shipping_method_id trong database GHN:
+	 * service_type_id = 2 (nhanh), service_type_id = 1 (tieu chuan) DB:
+	 * shipping_method_id = 1 (nhanh), shipping_method_id = 2 (tieu chuan)
+	 */
 	private int convertServiceTypeToMethodId(int serviceTypeId) {
 		if (serviceTypeId == 2) {
-			return 1; 
+			return 1; // GHN nhanh -> DB method 1 (nhanh)
 		} else if (serviceTypeId == 1) {
-			return 2; 
+			return 2; // GHN tieu chuan -> DB method 2 (tieu chuan)
 		}
-		return serviceTypeId; 
+		return serviceTypeId; // fallback
 	}
 }
