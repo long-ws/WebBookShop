@@ -10,7 +10,6 @@ import beans.user.UserAccount;
 import beans.user.UserLocalAuth;
 import beans.user.UserOAuthAuth;
 import beans.user.UserProfile;
-import constants.FormConstants;
 import constants.RequestParamConstants;
 import constants.SystemConstants;
 import dto.user.LocalUserRegistrationRequest;
@@ -173,7 +172,7 @@ public class UserRegistrationServiceImpl implements UserRegistrationService {
 			} else if (message.contains("username")) {
 				errors.put(RequestParamConstants.User.USERNAME, "Tên đăng nhập đã tồn tại.");
 			} else {
-				errors.put(FormConstants.ERROR_GLOBAL, "Dữ liệu bạn nhập đã tồn tại trong hệ thống.");
+				errors.put(SystemConstants.ERROR_GLOBAL, "Dữ liệu bạn nhập đã tồn tại trong hệ thống.");
 			}
 			throw new BusinessException(errors);
 		}

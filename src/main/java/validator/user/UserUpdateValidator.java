@@ -1,7 +1,7 @@
 package validator.user;
 
 import constants.RequestParamConstants;
-import constants.UserConstants;
+import constants.SystemConstants;
 import dto.user.UserUpdateRequest;
 import validator.core.BaseValidator;
 import validator.core.ValidationResult;
@@ -31,11 +31,11 @@ public class UserUpdateValidator extends BaseValidator<UserUpdateRequest> {
 		if (password != null && !password.trim().isEmpty()) {
 			if (!password.equals(password.trim())) {
 				result.addError(RequestParamConstants.User.PASSWORD, "Mật khẩu không có dấu cách ở hai đầu");
-			} else if (password.length() < UserConstants.Validation.PASSWORD_MIN_LENGTH) {
+			} else if (password.length() < SystemConstants.Validation.PASSWORD_MIN_LENGTH) {
 				result.addError(RequestParamConstants.User.PASSWORD,
-						"Mật khẩu phải có ít nhất " + UserConstants.Validation.PASSWORD_MIN_LENGTH + " ký tự");
-			} else if (password.length() > UserConstants.Validation.PASSWORD_MAX_LENGTH) {
-				result.addError(RequestParamConstants.User.PASSWORD, "Mật khẩu tối đa " + UserConstants.Validation.PASSWORD_MAX_LENGTH + " ký tự");
+						"Mật khẩu phải có ít nhất " + SystemConstants.Validation.PASSWORD_MIN_LENGTH + " ký tự");
+			} else if (password.length() > SystemConstants.Validation.PASSWORD_MAX_LENGTH) {
+				result.addError(RequestParamConstants.User.PASSWORD, "Mật khẩu tối đa " + SystemConstants.Validation.PASSWORD_MAX_LENGTH + " ký tự");
 			} else {
 				boolean hasUppercase = !password.equals(password.toLowerCase());
 				boolean hasLowercase = !password.equals(password.toUpperCase());
@@ -52,8 +52,8 @@ public class UserUpdateValidator extends BaseValidator<UserUpdateRequest> {
 
 		String phone = dto.getPhoneNumber();
 		if (phone != null && !phone.trim().isEmpty()) {
-			if (!phone.matches("^\\d{" + UserConstants.Validation.PHONE_MIN_LENGTH + ","
-					+ UserConstants.Validation.PHONE_MAX_LENGTH + "}$")) {
+			if (!phone.matches("^\\d{" + SystemConstants.Validation.PHONE_MIN_LENGTH + ","
+					+ SystemConstants.Validation.PHONE_MAX_LENGTH + "}$")) {
 				result.addError(RequestParamConstants.User.PHONE_NUMBER, "Số điện thoại không hợp lệ");
 			}
 		}

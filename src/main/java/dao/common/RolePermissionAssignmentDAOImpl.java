@@ -1,18 +1,20 @@
 package dao.common;
 
 import static config.DatabaseConstants.COL_CREATED_AT;
+import static config.DatabaseConstants.COL_ID;
+import static config.DatabaseConstants.COL_PERMISSION_CODE;
+import static config.DatabaseConstants.COL_PERMISSION_ID;
+import static config.DatabaseConstants.COL_PERMISSION_IS_ACTIVE;
+import static config.DatabaseConstants.COL_ROLE_ID;
+import static config.DatabaseConstants.COL_ROLE_IS_ACTIVE;
 import static config.DatabaseConstants.COL_ROLE_PERMISSION_IS_ACTIVE;
 import static config.DatabaseConstants.COL_ROLE_PERMISSION_PERMISSION_ID;
 import static config.DatabaseConstants.COL_ROLE_PERMISSION_ROLE_ID;
-import static config.DatabaseConstants.TABLE_ROLE_PERMISSION_ASSIGNMENT;
-import static config.DatabaseConstants.TABLE_USER_ROLE_REGISTRY;
-import static config.DatabaseConstants.COL_PERMISSION_CODE;
-import static config.DatabaseConstants.COL_PERMISSION_IS_ACTIVE;
-import static config.DatabaseConstants.COL_ROLE_ID;
-import static config.DatabaseConstants.TABLE_PERMISSION_REGISTRY;
-import static config.DatabaseConstants.COL_PERMISSION_ID;
-import static config.DatabaseConstants.COL_ID;
 import static config.DatabaseConstants.COL_USER_ID;
+import static config.DatabaseConstants.TABLE_PERMISSION_REGISTRY;
+import static config.DatabaseConstants.TABLE_ROLE_PERMISSION_ASSIGNMENT;
+import static config.DatabaseConstants.TABLE_ROLE_REGISTRY;
+import static config.DatabaseConstants.TABLE_USER_ROLE_REGISTRY;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -43,40 +45,54 @@ public class RolePermissionAssignmentDAOImpl implements RolePermissionAssignment
 			""".formatted(TABLE_ROLE_PERMISSION_ASSIGNMENT, COL_ROLE_PERMISSION_ROLE_ID);
 
 	private static final String SQL_GET_PERMISSION_IDS = """
-			SELECT %s FROM %s
-			WHERE %s = ? AND %s = 1
-			""".formatted(COL_ROLE_PERMISSION_PERMISSION_ID, TABLE_ROLE_PERMISSION_ASSIGNMENT, COL_ROLE_PERMISSION_ROLE_ID, COL_ROLE_PERMISSION_IS_ACTIVE);
+			SELECT rpa.%s FROM %s rpa
+			JOIN %s p ON rpa.%s = p.%s
+			WHERE rpa.%s = ? AND rpa.%s = 1 AND p.%s = 1
+			""".formatted(COL_ROLE_PERMISSION_PERMISSION_ID, TABLE_ROLE_PERMISSION_ASSIGNMENT, TABLE_PERMISSION_REGISTRY, COL_ROLE_PERMISSION_PERMISSION_ID, COL_ID, COL_ROLE_PERMISSION_ROLE_ID,
+			COL_ROLE_PERMISSION_IS_ACTIVE, COL_PERMISSION_IS_ACTIVE);
 
 	private static final String SQL_GET_ROLE_IDS = """
-			SELECT %s FROM %s
-			WHERE %s = ? AND %s = 1
-			""".formatted(COL_ROLE_PERMISSION_ROLE_ID, TABLE_ROLE_PERMISSION_ASSIGNMENT, COL_ROLE_PERMISSION_PERMISSION_ID, COL_ROLE_PERMISSION_IS_ACTIVE);
+			SELECT rpa.%s FROM %s rpa
+			JOIN %s r ON rpa.%s = r.%s
+			WHERE rpa.%s = ? AND rpa.%s = 1 AND r.%s = 1
+			""".formatted(COL_ROLE_PERMISSION_ROLE_ID, TABLE_ROLE_PERMISSION_ASSIGNMENT, TABLE_ROLE_REGISTRY, COL_ROLE_PERMISSION_ROLE_ID, COL_ID, COL_ROLE_PERMISSION_PERMISSION_ID,
+			COL_ROLE_PERMISSION_IS_ACTIVE, COL_ROLE_IS_ACTIVE);
 
 	private static final String SQL_HAS_PERMISSION_ID = """
-			SELECT COUNT(*) FROM %s
-			WHERE %s = ? AND %s = ? AND %s = 1
-			""".formatted(TABLE_ROLE_PERMISSION_ASSIGNMENT, COL_ROLE_PERMISSION_ROLE_ID, COL_ROLE_PERMISSION_PERMISSION_ID, COL_ROLE_PERMISSION_IS_ACTIVE);
+			SELECT COUNT(*) FROM %s rpa
+			JOIN %s r ON rpa.%s = r.%s
+			JOIN %s p ON rpa.%s = p.%s
+			WHERE rpa.%s = ? AND rpa.%s = ? AND rpa.%s = 1 AND r.%s = 1 AND p.%s = 1
+			""".formatted(TABLE_ROLE_PERMISSION_ASSIGNMENT, TABLE_ROLE_REGISTRY, COL_ROLE_PERMISSION_ROLE_ID, COL_ID, TABLE_PERMISSION_REGISTRY, COL_ROLE_PERMISSION_PERMISSION_ID, COL_ID,
+			COL_ROLE_PERMISSION_ROLE_ID, COL_ROLE_PERMISSION_PERMISSION_ID, COL_ROLE_PERMISSION_IS_ACTIVE, COL_ROLE_IS_ACTIVE, COL_PERMISSION_IS_ACTIVE);
 
 	private static final String SQL_GET_ALL_MAPPINGS = """
-			SELECT %s, %s FROM %s
-			WHERE %s = 1 ORDER BY %s
-			""".formatted(COL_ROLE_PERMISSION_ROLE_ID, COL_ROLE_PERMISSION_PERMISSION_ID, TABLE_ROLE_PERMISSION_ASSIGNMENT, COL_ROLE_PERMISSION_IS_ACTIVE, COL_ROLE_PERMISSION_ROLE_ID);
+			SELECT rpa.%s, rpa.%s FROM %s rpa
+			JOIN %s r ON rpa.%s = r.%s
+			JOIN %s p ON rpa.%s = p.%s
+			WHERE rpa.%s = 1 AND r.%s = 1 AND p.%s = 1
+			ORDER BY rpa.%s
+			""".formatted(COL_ROLE_PERMISSION_ROLE_ID, COL_ROLE_PERMISSION_PERMISSION_ID, TABLE_ROLE_PERMISSION_ASSIGNMENT, TABLE_ROLE_REGISTRY, COL_ROLE_PERMISSION_ROLE_ID, COL_ID,
+			TABLE_PERMISSION_REGISTRY, COL_ROLE_PERMISSION_PERMISSION_ID, COL_ID, COL_ROLE_PERMISSION_IS_ACTIVE, COL_ROLE_IS_ACTIVE, COL_PERMISSION_IS_ACTIVE, COL_ROLE_PERMISSION_ROLE_ID);
 
 	private static final String SQL_USER_HAS_PERMISSION = """
 			SELECT 1 FROM %s ur
+			JOIN %s r ON ur.%s = r.%s
 			JOIN %s rpa ON ur.%s = rpa.%s
 			JOIN %s p ON rpa.%s = p.%s
-			WHERE ur.%s = ? AND p.%s = ? AND p.%s = 1
+			WHERE ur.%s = ? AND p.%s = ? AND r.%s = 1 AND rpa.%s = 1 AND p.%s = 1
 			LIMIT 1
-			""".formatted(TABLE_USER_ROLE_REGISTRY, TABLE_ROLE_PERMISSION_ASSIGNMENT, COL_ROLE_ID, COL_ROLE_ID, TABLE_PERMISSION_REGISTRY, COL_PERMISSION_ID, COL_ID, COL_USER_ID, COL_PERMISSION_CODE,
-			COL_PERMISSION_IS_ACTIVE);
+			""".formatted(TABLE_USER_ROLE_REGISTRY, TABLE_ROLE_REGISTRY, COL_ROLE_ID, COL_ID, TABLE_ROLE_PERMISSION_ASSIGNMENT, COL_ROLE_ID, COL_ROLE_ID, TABLE_PERMISSION_REGISTRY, COL_PERMISSION_ID,
+			COL_ID, COL_USER_ID, COL_PERMISSION_CODE, COL_ROLE_IS_ACTIVE, COL_ROLE_PERMISSION_IS_ACTIVE, COL_PERMISSION_IS_ACTIVE);
 
 	private static final String SQL_EXISTS_PERMISSION = """
 			SELECT 1 FROM %s rpa
+			JOIN %s r ON rpa.%s = r.%s
 			JOIN %s p ON rpa.%s = p.%s
-			WHERE rpa.%s = ? AND p.%s = ?
+			WHERE rpa.%s = ? AND p.%s = ? AND rpa.%s = 1 AND r.%s = 1 AND p.%s = 1
 			LIMIT 1
-			""".formatted(TABLE_ROLE_PERMISSION_ASSIGNMENT, TABLE_PERMISSION_REGISTRY, COL_PERMISSION_ID, COL_ID, COL_ROLE_ID, COL_PERMISSION_CODE);
+			""".formatted(TABLE_ROLE_PERMISSION_ASSIGNMENT, TABLE_ROLE_REGISTRY, COL_ROLE_ID, COL_ID, TABLE_PERMISSION_REGISTRY, COL_PERMISSION_ID, COL_ID, COL_ROLE_ID, COL_PERMISSION_CODE,
+			COL_ROLE_PERMISSION_IS_ACTIVE, COL_ROLE_IS_ACTIVE, COL_PERMISSION_IS_ACTIVE);
 
 	@Override
 	public void assign(Connection conn, int roleId, int permissionId) throws SQLException {
@@ -180,7 +196,12 @@ public class RolePermissionAssignmentDAOImpl implements RolePermissionAssignment
 			while (rs.next()) {
 				int roleId = rs.getInt(COL_ROLE_PERMISSION_ROLE_ID);
 				int permissionId = rs.getInt(COL_ROLE_PERMISSION_PERMISSION_ID);
-				result.computeIfAbsent(roleId, k -> new ArrayList<>()).add(permissionId);
+				List<Integer> list = result.get(roleId);
+				if (list == null) {
+					list = new ArrayList<>();
+					result.put(roleId, list);
+				}
+				list.add(permissionId);
 			}
 		}
 		return result;
@@ -196,15 +217,15 @@ public class RolePermissionAssignmentDAOImpl implements RolePermissionAssignment
 			}
 		}
 	}
-	
+
 	@Override
 	public boolean exists(Connection conn, int roleId, String permissionCode) throws SQLException {
-	    try (PreparedStatement ps = conn.prepareStatement(SQL_EXISTS_PERMISSION)) {
-	        ps.setInt(1, roleId);
-	        ps.setString(2, permissionCode);
-	        try (ResultSet rs = ps.executeQuery()) {
-	            return rs.next(); // Nếu tồn tại 1 dòng thì quyền hợp lệ
-	        }
-	    }
+		try (PreparedStatement ps = conn.prepareStatement(SQL_EXISTS_PERMISSION)) {
+			ps.setInt(1, roleId);
+			ps.setString(2, permissionCode);
+			try (ResultSet rs = ps.executeQuery()) {
+				return rs.next(); // Nếu tồn tại 1 dòng thì quyền hợp lệ
+			}
+		}
 	}
 }

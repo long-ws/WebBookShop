@@ -7,8 +7,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import beans.User;
-import constants.FormConstants;
 import constants.RequestParamConstants;
+import constants.SystemConstants;
 import dto.user.ChangePasswordRequest;
 import dto.user.ResetPasswordRequest;
 import exception.BusinessException;
@@ -45,6 +45,10 @@ public class PasswordServiceImpl implements PasswordService {
 
 	@Override
 	public void changePassword(final Connection conn, final long userId, final ChangePasswordRequest request) throws BusinessException {
+		if (SystemConstants.Security.isSuperAdminUserId(userId) || SystemConstants.Security.isSystemGhostUserId(userId)) {
+			throw new BusinessException(SystemConstants.ERROR_GLOBAL, "Không thể thao tác trên tài khoản hệ thống.");
+		}
+		
 		final Map<String, String> errors = new HashMap<>();
 		validateInputFormat(request, errors);
 		User user = validateBusinessLogic(conn, userId, request, errors);
@@ -67,7 +71,7 @@ public class PasswordServiceImpl implements PasswordService {
 		try (Connection readConn = DBConnection.getConnection()) {
 			final Optional<User> userOptional = userRepository.findById(readConn, userId);
 			if (!userOptional.isPresent()) {
-				errors.put(FormConstants.ERROR_GLOBAL, "Tài khoản cần đặt lại mật khẩu không tồn tại.");
+				errors.put(SystemConstants.ERROR_GLOBAL, "Tài khoản cần đặt lại mật khẩu không tồn tại.");
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -111,13 +115,13 @@ public class PasswordServiceImpl implements PasswordService {
 			final Optional<User> userOptional = userRepository.findById(conn, userId);
 
 			if (!userOptional.isPresent()) {
-				errors.put(FormConstants.ERROR_GLOBAL, "Tài khoản không tồn tại trên hệ thống.");
+				errors.put(SystemConstants.ERROR_GLOBAL, "Tài khoản không tồn tại trên hệ thống.");
 			} else {
 				user = userOptional.get();
 				final String passwordHash = user.getPasswordHash();
 
 				if (passwordHash == null) {
-					errors.put(FormConstants.ERROR_GLOBAL, "Tài khoản này chưa được cấu hình mật khẩu hệ thống.");
+					errors.put(SystemConstants.ERROR_GLOBAL, "Tài khoản này chưa được cấu hình mật khẩu hệ thống.");
 				} else {
 					final boolean isPasswordValid = passwordEncoder.matches(request.getCurrentPassword(), passwordHash);
 					if (!isPasswordValid) {

@@ -26,8 +26,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 		this(new AuthorizationRepositoryImpl(), new PermissionDAOImpl(), new RoleDAOImpl());
 	}
 
-	public AuthorizationServiceImpl(AuthorizationRepository authorizationRepository, PermissionDAO permissionDAO,
-			RoleDAO roleDAO) {
+	public AuthorizationServiceImpl(AuthorizationRepository authorizationRepository, PermissionDAO permissionDAO, RoleDAO roleDAO) {
 		this.authorizationRepository = authorizationRepository;
 		this.permissionDAO = permissionDAO;
 		this.roleDAO = roleDAO;
@@ -98,6 +97,10 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 		if (isSuperAdmin(conn, userId)) {
 			return true;
 		}
+		final String requiredViewPermission = resolveRequiredViewPermission(permissionCode);
+		if (requiredViewPermission != null && !authorizationRepository.userHasPermission(conn, userId, requiredViewPermission)) {
+			return false;
+		}
 		return authorizationRepository.userHasPermission(conn, userId, permissionCode);
 	}
 
@@ -106,7 +109,15 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 		if (isSuperAdmin(conn, userId)) {
 			return true;
 		}
-		return authorizationRepository.userHasAnyPermission(conn, userId, permissionCodes);
+		if (permissionCodes == null || permissionCodes.isEmpty()) {
+			return false;
+		}
+		for (String permissionCode : permissionCodes) {
+			if (hasPermission(conn, userId, permissionCode)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override
@@ -133,13 +144,11 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 				}
 			}
 			activePermissions.sort((a, b) -> {
-				int moduleCompare = (a.getModule() == null ? "" : a.getModule())
-						.compareToIgnoreCase(b.getModule() == null ? "" : b.getModule());
+				int moduleCompare = (a.getModule() == null ? "" : a.getModule()).compareToIgnoreCase(b.getModule() == null ? "" : b.getModule());
 				if (moduleCompare != 0) {
 					return moduleCompare;
 				}
-				return (a.getCode() == null ? "" : a.getCode())
-						.compareToIgnoreCase(b.getCode() == null ? "" : b.getCode());
+				return (a.getCode() == null ? "" : a.getCode()).compareToIgnoreCase(b.getCode() == null ? "" : b.getCode());
 			});
 			return activePermissions;
 		}
@@ -160,5 +169,21 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 			return activeRoles;
 		}
 		return authorizationRepository.findRolesByUserId(conn, userId);
+	}
+
+	private String resolveRequiredViewPermission(String permissionCode) {
+		if (permissionCode == null || permissionCode.isBlank()) {
+			return null;
+		}
+		final int dotIndex = permissionCode.lastIndexOf('.');
+		if (dotIndex <= 0 || dotIndex >= permissionCode.length() - 1) {
+			return null;
+		}
+		final String action = permissionCode.substring(dotIndex + 1);
+		if ("view".equals(action)) {
+			return null;
+		}
+		final String module = permissionCode.substring(0, dotIndex);
+		return module + ".view";
 	}
 }

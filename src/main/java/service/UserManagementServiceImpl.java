@@ -9,13 +9,16 @@ import java.util.Map;
 import java.util.Optional;
 
 import beans.User;
-import constants.FormConstants;
+import beans.common.Role;
 import constants.RequestParamConstants;
+import constants.SystemConstants;
 import dao.common.LanguageDAO;
 import dao.common.LanguageDAOImpl;
-import dto.user.UserManageResponse;
+import dao.common.RoleDAO;
+import dao.common.RoleDAOImpl;
 import dto.user.UserCreateRequest;
 import dto.user.UserDetailResponse;
+import dto.user.UserManageResponse;
 import dto.user.UserUpdateRequest;
 import exception.BusinessException;
 import mapper.user.UserMapper;
@@ -23,6 +26,7 @@ import repository.UserRepository;
 import repository.UserRepositoryImpl;
 import service.user.UserLanguageResolver;
 import utils.BCryptPasswordEncoder;
+import utils.DBConnection;
 import utils.DbTransaction;
 import utils.PasswordEncoder;
 import utils.TransactionCallback;
@@ -84,7 +88,21 @@ public class UserManagementServiceImpl implements UserManagementService {
 			errors.putAll(validationResult.getErrors());
 		}
 
-		try (Connection readConn = utils.DBConnection.getConnection()) {
+		try (Connection readConn = DBConnection.getConnection()) {
+			if (SystemConstants.Security.isSuperAdminUsername(dto.getUsername())) {
+				errors.put(RequestParamConstants.User.USERNAME, "Tên đăng nhập này được bảo vệ bởi hệ thống.");
+			}
+
+			if (dto.getRole() != null && dto.getRole().getCode() != null && !dto.getRole().getCode().isBlank()) {
+				final RoleDAO roleDAO = new RoleDAOImpl();
+				final Optional<Role> roleOpt = roleDAO.findByCode(readConn, dto.getRole().getCode().trim());
+				if (roleOpt.isEmpty()) {
+					errors.put(RequestParamConstants.User.ROLE, "Vai trò không tồn tại.");
+				} else if (roleOpt.get().isSystem()) {
+					errors.put(RequestParamConstants.User.ROLE, "Không được phép gán vai trò hệ thống.");
+				}
+			}
+
 			if (userRepository.existUserByUsername(readConn, dto.getUsername())) {
 				errors.put(RequestParamConstants.User.USERNAME, "Tên đăng nhập đã tồn tại!");
 			}
@@ -129,12 +147,16 @@ public class UserManagementServiceImpl implements UserManagementService {
 			errors.put(RequestParamConstants.ID, "Yêu cầu user id");
 		}
 
+		if (dto.getId() != null && SystemConstants.Security.isSystemGhostUserId(dto.getId())) {
+			errors.put(SystemConstants.ERROR_GLOBAL, "Không thể cập nhật tài khoản hệ thống.");
+		}
+
 		if (!errors.isEmpty()) {
 			throw new BusinessException(errors);
 		}
 
 		final User existing;
-		try (Connection readConn = utils.DBConnection.getConnection()) {
+		try (Connection readConn = DBConnection.getConnection()) {
 			final Optional<User> emailOwnerOptional = userRepository.findByEmail(readConn, dto.getEmail());
 			if (emailOwnerOptional.isPresent()) {
 				final User emailOwner = emailOwnerOptional.get();
@@ -145,11 +167,11 @@ public class UserManagementServiceImpl implements UserManagementService {
 
 			final Optional<User> existingOptional = userRepository.findById(readConn, dto.getId());
 			if (!existingOptional.isPresent()) {
-				errors.put(FormConstants.ERROR_GLOBAL, "Người dùng không tồn tại trên hệ thống");
+				errors.put(SystemConstants.ERROR_GLOBAL, "Người dùng không tồn tại trên hệ thống");
 			} else {
 				final User user = existingOptional.get();
 				if (user.getRole() != null && user.getRole().isSystem()) {
-					errors.put(FormConstants.ERROR_GLOBAL, "Không thể cập nhật người dùng có vai trò hệ thống");
+					errors.put(SystemConstants.ERROR_GLOBAL, "Không thể cập nhật người dùng có vai trò hệ thống");
 				}
 			}
 
@@ -158,6 +180,24 @@ public class UserManagementServiceImpl implements UserManagementService {
 			}
 
 			existing = existingOptional.get();
+
+			if (SystemConstants.Security.isSuperAdminUsername(dto.getUsername()) && !SystemConstants.Security.isSuperAdminUsername(existing.getUsername())) {
+				errors.put(RequestParamConstants.User.USERNAME, "Tên đăng nhập này được bảo vệ bởi hệ thống.");
+				throw new BusinessException(errors);
+			}
+
+			if (dto.getRole() != null && dto.getRole().getCode() != null && !dto.getRole().getCode().isBlank()) {
+				final RoleDAO roleDAO = new RoleDAOImpl();
+				final Optional<beans.common.Role> roleOpt = roleDAO.findByCode(readConn, dto.getRole().getCode().trim());
+				if (roleOpt.isEmpty()) {
+					errors.put(RequestParamConstants.User.ROLE, "Vai trò không tồn tại.");
+					throw new BusinessException(errors);
+				}
+				if (roleOpt.get().isSystem()) {
+					errors.put(RequestParamConstants.User.ROLE, "Không được phép gán vai trò hệ thống.");
+					throw new BusinessException(errors);
+				}
+			}
 		} catch (SQLException e) {
 			throw new BusinessException("Lỗi hệ thống khi đọc dữ liệu: " + e.getMessage());
 		}
@@ -170,7 +210,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 		final User user = userMapper.toEntity(dto, existing, newPasswordHash);
 
 		try {
-			DbTransaction.runVoid(new utils.TransactionCallback<Void>() {
+			DbTransaction.runVoid(new TransactionCallback<Void>() {
 				@Override
 				public Void doInTransaction(Connection writeConn) throws SQLException {
 					languageResolver.resolve(writeConn, user, existing);
@@ -191,8 +231,11 @@ public class UserManagementServiceImpl implements UserManagementService {
 			return false;
 		}
 
-		try (Connection readConn = utils.DBConnection.getConnection()) {
+		try (Connection readConn = DBConnection.getConnection()) {
 			for (final Long id : ids) {
+				if (id != null && SystemConstants.Security.isSystemGhostUserId(id)) {
+					throw new BusinessException("Không thể xóa tài khoản hệ thống.");
+				}
 				final Optional<User> userOptional = userRepository.findById(readConn, id);
 				if (userOptional.isPresent()) {
 					final User user = userOptional.get();
@@ -219,7 +262,10 @@ public class UserManagementServiceImpl implements UserManagementService {
 
 	@Override
 	public UserDetailResponse getUserById(long id) {
-		try (Connection conn = utils.DBConnection.getConnection()) {
+		if (SystemConstants.Security.isSystemGhostUserId(id)) {
+			return null;
+		}
+		try (Connection conn = DBConnection.getConnection()) {
 			Optional<User> userOptional = userRepository.findById(conn, id);
 			if (userOptional.isPresent()) {
 				User user = userOptional.get();
@@ -233,7 +279,10 @@ public class UserManagementServiceImpl implements UserManagementService {
 
 	@Override
 	public User getById(long id) {
-		try (Connection conn = utils.DBConnection.getConnection()) {
+		if (SystemConstants.Security.isSystemGhostUserId(id)) {
+			return null;
+		}
+		try (Connection conn = DBConnection.getConnection()) {
 			Optional<User> userOptional = userRepository.findById(conn, id);
 			if (userOptional.isPresent()) {
 				return userOptional.get();
@@ -246,7 +295,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 
 	@Override
 	public List<UserManageResponse> getUsers() {
-		try (Connection conn = utils.DBConnection.getConnection()) {
+		try (Connection conn = DBConnection.getConnection()) {
 			List<User> users = userRepository.findAllUser(conn);
 			List<UserManageResponse> dtos = new ArrayList<>();
 			for (User user : users) {
@@ -260,7 +309,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 
 	@Override
 	public long countUsers() {
-		try (Connection conn = utils.DBConnection.getConnection()) {
+		try (Connection conn = DBConnection.getConnection()) {
 			return userRepository.count(conn);
 		} catch (SQLException e) {
 			throw new BusinessException("Lỗi database: " + e.getMessage());
@@ -269,7 +318,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 
 	@Override
 	public boolean isUsernameExists(String username) {
-		try (Connection conn = utils.DBConnection.getConnection()) {
+		try (Connection conn = DBConnection.getConnection()) {
 			return userRepository.existUserByUsername(conn, username);
 		} catch (SQLException e) {
 			throw new BusinessException("Lỗi database: " + e.getMessage());
@@ -278,7 +327,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 
 	@Override
 	public boolean isUsernameExists(String username, long excludeId) {
-		try (Connection conn = utils.DBConnection.getConnection()) {
+		try (Connection conn = DBConnection.getConnection()) {
 			return userRepository.existUserByUsername(conn, username, excludeId);
 		} catch (SQLException e) {
 			throw new BusinessException("Lỗi database: " + e.getMessage());
@@ -287,7 +336,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 
 	@Override
 	public boolean isEmailExists(String email) {
-		try (Connection conn = utils.DBConnection.getConnection()) {
+		try (Connection conn = DBConnection.getConnection()) {
 			return userRepository.existUserByEmail(conn, email);
 		} catch (SQLException e) {
 			throw new BusinessException("Lỗi database: " + e.getMessage());
@@ -296,7 +345,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 
 	@Override
 	public boolean isEmailExists(String email, long excludeId) {
-		try (Connection conn = utils.DBConnection.getConnection()) {
+		try (Connection conn = DBConnection.getConnection()) {
 			return userRepository.existUserByEmail(conn, email, excludeId);
 		} catch (SQLException e) {
 			throw new BusinessException("Lỗi database: " + e.getMessage());
@@ -305,7 +354,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 
 	@Override
 	public User getUserEntityByUsername(String username) {
-		try (Connection conn = utils.DBConnection.getConnection()) {
+		try (Connection conn = DBConnection.getConnection()) {
 			Optional<User> userOptional = userRepository.findByUsername(conn, username);
 			if (userOptional.isPresent()) {
 				return userOptional.get();

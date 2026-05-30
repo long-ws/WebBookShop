@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import beans.common.Role;
 import constants.RequestParamConstants;
 import exception.BusinessException;
 import helpers.MessageHelper;
@@ -29,8 +30,7 @@ public class DeleteRoleServlet extends HttpServlet {
 	}
 
 	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		final HttpSession session = request.getSession();
 		final String[] roleIds = request.getParameterValues(RequestParamConstants.Role.ROLE_IDS);
 		final List<Integer> idsToDelete = new ArrayList<>();
@@ -53,10 +53,19 @@ public class DeleteRoleServlet extends HttpServlet {
 		}
 
 		try {
+			List<String> deletedInfo = new ArrayList<>();
+			for (Integer id : idsToDelete) {
+				Role role = roleService.getById(id);
+				if (role != null) {
+					deletedInfo.add(id + " - " + role.getCode());
+				}
+			}
+
 			boolean success = roleService.deleteRoles(idsToDelete);
 			SessionPermissionCache.clear(session);
 			if (success) {
-				MessageHelper.setSuccessMessage(session, "Đã xóa vai trò");
+				String infoStr = String.join(", ", deletedInfo);
+				MessageHelper.setSuccessMessage(session, "Đã xóa vai trò: " + infoStr);
 			} else {
 				MessageHelper.setErrorMessage(session, "Không thể xóa vai trò (có thể là vai trò hệ thống)");
 			}

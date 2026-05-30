@@ -569,8 +569,7 @@ INSERT INTO language_registry (code, name, description) VALUES
 
 -- 8. Vai trò (Roles)
 INSERT INTO role_registry (id, code, name, description, is_system) VALUES
-(1, 'SUPER_ADMIN', 'Quản trị tối cao', 'Toàn quyền hệ thống', 1),
-(2, 'ADMIN', 'Quản lý', 'Quản lý trong phạm vi chi nhánh', 1),
+(2, 'ADMIN', 'Quản lý', 'Quản lý trong phạm vi chi nhánh', 0),
 (3, 'STAFF', 'Nhân viên', 'Người dùng vận hành hệ thống', 0),
 (4, 'CUSTOMER', 'Khách hàng', 'Người mua sắm trực tuyến', 0);
 
@@ -579,43 +578,41 @@ INSERT INTO permission_registry (code, name, description, module, is_system) VAL
 -- Role Module
 ('role.view', 'Xem role', 'Xem danh sách role', 'ROLE', 1),
 ('role.create', 'Tạo role', 'Tạo role mới', 'ROLE', 1),
-('role.edit', 'Sửa role', 'Sửa thông tin role', 'ROLE', 1),
+('role.update', 'Cập nhật role', 'Cập nhật thông tin role', 'ROLE', 1),
 ('role.delete', 'Xóa role', 'Xóa role', 'ROLE', 1),
-('role.manage', 'Quản lý role', 'Quản lý toàn bộ role', 'ROLE', 1),
 ('role.assign_permission', 'Gán permission', 'Gán permission cho role', 'ROLE', 1),
 
 -- Permission Module
 ('permission.view', 'Xem permission', 'Xem danh sách permission', 'PERMISSION', 1),
-('permission.manage', 'Quản lý permission', 'Quản lý toàn bộ permission', 'PERMISSION', 1),
+('permission.create', 'Tạo permission', 'Tạo permission mới', 'PERMISSION', 1),
+('permission.update', 'Cập nhật permission', 'Cập nhật thông tin permission', 'PERMISSION', 1),
+('permission.delete', 'Xóa permission', 'Xóa permission', 'PERMISSION', 1),
 
 -- Category Module
 ('category.view', 'Xem thể loại', 'Xem danh sách thể loại', 'CATEGORY', 1),
 ('category.create', 'Tạo thể loại', 'Tạo thể loại mới', 'CATEGORY', 1),
-('category.edit', 'Sửa thể loại', 'Sửa thông tin thể loại', 'CATEGORY', 1),
+('category.update', 'Cập nhật thể loại', 'Cập nhật thông tin thể loại', 'CATEGORY', 1),
 ('category.delete', 'Xóa thể loại', 'Xóa thể loại', 'CATEGORY', 1),
-('category.manage', 'Quản lý thể loại', 'Quản lý toàn bộ thể loại', 'CATEGORY', 1),
 
 -- User Module
 ('user.view', 'Xem user', 'Xem thông tin user', 'USER', 1),
+('user.detail', 'Xem chi tiết user', 'Xem chi tiết một user', 'USER', 1),
 ('user.create', 'Tạo user', 'Tạo user mới', 'USER', 1),
-('user.edit', 'Sửa user', 'Sửa thông tin user', 'USER', 1),
+('user.update', 'Cập nhật user', 'Cập nhật thông tin user', 'USER', 1),
 ('user.delete', 'Xóa user', 'Xóa user', 'USER', 1),
-('user.manage', 'Quản lý user', 'Quản lý toàn bộ user', 'USER', 1),
 ('user.assign_role', 'Gán role', 'Gán role cho user', 'USER', 1),
 
 -- Product Module
 ('product.view', 'Xem sản phẩm', 'Xem thông tin sản phẩm', 'PRODUCT', 1),
 ('product.create', 'Tạo sản phẩm', 'Tạo sản phẩm mới', 'PRODUCT', 1),
-('product.edit', 'Sửa sản phẩm', 'Sửa thông tin sản phẩm', 'PRODUCT', 1),
+('product.update', 'Cập nhật sản phẩm', 'Cập nhật thông tin sản phẩm', 'PRODUCT', 1),
 ('product.delete', 'Xóa sản phẩm', 'Xóa sản phẩm', 'PRODUCT', 1),
-('product.manage', 'Quản lý sản phẩm', 'Quản lý toàn bộ sản phẩm', 'PRODUCT', 1),
 
 -- Order Module
 ('order.view', 'Xem đơn hàng', 'Xem thông tin đơn hàng', 'ORDER', 1),
 ('order.create', 'Tạo đơn hàng', 'Tạo đơn hàng mới', 'ORDER', 1),
-('order.edit', 'Sửa đơn hàng', 'Sửa thông tin đơn hàng', 'ORDER', 1),
+('order.update', 'Cập nhật đơn hàng', 'Cập nhật thông tin đơn hàng', 'ORDER', 1),
 ('order.delete', 'Xóa đơn hàng', 'Xóa đơn hàng', 'ORDER', 1),
-('order.manage', 'Quản lý đơn hàng', 'Quản lý toàn bộ đơn hàng', 'ORDER', 1),
 ('order.view_all', 'Xem tất cả đơn hàng', 'Xem đơn hàng của tất cả user', 'ORDER', 1),
 
 -- Cart Module
@@ -625,17 +622,15 @@ INSERT INTO permission_registry (code, name, description, module, is_system) VAL
 -- Review Module
 ('review.view', 'Xem review', 'Xem review sản phẩm', 'REVIEW', 1),
 ('review.create', 'Tạo review', 'Tạo review mới', 'REVIEW', 1),
-('review.edit', 'Sửa review', 'Sửa review', 'REVIEW', 1),
+('review.update', 'Cập nhật review', 'Cập nhật review', 'REVIEW', 1),
 ('review.delete', 'Xóa review', 'Xóa review', 'REVIEW', 1),
-('review.manage', 'Quản lý review', 'Quản lý toàn bộ review', 'REVIEW', 1),
 ('review.moderate', 'Moderate review', 'Duyệt/xóa review', 'REVIEW', 1),
 
 -- Voucher Module
 ('voucher.view', 'Xem voucher', 'Xem thông tin voucher', 'VOUCHER', 1),
 ('voucher.create', 'Tạo voucher', 'Tạo voucher mới', 'VOUCHER', 1),
-('voucher.edit', 'Sửa voucher', 'Sửa thông tin voucher', 'VOUCHER', 1),
+('voucher.update', 'Cập nhật voucher', 'Cập nhật thông tin voucher', 'VOUCHER', 1),
 ('voucher.delete', 'Xóa voucher', 'Xóa voucher', 'VOUCHER', 1),
-('voucher.manage', 'Quản lý voucher', 'Quản lý toàn bộ voucher', 'VOUCHER', 1),
 
 -- Report Module
 ('report.view', 'Xem báo cáo', 'Xem báo cáo thống kê', 'REPORT', 1),
@@ -644,24 +639,20 @@ INSERT INTO permission_registry (code, name, description, module, is_system) VAL
 -- Shipment Module
 ('shipment.view', 'Xem vận đơn', 'Xem thông tin vận đơn', 'SHIPMENT', 1),
 ('shipment.create', 'Tạo vận đơn', 'Tạo vận đơn mới', 'SHIPMENT', 1),
-('shipment.edit', 'Sửa vận đơn', 'Sửa thông tin vận đơn', 'SHIPMENT', 1),
+('shipment.update', 'Cập nhật vận đơn', 'Cập nhật thông tin vận đơn', 'SHIPMENT', 1),
 ('shipment.delete', 'Xóa vận đơn', 'Xóa vận đơn', 'SHIPMENT', 1),
-('shipment.manage', 'Quản lý vận đơn', 'Quản lý toàn bộ vận đơn', 'SHIPMENT', 1),
 
 -- Shipping Config Module
 ('shipping_config.view', 'Xem cấu hình ship', 'Xem cấu hình vận chuyển', 'SHIPPING_CONFIG', 1),
-('shipping_config.edit', 'Sửa cấu hình ship', 'Sửa cấu hình vận chuyển', 'SHIPPING_CONFIG', 1),
-('shipping_config.manage', 'Quản lý cấu hình ship', 'Quản lý cấu hình vận chuyển', 'SHIPPING_CONFIG', 1),
+('shipping_config.create', 'Tạo cấu hình ship', 'Tạo cấu hình vận chuyển', 'SHIPPING_CONFIG', 1),
+('shipping_config.update', 'Cập nhật cấu hình ship', 'Cập nhật cấu hình vận chuyển', 'SHIPPING_CONFIG', 1),
+('shipping_config.delete', 'Xóa cấu hình ship', 'Xóa cấu hình vận chuyển', 'SHIPPING_CONFIG', 1),
 
 -- Settings Module
 ('settings.view', 'Xem cài đặt', 'Xem cài đặt hệ thống', 'SETTINGS', 1),
-('settings.edit', 'Sửa cài đặt', 'Sửa cài đặt hệ thống', 'SETTINGS', 1);
+('settings.update', 'Cập nhật cài đặt', 'Cập nhật cài đặt hệ thống', 'SETTINGS', 1);
 
 -- 10. Gán quyền cho Role (Role Permissions)
--- SUPER_ADMIN (Gán tất cả quyền)
-INSERT INTO role_permission_assignment (role_id, permission_id)
-SELECT 1, id FROM permission_registry;
-
 -- ADMIN (Quản lý User, Role, Permission, Product, Order, Report, Category, Review, Voucher, Shipment, ShippingConfig)
 INSERT INTO role_permission_assignment (role_id, permission_id)
 SELECT 2, id FROM permission_registry WHERE module IN ('USER', 'ROLE', 'PERMISSION', 'PRODUCT', 'ORDER', 'REPORT', 'CATEGORY', 'REVIEW', 'VOUCHER', 'SHIPMENT', 'SHIPPING_CONFIG');
@@ -680,11 +671,12 @@ SELECT 4, id FROM permission_registry WHERE code IN ('order.create');
 
 -- BƯỚC 1: Tạo tài khoản gốc trong user_account (TẤT CẢ users trước)
 INSERT INTO user_account (id, status_id) VALUES 
-(1, 1), (2, 1), (3, 1), (4, 1), (5, 1), (6, 1);
+(1, 1),
+(2, 1), (3, 1), (4, 1), (5, 1), (6, 1);
 
 -- BƯỚC 2: Thêm thông tin cá nhân vào user_profile
 INSERT INTO user_profile (user_id, fullname, phone_number, email, gender_id, preferred_language_id) VALUES
-(1, 'System Administrator', '0912345678','admin@webbookshop.com', 0, 1),
+(1, 'SYSTEM', NULL,'system@webbookshop.com', 0, 1),
 (2, 'Dunn Mcpherson', '0989894900', 'dunnmcpherson@recrisys.com', 0, 1),
 (3, 'Foreman Carter', '0993194154', 'foremancarter@recrisys.com', 0, 1),
 (4, 'Felecia Cabrera', '0930174351', 'feleciacabrera@recrisys.com', 1, 1),
@@ -694,7 +686,6 @@ INSERT INTO user_profile (user_id, fullname, phone_number, email, gender_id, pre
 -- BƯỚC 3: Thêm thông tin đăng nhập vào user_local
 -- Password hash: $2a$12$UllaLd399u9rzzFCvwLK8Of5vL1l9MxyC1OCMR1cyfCd4jxoyBqf2
 INSERT INTO user_local (user_id, username, password_hash, email, email_verify_status_id) VALUES
-(1, 'admin', '$2a$12$UllaLd399u9rzzFCvwLK8Of5vL1l9MxyC1OCMR1cyfCd4jxoyBqf2', 'admin@webbookshop.com', 1),
 (2, 'user1', '$2a$12$UllaLd399u9rzzFCvwLK8Of5vL1l9MxyC1OCMR1cyfCd4jxoyBqf2', 'dunnmcpherson@recrisys.com', 1),
 (3, 'user2', '$2a$12$UllaLd399u9rzzFCvwLK8Of5vL1l9MxyC1OCMR1cyfCd4jxoyBqf2', 'foremancarter@recrisys.com', 1),
 (4, 'user3', '$2a$12$UllaLd399u9rzzFCvwLK8Of5vL1l9MxyC1OCMR1cyfCd4jxoyBqf2', 'feleciacabrera@recrisys.com', 1),
@@ -703,7 +694,6 @@ INSERT INTO user_local (user_id, username, password_hash, email, email_verify_st
 
 -- BƯỚC 4: Phân quyền (Role Assignment) - PHẢI SAU user_account
 INSERT INTO user_role_registry (user_id, role_id) VALUES
-(1, 1), -- admin: SUPER_ADMIN (System Account)
 (2, 2), -- user1: ADMIN
 (3, 3), -- user2: STAFF
 (4, 3), -- user3: STAFF

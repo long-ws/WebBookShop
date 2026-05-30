@@ -3,8 +3,8 @@ package servlet.admin.role;
 import java.io.IOException;
 import java.util.Map;
 
-import constants.FormConstants;
 import constants.RequestParamConstants;
+import constants.SystemConstants;
 import constants.ViewAttributeConstants;
 import dto.role.RoleCreateRequest;
 import exception.BusinessException;
@@ -29,12 +29,10 @@ public class CreateRoleServlet extends HttpServlet {
 	private final PermissionService permissionService = new PermissionServiceImpl();
 
 	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		try {
 			request.setAttribute(ViewAttributeConstants.Role.ALL_PERMISSIONS, permissionService.getAllPermissions());
 			request.setAttribute(ViewAttributeConstants.Role.ROLE, new RoleCreateRequest.Builder().build());
-			MessageHelper.cleanupFlashMessages(request.getSession());
 			request.getRequestDispatcher("/WEB-INF/views/roleManagerCreateView.jsp").forward(request, response);
 		} catch (BusinessException e) {
 			MessageHelper.setErrorMessage(request.getSession(), e.getMessage());
@@ -43,29 +41,22 @@ public class CreateRoleServlet extends HttpServlet {
 	}
 
 	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		request.setCharacterEncoding("UTF-8");
 
-		RoleCreateRequest dto = new RoleCreateRequest.Builder()
-				.code(normalizeCode(request.getParameter(RequestParamConstants.CODE)))
-				.name(request.getParameter(RequestParamConstants.NAME))
-				.description(request.getParameter(RequestParamConstants.DESCRIPTION))
-				.isSystem(false)
-				.isActive(true)
-				.permissionIds(RequestParamHelper
-						.parseIntegerList(request.getParameterValues(RequestParamConstants.Role.PERMISSION_IDS)))
-				.build();
+		RoleCreateRequest dto = new RoleCreateRequest.Builder().code(normalizeCode(request.getParameter(RequestParamConstants.CODE))).name(request.getParameter(RequestParamConstants.NAME))
+				.description(request.getParameter(RequestParamConstants.DESCRIPTION)).isSystem(false).isActive(true)
+				.permissionIds(RequestParamHelper.parseIntegerList(request.getParameterValues(RequestParamConstants.Role.PERMISSION_IDS))).build();
 
 		try {
 			roleService.createRole(dto);
 			SessionPermissionCache.clear(request.getSession());
-			MessageHelper.setSuccessMessage(request.getSession(), "Đã tạo vai trò: " + dto.getName());
-			response.sendRedirect(request.getContextPath() + "/admin/role");
+			MessageHelper.setSuccessMessage(request.getSession(), "Đã tạo vai trò: " + dto.getCode());
+			response.sendRedirect(request.getContextPath() + "/admin/role/create");
 		} catch (BusinessException e) {
 			Map<String, String> errors = e.getErrors();
 			if (errors == null || errors.isEmpty()) {
-				errors = Map.of(FormConstants.ERROR_GLOBAL, e.getMessage());
+				errors = Map.of(SystemConstants.ERROR_GLOBAL, e.getMessage());
 			}
 			request.setAttribute(ViewAttributeConstants.Role.ROLE, dto);
 			request.setAttribute(ViewAttributeConstants.ERRORS, errors);

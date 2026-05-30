@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import beans.common.Role;
-import constants.FormConstants;
+import constants.SystemConstants;
 import dto.role.RoleCreateRequest;
 import dto.role.RoleDetailResponse;
 import dto.role.RoleUpdateRequest;
@@ -81,19 +81,19 @@ public class RoleQueryWriteService {
 					Role existing = roleQueryReadService.getById(conn, dto.getId());
 					if (existing == null) {
 						Map<String, String> errors = new HashMap<String, String>();
-						errors.put(FormConstants.ERROR_GLOBAL, "Vai trò không tồn tại.");
+						errors.put(SystemConstants.ERROR_GLOBAL, "Vai trò không tồn tại.");
 						throw new BusinessException(errors);
 					}
 
 					if (existing.isSystem()) {
 						Map<String, String> errors = new HashMap<String, String>();
-						errors.put(FormConstants.ERROR_GLOBAL, "Không được phép sửa vai trò hệ thống.");
+						errors.put(SystemConstants.ERROR_GLOBAL, "Không được phép sửa vai trò hệ thống.");
 						throw new BusinessException(errors);
 					}
 
 					if (roleRepository.findByCode(conn, dto.getCode()).isPresent() && roleRepository.findByCode(conn, dto.getCode()).get().getId() != dto.getId()) {
 						Map<String, String> errors = new HashMap<String, String>();
-						errors.put(FormConstants.ERROR_GLOBAL, "Mã vai trò đã được sử dụng.");
+						errors.put(SystemConstants.ERROR_GLOBAL, "Mã vai trò đã được sử dụng.");
 						throw new BusinessException(errors);
 					}
 
@@ -110,7 +110,7 @@ public class RoleQueryWriteService {
 	public boolean deleteRoles(final List<Integer> ids) throws BusinessException {
 		if (ids == null || ids.isEmpty()) {
 			Map<String, String> errors = new HashMap<String, String>();
-			errors.put(FormConstants.ERROR_GLOBAL, "Vui lòng chọn vai trò để xóa.");
+			errors.put(SystemConstants.ERROR_GLOBAL, "Vui lòng chọn vai trò để xóa.");
 			throw new BusinessException(errors);
 		}
 
@@ -122,7 +122,7 @@ public class RoleQueryWriteService {
 						Role role = roleQueryReadService.getById(conn, id);
 						if (role == null || role.isSystem()) {
 							Map<String, String> errors = new HashMap<String, String>();
-							errors.put(FormConstants.ERROR_GLOBAL, "Không thể xóa vai trò hệ thống hoặc vai trò không tồn tại.");
+							errors.put(SystemConstants.ERROR_GLOBAL, "Không thể xóa vai trò hệ thống hoặc vai trò không tồn tại.");
 							throw new BusinessException(errors);
 						}
 					}

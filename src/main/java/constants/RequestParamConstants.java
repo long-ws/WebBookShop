@@ -27,8 +27,8 @@ public final class RequestParamConstants {
 		private User() {
 		}
 
-		public static final String USERNAME = Auth.USERNAME;
-		public static final String PASSWORD = Auth.PASSWORD;
+		public static final String USERNAME = "username";
+		public static final String PASSWORD = "password";
 		public static final String FULLNAME = "fullname";
 		public static final String EMAIL = "email";
 		public static final String PHONE_NUMBER = "phoneNumber";
@@ -36,6 +36,9 @@ public final class RequestParamConstants {
 		public static final String ROLE = "role";
 		public static final String PREFERRED_LANGUAGE_ID = "preferredLanguageId";
 		public static final String USER_IDS = "userIds";
+		public static final String CURRENT_PASSWORD = "currentPassword";
+		public static final String NEW_PASSWORD = "newPassword";
+		public static final String CONFIRM_PASSWORD = "newPasswordAgain";
 	}
 
 	public static final class Role {

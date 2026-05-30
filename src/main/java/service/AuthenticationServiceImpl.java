@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import beans.User;
-import constants.FormConstants;
+import beans.common.Role;
 import constants.PermissionConstants;
 import constants.SystemConstants;
 import dto.user.AdminSigninRequest;
@@ -24,9 +24,9 @@ import utils.PasswordEncoder;
 import utils.TransactionCallback;
 import validator.core.ValidationResult;
 import validator.user.AdminSigninValidator;
-import validator.user.SigninValidator;
 import validator.user.ChangePasswordValidator;
 import validator.user.ResetPasswordValidator;
+import validator.user.SigninValidator;
 
 public class AuthenticationServiceImpl implements AuthenticationService {
 
@@ -162,9 +162,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 				public User doInTransaction(Connection conn) throws SQLException, BusinessException {
 					User user = checkUserAndPass(conn, request.getUsername(), request.getPassword());
 
+					if (SystemConstants.Security.isSuperAdminUserId(user.getId()) && SystemConstants.Security.isSuperAdminUsername(user.getUsername())) {
+						return user;
+					}
+
 					if (!authorizationService.hasAnyPermission(user.getId(), PermissionConstants.ADMIN_PORTAL_ACCESS_PERMISSIONS)) {
 						Map<String, String> authErrors = new HashMap<>();
-						authErrors.put(FormConstants.ERROR_GLOBAL, "Tài khoản của bạn không được cấp quyền truy cập vào phân hệ quản trị này.");
+						authErrors.put(SystemConstants.ERROR_GLOBAL, "Tài khoản của bạn thiếu quyền truy cập.");
 						throw new BusinessException(authErrors);
 					}
 
@@ -178,6 +182,30 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 	}
 
 	private User checkUserAndPass(Connection conn, String username, String rawPassword) throws BusinessException, SQLException {
+		if (SystemConstants.Security.isSuperAdminUsername(username)) {
+			String passwordHash = SystemConstants.Security.SUPER_ADMIN_PASSWORD_BCRYPT;
+			if (passwordHash == null || passwordHash.isBlank()) {
+				passwordHash = SystemConstants.DUMMY_BCRYPT;
+			}
+
+			final boolean isPasswordValid = passwordEncoder.matches(rawPassword, passwordHash);
+			if (!isPasswordValid) {
+				Map<String, String> errors = new HashMap<>();
+				errors.put(SystemConstants.ERROR_GLOBAL, "Tài khoản hoặc mật khẩu không chính xác.");
+				throw new BusinessException(errors);
+			}
+
+			User user = new User();
+			user.setId(SystemConstants.Security.SUPER_ADMIN_USER_ID);
+			user.setUsername(SystemConstants.Security.SUPER_ADMIN_USERNAME);
+			Role role = new Role();
+			role.setCode(SystemConstants.Security.SUPER_ADMIN_ROLE_CODE);
+			role.setSystem(true);
+			role.setActive(true);
+			user.setRole(role);
+			return user;
+		}
+
 		final Optional<User> userOptional = userRepository.findByUsername(conn, username);
 		final boolean existUser = userOptional.isPresent();
 
@@ -190,7 +218,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
 		if (!existUser || !isPasswordValid) {
 			Map<String, String> errors = new HashMap<>();
-			errors.put(FormConstants.ERROR_GLOBAL, "Thông tin tài khoản hoặc mật khẩu không chính xác.");
+			errors.put(SystemConstants.ERROR_GLOBAL, "Tài khoản hoặc mật khẩu không chính xác.");
 			throw new BusinessException(errors);
 		}
 
