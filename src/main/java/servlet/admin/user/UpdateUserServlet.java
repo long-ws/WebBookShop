@@ -1,14 +1,16 @@
 package servlet.admin.user;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import beans.common.Gender;
 import beans.common.Language;
 import beans.common.Role;
-import constants.FormConstants;
 import constants.RequestParamConstants;
+import constants.SystemConstants;
 import constants.ViewAttributeConstants;
 import dto.user.UserDetailResponse;
 import dto.user.UserUpdateRequest;
@@ -36,8 +38,7 @@ public class UpdateUserServlet extends HttpServlet {
 	private final LanguageService languageService = new LanguageServiceImpl();
 
 	@Override
-	protected void doGet(final HttpServletRequest request, final HttpServletResponse response)
-			throws ServletException, IOException {
+	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
 		final String idStr = request.getParameter(RequestParamConstants.ID);
 		long id = 0;
@@ -48,7 +49,7 @@ public class UpdateUserServlet extends HttpServlet {
 			}
 		} catch (NumberFormatException e) {
 			final Map<String, String> errors = new HashMap<>();
-			errors.put(FormConstants.ERROR_GLOBAL, "ID người dùng không hợp lệ.");
+			errors.put(SystemConstants.ERROR_GLOBAL, "ID người dùng không hợp lệ.");
 			request.setAttribute(ViewAttributeConstants.ERRORS, errors);
 			request.getRequestDispatcher("/admin/user").forward(request, response);
 			return;
@@ -60,17 +61,17 @@ public class UpdateUserServlet extends HttpServlet {
 		try {
 			user = userManagementService.getUserById(id);
 			if (user == null) {
-				errors.put(FormConstants.ERROR_GLOBAL, "Người dùng không tồn tại trên hệ thống.");
+				errors.put(SystemConstants.ERROR_GLOBAL, "Người dùng không tồn tại trên hệ thống.");
 			}
 		} catch (BusinessException e) {
 			final Map<String, String> businessErrors = e.getErrors();
 			if (businessErrors != null && !businessErrors.isEmpty()) {
 				errors.putAll(businessErrors);
 			} else {
-				errors.put(FormConstants.ERROR_GLOBAL, e.getMessage());
+				errors.put(SystemConstants.ERROR_GLOBAL, e.getMessage());
 			}
 		} catch (Exception e) {
-			errors.put(FormConstants.ERROR_GLOBAL, "Không thể tải thông tin người dùng do sự cố hệ thống.");
+			errors.put(SystemConstants.ERROR_GLOBAL, "Không thể tải thông tin người dùng do sự cố hệ thống.");
 		}
 
 		if (!errors.isEmpty()) {
@@ -88,11 +89,9 @@ public class UpdateUserServlet extends HttpServlet {
 		values.put(RequestParamConstants.User.FULLNAME, formDTO.getFullname());
 		values.put(RequestParamConstants.User.EMAIL, formDTO.getEmail());
 		values.put(RequestParamConstants.User.PHONE_NUMBER, formDTO.getPhoneNumber());
-		values.put(RequestParamConstants.User.GENDER,
-				formDTO.getGender() != null ? String.valueOf(formDTO.getGender().getId()) : "");
+		values.put(RequestParamConstants.User.GENDER, formDTO.getGender() != null ? String.valueOf(formDTO.getGender().getId()) : "");
 		values.put(RequestParamConstants.User.ROLE, formDTO.getRole() != null ? formDTO.getRole().getCode() : "");
-		values.put(RequestParamConstants.User.PREFERRED_LANGUAGE_ID,
-				formDTO.getPreferredLanguage() != null ? String.valueOf(formDTO.getPreferredLanguage().getId()) : "");
+		values.put(RequestParamConstants.User.PREFERRED_LANGUAGE_ID, formDTO.getPreferredLanguage() != null ? String.valueOf(formDTO.getPreferredLanguage().getId()) : "");
 
 		loadDropdownData(request);
 		request.setAttribute(ViewAttributeConstants.VALUES, values);
@@ -101,8 +100,7 @@ public class UpdateUserServlet extends HttpServlet {
 	}
 
 	@Override
-	protected void doPost(final HttpServletRequest request, final HttpServletResponse response)
-			throws ServletException, IOException {
+	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
 		final Map<String, String> errors = new HashMap<>();
 		final String idStr = request.getParameter(RequestParamConstants.ID);
@@ -160,17 +158,8 @@ public class UpdateUserServlet extends HttpServlet {
 			}
 		}
 
-		final UserUpdateRequest dto = new UserUpdateRequest.Builder()
-				.id(id)
-				.username(username)
-				.password(request.getParameter(RequestParamConstants.User.PASSWORD))
-				.fullname(fullname)
-				.email(email)
-				.phoneNumber(phoneNumber)
-				.gender(gender)
-				.role(role)
-				.preferredLanguage(language)
-				.build();
+		final UserUpdateRequest dto = new UserUpdateRequest.Builder().id(id).username(username).password(request.getParameter(RequestParamConstants.User.PASSWORD)).fullname(fullname).email(email)
+				.phoneNumber(phoneNumber).gender(gender).role(role).preferredLanguage(language).build();
 
 		if (errors.isEmpty()) {
 			try {
@@ -180,10 +169,10 @@ public class UpdateUserServlet extends HttpServlet {
 				if (businessErrors != null && !businessErrors.isEmpty()) {
 					errors.putAll(businessErrors);
 				} else {
-					errors.put(FormConstants.ERROR_GLOBAL, e.getMessage());
+					errors.put(SystemConstants.ERROR_GLOBAL, e.getMessage());
 				}
 			} catch (Exception e) {
-				errors.put(FormConstants.ERROR_GLOBAL, "Sự cố hệ thống không thể cập nhật dữ liệu.");
+				errors.put(SystemConstants.ERROR_GLOBAL, "Sự cố hệ thống không thể cập nhật dữ liệu.");
 			}
 		}
 
@@ -196,12 +185,22 @@ public class UpdateUserServlet extends HttpServlet {
 		}
 
 		SessionPermissionCache.clear(request.getSession());
-		MessageHelper.setSuccessMessage(request.getSession(), "Cập nhật người dùng thành công!");
-		response.sendRedirect(request.getContextPath() + "/admin/user");
+		MessageHelper.setSuccessMessage(request.getSession(), "Đã cập nhật người dùng: " + dto.getUsername());
+		response.sendRedirect(request.getContextPath() + "/admin/user/update?" + RequestParamConstants.ID + "=" + dto.getId());
 	}
 
 	private void loadDropdownData(final HttpServletRequest request) {
-		request.setAttribute(ViewAttributeConstants.User.ALL_ROLES, roleService.getAllActiveRoles());
+		final List<Role> roles = roleService.getAllActiveRoles();
+		final List<Role> filtered = new ArrayList<Role>();
+
+		for (int i = 0; i < roles.size(); i++) {
+			Role role = roles.get(i);
+			if (role != null && !role.isSystem()) {
+				filtered.add(role);
+			}
+		}
+
+		request.setAttribute(ViewAttributeConstants.User.ALL_ROLES, filtered);
 		request.setAttribute(ViewAttributeConstants.User.LANGUAGES, languageService.getAllActiveLanguages());
 	}
 }

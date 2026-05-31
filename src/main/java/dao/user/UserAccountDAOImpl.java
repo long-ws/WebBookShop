@@ -26,6 +26,7 @@ import java.util.Optional;
 
 import beans.common.UserStatus;
 import beans.user.UserAccount;
+import constants.SystemConstants;
 
 public class UserAccountDAOImpl implements UserAccountDAO {
 
@@ -111,6 +112,9 @@ public class UserAccountDAOImpl implements UserAccountDAO {
 
 	@Override
 	public void update(final Connection conn, final UserAccount account) throws SQLException {
+		if (account != null && SystemConstants.Security.isSystemGhostUserId(account.getId())) {
+			throw new SQLException("Không thể cập nhật tài khoản hệ thống.");
+		}
 		try (PreparedStatement ps = conn.prepareStatement(SQL_UPDATE)) {
 			ps.setInt(1, account.getStatusId());
 			ps.setInt(2, account.getTokenVersion());
@@ -126,7 +130,7 @@ public class UserAccountDAOImpl implements UserAccountDAO {
 		}
 		try (PreparedStatement ps = conn.prepareStatement(SQL_SOFT_DELETE)) {
 			for (final Long id : userIds) {
-				if (id != null) {
+				if (id != null && !SystemConstants.Security.isSystemGhostUserId(id)) {
 					ps.setLong(1, id);
 					ps.addBatch();
 				}
