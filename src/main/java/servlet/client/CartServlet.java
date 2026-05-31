@@ -25,15 +25,15 @@ public class CartServlet extends HttpServlet {
 	private final CheckoutService checkoutService = new CheckoutService();
 	private final PaymentService paymentService = new PaymentService();
 	private final CartService cartService = new CartService();
-	
+
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
 		HttpSession session = request.getSession();
-        User user = (User) session.getAttribute(SessionConstants.CURRENT_USER);
+		User user = (User) session.getAttribute(SessionConstants.CURRENT_USER);
 
-        try {
+		try {
 			if (user != null) {
 				Cart cart = checkoutService.getCartWithItemsAndProducts(user.getId());
 				if (cart != null) {
@@ -70,9 +70,10 @@ public class CartServlet extends HttpServlet {
 		});
 
 		HttpSession session = request.getSession();
-        User user = (User) session.getAttribute(SessionConstants.CURRENT_USER);
+		User user = (User) session.getAttribute(SessionConstants.CURRENT_USER);
 
-        System.out.println("[CartServlet] User from session: " + (user != null ? user.getId() + " - " + user.getEmail() : "NULL"));
+		System.out.println(
+				"[CartServlet] User from session: " + (user != null ? user.getId() + " - " + user.getEmail() : "NULL"));
 
 		if (user == null) {
 			System.out.println("[CartServlet] User not logged in, redirecting to signin");
@@ -110,11 +111,7 @@ public class CartServlet extends HttpServlet {
 			}
 
 			System.out.println("[CartServlet] cartId parsed successfully: " + cartId);
-            if(checkoutService.hasEnoughQty(cartId)){
-                session.setAttribute("errorMessage", "Đặt hàng thất bại, sản phấm hết hàng!");
-                response.sendRedirect(request.getContextPath() + "/cart");
-                return;
-            }
+
 			int deliveryMethod = 2;
 			if (deliveryMethodStr != null && !deliveryMethodStr.trim().isEmpty()) {
 				deliveryMethod = convertServiceTypeToMethodId(Integer.parseInt(deliveryMethodStr.trim()));
@@ -181,55 +178,56 @@ public class CartServlet extends HttpServlet {
 			System.out.println("  ward: '" + ward + "'");
 			System.out.println("  addressDetail: '" + addressDetail + "'");
 
-            String finalVoucherIdStr = request.getParameter("finalVoucherId");
-            String finalShipVoucherIdStr = request.getParameter("finalShipVoucherId");
-            Long finalVoucherId = null;
-            Long finalShipVoucherId = null;
-            if (finalVoucherIdStr != null && !finalVoucherIdStr.trim().isEmpty()) {
-                try {
-                    finalVoucherId = Long.parseLong(finalVoucherIdStr.trim());
-                } catch (NumberFormatException e) {
-                    finalVoucherId = null;
-                }
-            }
-            if (finalShipVoucherIdStr != null && !finalShipVoucherIdStr.trim().isEmpty()) {
-                try {
-                    finalShipVoucherId = Long.parseLong(finalShipVoucherIdStr.trim());
-                } catch (NumberFormatException e) {
-                    finalShipVoucherId = null;
-                }
-            }
+			String finalVoucherIdStr = request.getParameter("finalVoucherId");
+			String finalShipVoucherIdStr = request.getParameter("finalShipVoucherId");
+			Long finalVoucherId = null;
+			Long finalShipVoucherId = null;
+			if (finalVoucherIdStr != null && !finalVoucherIdStr.trim().isEmpty()) {
+				try {
+					finalVoucherId = Long.parseLong(finalVoucherIdStr.trim());
+				} catch (NumberFormatException e) {
+					finalVoucherId = null;
+				}
+			}
+			if (finalShipVoucherIdStr != null && !finalShipVoucherIdStr.trim().isEmpty()) {
+				try {
+					finalShipVoucherId = Long.parseLong(finalShipVoucherIdStr.trim());
+				} catch (NumberFormatException e) {
+					finalShipVoucherId = null;
+				}
+			}
 			System.out.println("[CartServlet] Calling checkoutService.checkoutFromCart...");
 			Payment p = checkoutService.checkoutFromCart(user.getId(), cartId, deliveryMethod, deliveryPrice,
-				receiverName, receiverPhone, province, district, ward, addressDetail, estimatedDays,
-				 finalVoucherId, finalShipVoucherId, request.getParameter("customerNote"));
-			System.out.println("[CartServlet] Order created - orderId: " + p.getOrderId() +
-				", paymentRef: " + p.getVnpTxnRef());
+					receiverName, receiverPhone, province, district, ward, addressDetail, estimatedDays, finalVoucherId,
+					finalShipVoucherId, request.getParameter("customerNote"));
+			System.out.println(
+					"[CartServlet] Order created - orderId: " + p.getOrderId() + ", paymentRef: " + p.getVnpTxnRef());
 
-            System.out.println("[CartServlet] Creating payment record...");
-            boolean paymentCreated = paymentService.createPayment(p);
-            System.out.println("[CartServlet] Payment created: " + paymentCreated);
+			System.out.println("[CartServlet] Creating payment record...");
+			boolean paymentCreated = paymentService.createPayment(p);
+			System.out.println("[CartServlet] Payment created: " + paymentCreated);
 
-            // Lưu vào session
-            session.setAttribute("latestPayment", p);
-            session.setAttribute("latestOrderId", p.getOrderId());
-            session.setAttribute("cartCount", 0);
-            session.setAttribute("checkoutSuccess", true);
+			// Lưu vào session
+			session.setAttribute("latestPayment", p);
+			session.setAttribute("latestOrderId", p.getOrderId());
+			session.setAttribute("cartCount", 0);
+			session.setAttribute("checkoutSuccess", true);
 
-            System.out.println("[CartServlet] Redirecting to checkoutSuccess with orderId: " + p.getOrderId());
-            System.out.println("========== [CartServlet] END ==========");
+			System.out.println("[CartServlet] Redirecting to checkoutSuccess with orderId: " + p.getOrderId());
+			System.out.println("========== [CartServlet] END ==========");
 
-            // Redirect đến trang checkoutSuccess với orderId trong URL
-            response.sendRedirect(response.encodeRedirectURL(request.getContextPath() + "/checkoutSuccess?orderId=" + p.getOrderId()));
-            return;
+			// Redirect đến trang checkoutSuccess với orderId trong URL
+			response.sendRedirect(response
+					.encodeRedirectURL(request.getContextPath() + "/checkoutSuccess?orderId=" + p.getOrderId()));
+			return;
 
-        } catch (NumberFormatException e) {
+		} catch (NumberFormatException e) {
 			System.out.println("[CartServlet] NumberFormatException: " + e.getMessage());
 			e.printStackTrace();
 			session.setAttribute("errorMessage", "Dữ liệu không hợp lệ: " + e.getMessage());
 			response.sendRedirect(request.getContextPath() + "/cart");
 			return;
-        } catch (Exception e) {
+		} catch (Exception e) {
 			System.out.println("[CartServlet] Exception: " + e.getMessage());
 			e.printStackTrace();
 			session.setAttribute("errorMessage", "Đặt hàng thất bại: " + e.getMessage());
@@ -239,9 +237,9 @@ public class CartServlet extends HttpServlet {
 	}
 
 	/**
-	 * Convert GHN service_type_id sang shipping_method_id trong database
-	 * GHN: service_type_id = 2 (nhanh), service_type_id = 1 (tieu chuan)
-	 * DB:  shipping_method_id = 1 (nhanh), shipping_method_id = 2 (tieu chuan)
+	 * Convert GHN service_type_id sang shipping_method_id trong database GHN:
+	 * service_type_id = 2 (nhanh), service_type_id = 1 (tieu chuan) DB:
+	 * shipping_method_id = 1 (nhanh), shipping_method_id = 2 (tieu chuan)
 	 */
 	private int convertServiceTypeToMethodId(int serviceTypeId) {
 		if (serviceTypeId == 2) {
