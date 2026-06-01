@@ -289,7 +289,7 @@ public class CheckoutService {
             String receiverName, String receiverPhone, String province, String district,
             String ward, String addressDetail, int estimatedDays) throws SQLException {
         return checkoutFromCart(userId, cartId, deliveryMethod, deliveryPrice,
-                receiverName, receiverPhone, province, district, ward, addressDetail, estimatedDays, null);
+                receiverName, receiverPhone, province, district, ward, addressDetail, estimatedDays, null, null, null);
     }
 
     /**
