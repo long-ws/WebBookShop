@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import constants.FormConstants;
+import constants.SystemConstants;
 import constants.ViewAttributeConstants;
 import context.UserPermissionContext;
 import dto.user.UserManageResponse;
@@ -26,8 +26,7 @@ public class ManageUserServlet extends HttpServlet {
 	private final UserManagementService userManagementService = new UserManagementServiceImpl();
 
 	@Override
-	protected void doGet(final HttpServletRequest request, final HttpServletResponse response)
-			throws ServletException, IOException {
+	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
 		List<UserManageResponse> rawUsers = null;
 		final Map<String, String> errors = new HashMap<>();
@@ -39,25 +38,24 @@ public class ManageUserServlet extends HttpServlet {
 			if (businessErrors != null && !businessErrors.isEmpty()) {
 				errors.putAll(businessErrors);
 			} else {
-				errors.put(FormConstants.ERROR_GLOBAL, e.getMessage());
+				errors.put(SystemConstants.ERROR_GLOBAL, e.getMessage());
 			}
 		} catch (Exception e) {
-			errors.put(FormConstants.ERROR_GLOBAL, "Không thể tải danh sách người dùng do sự cố hệ thống.");
+			errors.put(SystemConstants.ERROR_GLOBAL, "Không thể tải danh sách người dùng do sự cố hệ thống.");
 		}
 
 		final List<UserManageResponse> users = rawUsers != null ? rawUsers : new ArrayList<>();
 
-		final UserPermissionContext securityContext = (UserPermissionContext) request
-				.getAttribute(ViewAttributeConstants.Security.SECURITY_CONTEXT);
+		final UserPermissionContext userPermissionContext = (UserPermissionContext) request.getAttribute(ViewAttributeConstants.Security.USER_PERMISSION_CONTEXT);
 
 		boolean canCreate = false;
 		boolean canEdit = false;
 		boolean canDelete = false;
 
-		if (securityContext != null) {
-			canCreate = securityContext.isCanCreateUser();
-			canEdit = securityContext.isCanEditUser();
-			canDelete = securityContext.isCanDeleteUser();
+		if (userPermissionContext != null) {
+			canCreate = userPermissionContext.isCanCreateUser();
+			canEdit = userPermissionContext.isCanEditUser();
+			canDelete = userPermissionContext.isCanDeleteUser();
 		}
 
 		request.setAttribute(ViewAttributeConstants.User.USERS, users);
@@ -70,7 +68,6 @@ public class ManageUserServlet extends HttpServlet {
 	}
 
 	@Override
-	protected void doPost(final HttpServletRequest request, final HttpServletResponse response)
-			throws ServletException, IOException {
+	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 	}
 }

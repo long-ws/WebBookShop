@@ -3,8 +3,8 @@ package servlet.admin.role;
 import java.io.IOException;
 import java.util.Map;
 
-import constants.FormConstants;
 import constants.RequestParamConstants;
+import constants.SystemConstants;
 import constants.ViewAttributeConstants;
 import dto.role.RoleEditFormResponse;
 import dto.role.RoleUpdateRequest;
@@ -27,8 +27,7 @@ public class UpdateRoleServlet extends HttpServlet {
 	private final RoleService roleService = new RoleServiceImpl();
 
 	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		Integer roleId = RequestParamHelper.parseInteger(request.getParameter(RequestParamConstants.ID));
 		if (roleId == null) {
 			response.sendRedirect(request.getContextPath() + "/admin/role");
@@ -42,7 +41,6 @@ public class UpdateRoleServlet extends HttpServlet {
 				return;
 			}
 			applyEditForm(request, form);
-			MessageHelper.cleanupFlashMessages(request.getSession());
 			request.getRequestDispatcher("/WEB-INF/views/roleManagerEditView.jsp").forward(request, response);
 		} catch (BusinessException e) {
 			MessageHelper.setErrorMessage(request.getSession(), e.getMessage());
@@ -51,32 +49,25 @@ public class UpdateRoleServlet extends HttpServlet {
 	}
 
 	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		request.setCharacterEncoding("UTF-8");
 
-		RoleUpdateRequest dto = new RoleUpdateRequest.Builder()
-				.id(RequestParamHelper.parseInteger(request.getParameter(RequestParamConstants.ID)))
-				.code(normalizeCode(request.getParameter(RequestParamConstants.CODE)))
-				.name(request.getParameter(RequestParamConstants.NAME))
-				.description(request.getParameter(RequestParamConstants.DESCRIPTION))
-				.isSystem(RequestParamHelper.isCheckboxChecked(request, RequestParamConstants.IS_SYSTEM))
+		RoleUpdateRequest dto = new RoleUpdateRequest.Builder().id(RequestParamHelper.parseInteger(request.getParameter(RequestParamConstants.ID)))
+				.code(normalizeCode(request.getParameter(RequestParamConstants.CODE))).name(request.getParameter(RequestParamConstants.NAME))
+				.description(request.getParameter(RequestParamConstants.DESCRIPTION)).isSystem(RequestParamHelper.isCheckboxChecked(request, RequestParamConstants.IS_SYSTEM))
 				.isActive(RequestParamHelper.isCheckboxChecked(request, RequestParamConstants.IS_ACTIVE))
-				.permissionIds(RequestParamHelper
-						.parseIntegerList(request.getParameterValues(RequestParamConstants.Role.PERMISSION_IDS)))
-				.assignedRoleIds(RequestParamHelper
-						.parseIntegerList(request.getParameterValues(RequestParamConstants.Role.ASSIGNED_ROLE_IDS)))
-				.build();
+				.permissionIds(RequestParamHelper.parseIntegerList(request.getParameterValues(RequestParamConstants.Role.PERMISSION_IDS)))
+				.assignedRoleIds(RequestParamHelper.parseIntegerList(request.getParameterValues(RequestParamConstants.Role.ASSIGNED_ROLE_IDS))).build();
 
 		try {
 			roleService.updateRole(dto);
 			SessionPermissionCache.clear(request.getSession());
-			MessageHelper.setSuccessMessage(request.getSession(), "Đã cập nhật vai trò: " + dto.getName());
-			response.sendRedirect(request.getContextPath() + "/admin/role");
+			MessageHelper.setSuccessMessage(request.getSession(), "Đã cập nhật vai trò: " + dto.getCode());
+			response.sendRedirect(request.getContextPath() + "/admin/role/update?" + RequestParamConstants.ID + "=" + dto.getId());
 		} catch (BusinessException e) {
 			Map<String, String> errors = e.getErrors();
 			if (errors == null || errors.isEmpty()) {
-				errors = Map.of(FormConstants.ERROR_GLOBAL, e.getMessage());
+				errors = Map.of(SystemConstants.ERROR_GLOBAL, e.getMessage());
 			}
 			if (dto.getId() != null) {
 				try {

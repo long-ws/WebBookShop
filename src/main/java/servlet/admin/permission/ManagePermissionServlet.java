@@ -27,19 +27,19 @@ public class ManagePermissionServlet extends HttpServlet {
             throws ServletException, IOException {
         List<ManagePermissionResponse> permissions;
         try {
-            permissions = permissionService.getPermissions("id", "ASC");
+            permissions = permissionService.getAllPermissions();
         } catch (BusinessException e) {
             permissions = new java.util.ArrayList<>();
             MessageHelper.setErrorMessage(request.getSession(), e.getMessage());
         }
         Map<String, List<ManagePermissionResponse>> permissionsByModule = groupByModule(permissions);
         
-        UserPermissionContext securityContext = (UserPermissionContext) request
-                .getAttribute(ViewAttributeConstants.Security.SECURITY_CONTEXT);
-        if (securityContext != null) {
-            request.setAttribute(ViewAttributeConstants.Permission.HAS_CREATE, securityContext.isCanCreatePermission());
-            request.setAttribute(ViewAttributeConstants.Permission.HAS_EDIT, securityContext.isCanEditPermission());
-            request.setAttribute(ViewAttributeConstants.Permission.HAS_DELETE, securityContext.isCanDeletePermission());
+        UserPermissionContext userPermissionContext = (UserPermissionContext) request
+                .getAttribute(ViewAttributeConstants.Security.USER_PERMISSION_CONTEXT);
+        if (userPermissionContext != null) {
+            request.setAttribute(ViewAttributeConstants.Permission.HAS_CREATE, userPermissionContext.isCanCreatePermission());
+            request.setAttribute(ViewAttributeConstants.Permission.HAS_EDIT, userPermissionContext.isCanEditPermission());
+            request.setAttribute(ViewAttributeConstants.Permission.HAS_DELETE, userPermissionContext.isCanDeletePermission());
         }
 
         request.setAttribute(ViewAttributeConstants.Permission.PERMISSIONS_BY_MODULE, permissionsByModule);
@@ -48,9 +48,15 @@ public class ManagePermissionServlet extends HttpServlet {
 
     private Map<String, List<ManagePermissionResponse>> groupByModule(List<ManagePermissionResponse> permissions) {
         Map<String, List<ManagePermissionResponse>> result = new TreeMap<>();
-        for (ManagePermissionResponse p : permissions) {
+        for (int i = 0; i < permissions.size(); i++) {
+            ManagePermissionResponse p = permissions.get(i);
             String module = p.getModule() != null ? p.getModule() : "OTHER";
-            result.computeIfAbsent(module, k -> new java.util.ArrayList<>()).add(p);
+            List<ManagePermissionResponse> list = result.get(module);
+            if (list == null) {
+                list = new java.util.ArrayList<>();
+                result.put(module, list);
+            }
+            list.add(p);
         }
         return result;
     }

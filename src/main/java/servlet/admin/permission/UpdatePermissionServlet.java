@@ -3,8 +3,8 @@ package servlet.admin.permission;
 import java.io.IOException;
 import java.util.Map;
 
-import constants.FormConstants;
 import constants.RequestParamConstants;
+import constants.SystemConstants;
 import constants.ViewAttributeConstants;
 import dto.permission.PermissionDetailResponse;
 import dto.permission.PermissionUpdateRequest;
@@ -44,7 +44,6 @@ public class UpdatePermissionServlet extends HttpServlet {
 
 			request.setAttribute(ViewAttributeConstants.Permission.PERMISSION, permissionService.toUpdateDTO(detail));
 			request.setAttribute(ViewAttributeConstants.Permission.MODULES, permissionService.getAllModules());
-			MessageHelper.cleanupFlashMessages(request.getSession());
 			request.getRequestDispatcher("/WEB-INF/views/permissionManagerEditView.jsp").forward(request, response);
 		} catch (BusinessException e) {
 			MessageHelper.setErrorMessage(request.getSession(), e.getMessage());
@@ -71,12 +70,12 @@ public class UpdatePermissionServlet extends HttpServlet {
 		try {
 			permissionService.updatePermission(dto);
 			SessionPermissionCache.clear(request.getSession());
-			MessageHelper.setSuccessMessage(request.getSession(), "Đã cập nhật quyền: " + dto.getName());
-			response.sendRedirect(request.getContextPath() + "/admin/permission");
+			MessageHelper.setSuccessMessage(request.getSession(), "Đã cập nhật quyền: " + dto.getCode());
+			response.sendRedirect(request.getContextPath() + "/admin/permission/update?" + RequestParamConstants.ID + "=" + dto.getId());
 		} catch (BusinessException e) {
 			Map<String, String> errors = e.getErrors();
 			if (errors == null || errors.isEmpty()) {
-				errors = Map.of(FormConstants.ERROR_GLOBAL, e.getMessage());
+				errors = Map.of(SystemConstants.ERROR_GLOBAL, e.getMessage());
 			}
 			request.setAttribute(ViewAttributeConstants.Permission.PERMISSION, dto);
 			request.setAttribute(ViewAttributeConstants.ERRORS, errors);
@@ -89,6 +88,6 @@ public class UpdatePermissionServlet extends HttpServlet {
 		if (codeParam == null) {
 			return null;
 		}
-		return codeParam.toUpperCase().trim().replace(" ", "_");
+		return codeParam.trim().toLowerCase();
 	}
 }

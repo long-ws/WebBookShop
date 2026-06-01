@@ -358,7 +358,7 @@
 					<button type="reset" class="btn btn-warning me-2 mb-3">Mặc
 						định</button>
 					<a class="btn btn-danger mb-3"
-						href="${pageContext.request.contextPath}/admin/productManager"
+						href="${pageContext.request.contextPath}/admin/productManager/view"
 						role="button"> Hủy </a>
 				</form>
 			</main>

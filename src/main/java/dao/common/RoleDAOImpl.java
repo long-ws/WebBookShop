@@ -4,14 +4,14 @@ import static config.DatabaseConstants.COL_CREATED_AT;
 import static config.DatabaseConstants.COL_ID;
 import static config.DatabaseConstants.COL_ROLE_CODE;
 import static config.DatabaseConstants.COL_ROLE_DESCRIPTION;
+import static config.DatabaseConstants.COL_ROLE_ID;
 import static config.DatabaseConstants.COL_ROLE_IS_ACTIVE;
 import static config.DatabaseConstants.COL_ROLE_IS_SYSTEM;
 import static config.DatabaseConstants.COL_ROLE_NAME;
 import static config.DatabaseConstants.COL_UPDATED_AT;
+import static config.DatabaseConstants.COL_USER_ID;
 import static config.DatabaseConstants.TABLE_ROLE_REGISTRY;
 import static config.DatabaseConstants.TABLE_USER_ROLE_REGISTRY;
-import static config.DatabaseConstants.COL_ROLE_ID;
-import static config.DatabaseConstants.COL_USER_ID;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -61,9 +61,9 @@ public class RoleDAOImpl implements RoleDAO {
 	private static final String SQL_HAS_SYSTEM_ROLE = """
 			SELECT 1 FROM %s ur
 			JOIN %s r ON ur.%s = r.%s
-			WHERE ur.%s = ? AND r.%s = 1
+			WHERE ur.%s = ? AND r.%s = 1 AND r.%s = 1
 			LIMIT 1
-			""".formatted(TABLE_USER_ROLE_REGISTRY, TABLE_ROLE_REGISTRY, COL_ROLE_ID, COL_ID, COL_USER_ID, COL_ROLE_IS_SYSTEM);
+			""".formatted(TABLE_USER_ROLE_REGISTRY, TABLE_ROLE_REGISTRY, COL_ROLE_ID, COL_ID, COL_USER_ID, COL_ROLE_IS_SYSTEM, COL_ROLE_IS_ACTIVE);
 
 	private static final String SQL_FIND_ROLES_BY_USER_ID = """
 			SELECT %s FROM %s r
@@ -264,7 +264,7 @@ public class RoleDAOImpl implements RoleDAO {
 				}
 			}
 		}
-		
+
 		return result;
 	}
 

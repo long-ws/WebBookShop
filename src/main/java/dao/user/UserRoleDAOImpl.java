@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import constants.SystemConstants;
+
 public class UserRoleDAOImpl implements UserRoleDAO {
 
 	private static final String SQL_DELETE_BY_USER_ID = """
@@ -30,7 +32,7 @@ public class UserRoleDAOImpl implements UserRoleDAO {
 			FROM %s
 			WHERE %s = ?
 			""".formatted(COL_ROLE_ID, TABLE_USER_ROLE_REGISTRY, COL_USER_ID);
-	
+
 	private static final String SQL_FIND_PRIMARY_ROLE_BY_USER_IDS = """
 			SELECT %s, MIN(%s) AS %s
 			FROM %s
@@ -39,6 +41,9 @@ public class UserRoleDAOImpl implements UserRoleDAO {
 
 	@Override
 	public int delete(final Connection conn, final long userId) throws SQLException {
+		if (SystemConstants.Security.isSystemGhostUserId(userId)) {
+			throw new SQLException("Không thể thay đổi vai trò cho tài khoản hệ thống.");
+		}
 		try (PreparedStatement ps = conn.prepareStatement(SQL_DELETE_BY_USER_ID)) {
 			ps.setLong(1, userId);
 			return ps.executeUpdate();
@@ -47,6 +52,9 @@ public class UserRoleDAOImpl implements UserRoleDAO {
 
 	@Override
 	public int assignByRoleId(final Connection conn, final long userId, final int roleId) throws SQLException {
+		if (SystemConstants.Security.isSystemGhostUserId(userId)) {
+			throw new SQLException("Không thể thay đổi vai trò cho tài khoản hệ thống.");
+		}
 		try (PreparedStatement ps = conn.prepareStatement(SQL_INSERT_USER_ROLE)) {
 			ps.setLong(1, userId);
 			ps.setInt(2, roleId);
@@ -67,20 +75,20 @@ public class UserRoleDAOImpl implements UserRoleDAO {
 		}
 		return roleIds;
 	}
-	
+
 	@Override
 	public Map<Long, Integer> findPrimaryRoleIdByUserIdsAsMap(final Connection conn, final List<Long> userIds) throws SQLException {
 		Map<Long, Integer> result = new HashMap<>();
 		if (userIds == null || userIds.isEmpty()) {
 			return result;
 		}
-		
+
 		final int MAX_BATCH_SIZE = 500;
-		
+
 		for (int startIndex = 0; startIndex < userIds.size(); startIndex = startIndex + MAX_BATCH_SIZE) {
 			int endIndex = Math.min(startIndex + MAX_BATCH_SIZE, userIds.size());
 			List<Long> currentBatchIds = userIds.subList(startIndex, endIndex);
-			
+
 			List<Long> sanitizedIds = new ArrayList<>();
 			for (int i = 0; i < currentBatchIds.size(); i++) {
 				Long id = currentBatchIds.get(i);
@@ -91,7 +99,7 @@ public class UserRoleDAOImpl implements UserRoleDAO {
 			if (sanitizedIds.isEmpty()) {
 				continue;
 			}
-			
+
 			StringBuilder placeholdersBuilder = new StringBuilder();
 			for (int i = 0; i < sanitizedIds.size(); i++) {
 				if (i > 0) {
@@ -99,13 +107,13 @@ public class UserRoleDAOImpl implements UserRoleDAO {
 				}
 				placeholdersBuilder.append('?');
 			}
-			
+
 			String sql = SQL_FIND_PRIMARY_ROLE_BY_USER_IDS + placeholdersBuilder.toString() + ") GROUP BY " + COL_USER_ID;
 			try (PreparedStatement ps = conn.prepareStatement(sql)) {
 				for (int i = 0; i < sanitizedIds.size(); i++) {
 					ps.setLong(i + 1, sanitizedIds.get(i));
 				}
-				
+
 				try (ResultSet rs = ps.executeQuery()) {
 					while (rs.next()) {
 						long userId = rs.getLong(COL_USER_ID);
@@ -117,7 +125,7 @@ public class UserRoleDAOImpl implements UserRoleDAO {
 				}
 			}
 		}
-		
+
 		return result;
 	}
 }

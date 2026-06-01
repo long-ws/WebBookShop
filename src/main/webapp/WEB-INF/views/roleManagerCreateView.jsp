@@ -78,7 +78,7 @@
                                             <span class="input-group-text"><i class="bi bi-code-square text-muted"></i></span>
                                             <input type="text" name="${P_CODE}" class="form-control text-uppercase ${not empty requestScope[ATTR_ERRORS][P_CODE] ? 'is-invalid' : ''}" 
                                                    placeholder="VD: PRODUCT_MANAGER" 
-                                                   value="<c:out value='${requestScope[ATTR_VALUES][P_CODE]}'/>" required
+                                                   value="<c:out value='${requestScope[ATTR_ROLE].code}'/>" required
                                                    pattern="[A-Z][A-Z_]*" 
                                                    title="Bắt đầu bằng chữ hoa, chỉ chứa chữ hoa và gạch dưới">
                                             <c:if test="${not empty requestScope[ATTR_ERRORS][P_CODE]}">
@@ -96,7 +96,7 @@
                                             <span class="input-group-text"><i class="bi bi-tags-fill text-muted"></i></span>
                                             <input type="text" name="${P_NAME}" class="form-control ${not empty requestScope[ATTR_ERRORS][P_NAME] ? 'is-invalid' : ''}" 
                                                    placeholder="VD: Quản lý Sản phẩm" 
-                                                   value="<c:out value='${requestScope[ATTR_VALUES][P_NAME]}'/>" required>
+                                                   value="<c:out value='${requestScope[ATTR_ROLE].name}'/>" required>
                                             <c:if test="${not empty requestScope[ATTR_ERRORS][P_NAME]}">
                                                 <div class="invalid-feedback">${requestScope[ATTR_ERRORS][P_NAME]}</div>
                                             </c:if>
@@ -106,7 +106,7 @@
                                     <div class="mb-3">
                                         <label class="form-label fw-semibold">Mô tả chức năng</label>
                                         <textarea name="${P_DESCRIPTION}" class="form-control ${not empty requestScope[ATTR_ERRORS][P_DESCRIPTION] ? 'is-invalid' : ''}" rows="4"
-                                                  placeholder="Mô tả chi tiết các đặc quyền hoặc phạm vi áp dụng của vai trò này..."><c:out value='${requestScope[ATTR_VALUES][P_DESCRIPTION]}'/></textarea>
+                                                  placeholder="Mô tả chi tiết các đặc quyền hoặc phạm vi áp dụng của vai trò này..."><c:out value='${requestScope[ATTR_ROLE].description}'/></textarea>
                                         <c:if test="${not empty requestScope[ATTR_ERRORS][P_DESCRIPTION]}">
                                             <div class="invalid-feedback">${requestScope[ATTR_ERRORS][P_DESCRIPTION]}</div>
                                         </c:if>
