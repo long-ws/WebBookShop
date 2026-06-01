@@ -88,7 +88,7 @@
 						<button type="submit" class="btn btn-primary">Thêm</button>
 						<button type="reset" class="btn btn-warning">Mặc định</button>
 						<a class="btn btn-danger"
-							href="${pageContext.request.contextPath}/admin/categoryManager/view">Hủy</a>
+							href="${pageContext.request.contextPath}/admin/categoryManager">Hủy</a>
 					</div>
 				</form>
 			</main>

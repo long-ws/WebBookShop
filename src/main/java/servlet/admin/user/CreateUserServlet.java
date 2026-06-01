@@ -1,16 +1,14 @@
 package servlet.admin.user;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import beans.common.Gender;
 import beans.common.Language;
 import beans.common.Role;
+import constants.FormConstants;
 import constants.RequestParamConstants;
-import constants.SystemConstants;
 import constants.ViewAttributeConstants;
 import dto.user.UserCreateRequest;
 import exception.BusinessException;
@@ -37,13 +35,15 @@ public class CreateUserServlet extends HttpServlet {
 	private final LanguageService languageService = new LanguageServiceImpl();
 
 	@Override
-	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
+	protected void doGet(final HttpServletRequest request, final HttpServletResponse response)
+			throws ServletException, IOException {
 		loadDropdownData(request);
 		request.getRequestDispatcher("/WEB-INF/views/createUserView.jsp").forward(request, response);
 	}
 
 	@Override
-	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
+	protected void doPost(final HttpServletRequest request, final HttpServletResponse response)
+			throws ServletException, IOException {
 
 		final String username = request.getParameter(RequestParamConstants.User.USERNAME);
 		final String fullname = request.getParameter(RequestParamConstants.User.FULLNAME);
@@ -90,8 +90,16 @@ public class CreateUserServlet extends HttpServlet {
 			}
 		}
 
-		final UserCreateRequest dto = new UserCreateRequest.Builder().username(username).password(request.getParameter(RequestParamConstants.User.PASSWORD)).fullname(fullname).email(email)
-				.phoneNumber(phoneNumber).gender(gender).role(role).preferredLanguage(language).build();
+		final UserCreateRequest dto = new UserCreateRequest.Builder()
+				.username(username)
+				.password(request.getParameter(RequestParamConstants.User.PASSWORD))
+				.fullname(fullname)
+				.email(email)
+				.phoneNumber(phoneNumber)
+				.gender(gender)
+				.role(role)
+				.preferredLanguage(language)
+				.build();
 
 		if (errors.isEmpty()) {
 			try {
@@ -101,7 +109,7 @@ public class CreateUserServlet extends HttpServlet {
 				if (businessErrors != null && !businessErrors.isEmpty()) {
 					errors.putAll(businessErrors);
 				} else {
-					errors.put(SystemConstants.ERROR_GLOBAL, e.getMessage());
+					errors.put(FormConstants.ERROR_GLOBAL, e.getMessage());
 				}
 			}
 		}
@@ -115,23 +123,12 @@ public class CreateUserServlet extends HttpServlet {
 		}
 
 		SessionPermissionCache.clear(request.getSession());
-		MessageHelper.setSuccessMessage(request.getSession(), "Đã tạo người dùng: " + dto.getUsername());
-		response.sendRedirect(request.getContextPath() + "/admin/user/create");
+		MessageHelper.setSuccessMessage(request.getSession(), "Thêm người dùng thành công!");
+		response.sendRedirect(request.getContextPath() + "/admin/user");
 	}
 
 	private void loadDropdownData(final HttpServletRequest request) {
-		final List<Role> roles = roleService.getAllActiveRoles();
-		final List<Role> filtered = new ArrayList<Role>();
-
-		for (int i = 0; i < roles.size(); i++) {
-			Role role = roles.get(i);
-			if (role != null && !role.isSystem()) {
-				filtered.add(role);
-			}
-		}
-
-		request.setAttribute(ViewAttributeConstants.User.ALL_ROLES, filtered);
+		request.setAttribute(ViewAttributeConstants.User.ALL_ROLES, roleService.getAllActiveRoles());
 		request.setAttribute(ViewAttributeConstants.User.LANGUAGES, languageService.getAllActiveLanguages());
-		request.setAttribute("defaultRoleCode", SystemConstants.DEFAULT_ROLE_CODE);
 	}
 }

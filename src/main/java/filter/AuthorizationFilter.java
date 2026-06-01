@@ -1,158 +1,160 @@
 package filter;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.HashSet;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import beans.User;
-import beans.common.Permission;
-import config.PermissionRegistry;
+import constants.PermissionConstants;
 import constants.SessionConstants;
-import constants.SystemConstants;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
+import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import service.AuthorizationService;
 import service.AuthorizationServiceImpl;
-import utils.DBConnection;
 
+@WebFilter(filterName = "AuthorizationFilter", value = "/admin/*")
 public class AuthorizationFilter implements Filter {
 
+	private static final Map<String, List<String>> PERMISSION_MAP = new HashMap<>();
 	private final AuthorizationService authorizationService = new AuthorizationServiceImpl();
 
+	static {
+		PERMISSION_MAP.put("/admin/user", Arrays.asList(PermissionConstants.USER_VIEW));
+		PERMISSION_MAP.put("/admin/user/detail", Arrays.asList(PermissionConstants.USER_VIEW));
+		PERMISSION_MAP.put("/admin/user/create", Arrays.asList(PermissionConstants.USER_CREATE));
+		PERMISSION_MAP.put("/admin/user/update", Arrays.asList(PermissionConstants.USER_EDIT));
+		PERMISSION_MAP.put("/admin/user/delete", Arrays.asList(PermissionConstants.USER_DELETE));
+
+		PERMISSION_MAP.put("/admin/role", Arrays.asList(PermissionConstants.ROLE_VIEW));
+		PERMISSION_MAP.put("/admin/role/create", Arrays.asList(PermissionConstants.ROLE_CREATE));
+		PERMISSION_MAP.put("/admin/role/update", Arrays.asList(PermissionConstants.ROLE_EDIT));
+		PERMISSION_MAP.put("/admin/role/delete", Arrays.asList(PermissionConstants.ROLE_DELETE));
+
+		PERMISSION_MAP.put("/admin/permission", Arrays.asList(PermissionConstants.PERMISSION_VIEW));
+		PERMISSION_MAP.put("/admin/permission/create", Arrays.asList(PermissionConstants.PERMISSION_CREATE));
+		PERMISSION_MAP.put("/admin/permission/update", Arrays.asList(PermissionConstants.PERMISSION_EDIT));
+		PERMISSION_MAP.put("/admin/permission/delete", Arrays.asList(PermissionConstants.PERMISSION_DELETE));
+
+		PERMISSION_MAP.put("/admin/categoryManager/view", Arrays.asList(PermissionConstants.CATEGORY_VIEW));
+		PERMISSION_MAP.put("/admin/categoryManager/create", Arrays.asList(PermissionConstants.CATEGORY_CREATE));
+		PERMISSION_MAP.put("/admin/categoryManager/update", Arrays.asList(PermissionConstants.CATEGORY_EDIT));
+		PERMISSION_MAP.put("/admin/categoryManager/delete", Arrays.asList(PermissionConstants.CATEGORY_DELETE));
+
+		PERMISSION_MAP.put("/admin/productManager/view", Arrays.asList(PermissionConstants.PRODUCT_VIEW));
+		PERMISSION_MAP.put("/admin/productManager/create", Arrays.asList(PermissionConstants.PRODUCT_CREATE));
+		PERMISSION_MAP.put("/admin/productManager/update", Arrays.asList(PermissionConstants.PRODUCT_EDIT));
+		PERMISSION_MAP.put("/admin/productManager/delete", Arrays.asList(PermissionConstants.PRODUCT_DELETE));
+
+		PERMISSION_MAP.put("/admin/reviewManager/view", Arrays.asList(PermissionConstants.REVIEW_VIEW));
+		PERMISSION_MAP.put("/admin/reviewManager/update", Arrays.asList(PermissionConstants.REVIEW_MODERATE));
+
+		PERMISSION_MAP.put("/admin/orderManager/view", Arrays.asList(PermissionConstants.ORDER_VIEW));
+		PERMISSION_MAP.put("/admin/orderManager/update", Arrays.asList(PermissionConstants.ORDER_EDIT));
+		PERMISSION_MAP.put("/admin/orderManager/delete", Arrays.asList(PermissionConstants.ORDER_DELETE));
+
+		PERMISSION_MAP.put("/admin/voucherManager/view", Arrays.asList(PermissionConstants.VOUCHER_VIEW));
+		PERMISSION_MAP.put("/admin/voucherManager/create", Arrays.asList(PermissionConstants.VOUCHER_CREATE));
+		PERMISSION_MAP.put("/admin/voucherManager/update", Arrays.asList(PermissionConstants.VOUCHER_EDIT));
+		PERMISSION_MAP.put("/admin/voucherManager/delete", Arrays.asList(PermissionConstants.VOUCHER_DELETE));
+
+		PERMISSION_MAP.put("/admin/shipmentManager", Arrays.asList(PermissionConstants.SHIPMENT_VIEW));
+		PERMISSION_MAP.put("/admin/shipmentManager/detail", Arrays.asList(PermissionConstants.SHIPMENT_VIEW));
+		PERMISSION_MAP.put("/admin/shippingMethod", Arrays.asList(PermissionConstants.SHIPPING_CONFIG_VIEW));
+	}
+
 	@Override
-	public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws ServletException, IOException {
+	public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
+			throws ServletException, IOException {
+
 		HttpServletRequest request = (HttpServletRequest) req;
 		HttpServletResponse response = (HttpServletResponse) res;
 		HttpSession session = request.getSession(false);
 
-		String currentPath = normalizePath(request);
+		String loginURI = request.getContextPath() + "/admin/signin";
+		String signoutURI = request.getContextPath() + "/admin/signout";
+		String admin403URI = request.getContextPath() + "/admin/403";
+		String admin401URI = request.getContextPath() + "/admin/401";
+		String adminHomeURI = request.getContextPath() + "/admin";
 
-		if (isPublicPage(currentPath)) {
+		String requestURI = request.getRequestURI();
+		String contextPath = request.getContextPath();
+		String path = requestURI.substring(contextPath.length());
+
+		if (path.equals("/admin/403") || path.equals("/admin/401")) {
 			chain.doFilter(req, res);
 			return;
 		}
 
-		User user = (session != null) ? (User) session.getAttribute(SessionConstants.CURRENT_USER) : null;
-		if (user == null) {
-			response.sendRedirect(request.getContextPath() + "/admin/signin");
+		User currentUser = null;
+		if (session != null) {
+			currentUser = (User) session.getAttribute(SessionConstants.CURRENT_USER);
+		}
+
+		boolean loginRequest = requestURI.equals(loginURI);
+		boolean signoutRequest = requestURI.equals(signoutURI);
+		boolean adminHomeRequest = requestURI.equals(adminHomeURI);
+
+		if (currentUser == null) {
+			if (loginRequest) {
+				chain.doFilter(request, response);
+			} else {
+				response.sendRedirect(loginURI);
+			}
 			return;
 		}
 
-		if (isSuperAdmin(session, user)) {
+		if (loginRequest) {	
+			response.sendRedirect(adminHomeURI);
+			return;
+		}
+
+		if (signoutRequest || adminHomeRequest) {
+			chain.doFilter(request, response);
+			return;
+		}
+
+		boolean isSuperAdmin = authorizationService.isSuperAdmin(currentUser.getId());
+		System.out.println("[AuthorizationFilter] User ID: " + currentUser.getId() + ", Username: " + currentUser.getUsername() + ", Is Super Admin: " + isSuperAdmin);
+
+		if (isSuperAdmin) {
+			System.out.println("[AuthorizationFilter] Super Admin detected - bypassing permission check for path: " + path);
 			chain.doFilter(req, res);
 			return;
 		}
 
-		Set<String> userPermissions = getPermissionsFromSession(session);
-		if (userPermissions == null) {
-			userPermissions = loadPermissionsFromDatabase(session, user.getId());
-		}
+		boolean hasPermission = false;
+		List<String> sortedKeys = new java.util.ArrayList<>(PERMISSION_MAP.keySet());
+		sortedKeys.sort((a, b) -> Integer.compare(b.length(), a.length()));
 
-		if (isAuthorized(currentPath, userPermissions)) {
-			chain.doFilter(req, res);
-		} else {
-			response.sendRedirect(request.getContextPath() + "/admin/403");
-		}
-	}
-
-	private String normalizePath(HttpServletRequest request) {
-		String path = request.getRequestURI().substring(request.getContextPath().length());
-		return (path.length() > 1 && path.endsWith("/")) ? path.substring(0, path.length() - 1) : path;
-	}
-
-	private boolean isPublicPage(String path) {
-		return path.equals("/admin/403") || path.equals("/admin/signin");
-	}
-
-	private boolean isSuperAdmin(HttpSession session, User user) {
-		boolean isSuperAdmin = SystemConstants.Security.isSuperAdminUsername(user.getUsername());
-		session.setAttribute(SessionConstants.IS_SUPER_ADMIN, isSuperAdmin);
-		return isSuperAdmin;
-	}
-
-	@SuppressWarnings("unchecked")
-	private Set<String> getPermissionsFromSession(HttpSession session) {
-		Object attr = session.getAttribute(SessionConstants.USER_PERMISSIONS);
-		return (attr instanceof Set<?>) ? (Set<String>) attr : null;
-	}
-
-	private Set<String> loadPermissionsFromDatabase(HttpSession session, long userId) throws ServletException {
-		try (Connection conn = DBConnection.getConnection()) {
-			Set<String> permissions = extractCodes(authorizationService.getPermissionsByUserId(conn, userId));
-			session.setAttribute(SessionConstants.USER_PERMISSIONS, permissions);
-			return permissions;
-		} catch (SQLException e) {
-			throw new ServletException(e);
-		}
-	}
-
-	private Set<String> extractCodes(List<Permission> list) {
-		Set<String> codes = new HashSet<String>();
-		if (list != null) {
-			for (Permission p : list) {
-				if (p != null && p.getCode() != null && !p.getCode().isBlank()) {
-					codes.add(p.getCode());
+		for (String key : sortedKeys) {
+			if (path.startsWith(key)) {
+				for (String permission : PERMISSION_MAP.get(key)) {
+					boolean userHasPermission = authorizationService.hasPermission(currentUser.getId(), permission);
+					if (userHasPermission) {
+						hasPermission = true;
+						break;
+					}
+				}
+				if (hasPermission) {
+					break;
 				}
 			}
 		}
-		return codes;
-	}
 
-	private boolean isAuthorized(String path, Set<String> userPermissions) {
-		Set<String> requiredPermissions = findRequiredPermissions(path);
-		if (requiredPermissions == null || requiredPermissions.isEmpty())
-			return false;
-
-		return hasAnyPermission(userPermissions, requiredPermissions);
-	}
-
-	private Set<String> findRequiredPermissions(String path) {
-		Map<String, Set<String>> findRequiredPermissions = PermissionRegistry.getPermissionMap();
-		if (findRequiredPermissions.containsKey(path))
-			return findRequiredPermissions.get(path);
-
-		for (String registeredPath : PermissionRegistry.getSortedPathsDescLength()) {
-			if (path.startsWith(registeredPath) && isPathSegmentMatch(path, registeredPath)) {
-				return findRequiredPermissions.get(registeredPath);
-			}
+		if (hasPermission) {
+			chain.doFilter(request, response);
+		} else {
+			System.out.println("[AuthorizationFilter] User NO permission - redirecting to 403 for path: " + path);
+			response.sendRedirect(admin403URI);
 		}
-		return null;
-	}
-
-	private boolean hasAnyPermission(Set<String> userPermissions, Iterable<String> requiredPermissions) {
-		for (String code : requiredPermissions) {
-			if (hasPermission(userPermissions, code))
-				return true;
-		}
-		return false;
-	}
-
-	private boolean hasPermission(Set<String> userPermissions, String code) {
-		String viewPermission = getViewPermission(code);
-		if (viewPermission != null && !userPermissions.contains(viewPermission))
-			return false;
-		return userPermissions.contains(code);
-	}
-
-	private String getViewPermission(String code) {
-		int lastDot = code.lastIndexOf('.');
-		if (lastDot <= 0)
-			return null;
-		String action = code.substring(lastDot + 1);
-		return "view".equals(action) ? null : code.substring(0, lastDot) + ".view";
-	}
-
-	private boolean isPathSegmentMatch(String path, String registeredPath) {
-		return path.length() == registeredPath.length() || path.charAt(registeredPath.length()) == '/';
 	}
 }

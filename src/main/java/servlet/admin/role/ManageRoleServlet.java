@@ -24,20 +24,22 @@ public class ManageRoleServlet extends HttpServlet {
 	private final RoleService roleService = new RoleServiceImpl();
 
 	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 		List<ManageRoleResponse> roles;
 		try {
-			roles = roleService.getRoles();
+			roles = roleService.getRoles("id", "ASC");
 		} catch (BusinessException e) {
 			roles = new ArrayList<>();
 			MessageHelper.setErrorMessage(request.getSession(), e.getMessage());
 		}
 
-		UserPermissionContext userPermissionContext = (UserPermissionContext) request.getAttribute(ViewAttributeConstants.Security.USER_PERMISSION_CONTEXT);
-		if (userPermissionContext != null) {
-			request.setAttribute(ViewAttributeConstants.Role.HAS_CREATE, userPermissionContext.isCanCreateRole());
-			request.setAttribute(ViewAttributeConstants.Role.HAS_EDIT, userPermissionContext.isCanEditRole());
-			request.setAttribute(ViewAttributeConstants.Role.HAS_DELETE, userPermissionContext.isCanDeleteRole());
+		UserPermissionContext securityContext = (UserPermissionContext) request
+				.getAttribute(ViewAttributeConstants.Security.SECURITY_CONTEXT);
+		if (securityContext != null) {
+			request.setAttribute(ViewAttributeConstants.Role.HAS_CREATE, securityContext.isCanCreateRole());
+			request.setAttribute(ViewAttributeConstants.Role.HAS_EDIT, securityContext.isCanEditRole());
+			request.setAttribute(ViewAttributeConstants.Role.HAS_DELETE, securityContext.isCanDeleteRole());
 		}
 
 		request.setAttribute(ViewAttributeConstants.Role.ROLES, roles);

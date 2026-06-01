@@ -12,15 +12,13 @@ import jakarta.servlet.http.HttpServletResponse;
 public class SignoutAdminServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        request.getSession().invalidate();
 
-	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		request.getSession().invalidate();
+        response.sendRedirect(request.getContextPath() + "/admin/signin");
+    }
 
-		response.sendRedirect(request.getContextPath() + "/admin/signin");
-	}
-
-	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-	}
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {}
 }

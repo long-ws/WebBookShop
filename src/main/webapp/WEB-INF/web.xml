@@ -4,31 +4,4 @@
          xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
          version="6.0">
   <display-name>Archetype Created Web Application</display-name>
-
-  <filter>
-    <filter-name>EncodingFilter</filter-name>
-    <filter-class>filter.EncodingFilter</filter-class>
-  </filter>
-  <filter-mapping>
-    <filter-name>EncodingFilter</filter-name>
-    <url-pattern>/*</url-pattern>
-  </filter-mapping>
-
-  <filter>
-    <filter-name>AuthorizationFilter</filter-name>
-    <filter-class>filter.AuthorizationFilter</filter-class>
-  </filter>
-  <filter-mapping>
-    <filter-name>AuthorizationFilter</filter-name>
-    <url-pattern>/admin/*</url-pattern>
-  </filter-mapping>
-
-  <filter>
-    <filter-name>PermissionFilter</filter-name>
-    <filter-class>filter.PermissionFilter</filter-class>
-  </filter>
-  <filter-mapping>
-    <filter-name>PermissionFilter</filter-name>
-    <url-pattern>/admin/*</url-pattern>
-  </filter-mapping>
 </web-app>

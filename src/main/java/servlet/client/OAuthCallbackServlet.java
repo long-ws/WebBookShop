@@ -8,7 +8,6 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import service.oauth.OAuthFactory;
 import service.oauth.OAuthProvider;
 import service.oauth.OAuthService;
@@ -23,12 +22,17 @@ public class OAuthCallbackServlet extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
+		System.out.println("[OAuthCallbackServlet]: Bắt đầu trả Oauth về");
 		String code = request.getParameter("code");
 		String state = request.getParameter("state"); // Provider
 		String callbackUrl = request.getRequestURL().toString();
 
+		System.out.println("[OAuthCallbackServlet]: Thông tin: code: " + code + ", state: " + state + "\ncallbackUrl: "
+				+ callbackUrl);
+
 		try {
 			if (code == null || state == null) {
+				System.out.println("[OAuthCallbackServlet]: " + code + " hoặc " + state + " null");
 				response.sendRedirect(request.getContextPath() + "/signin");
 				return;
 			}
@@ -38,19 +42,18 @@ public class OAuthCallbackServlet extends HttpServlet {
 			OAuthUserResponse oauthUser = oauthProvider.getUser(code, callbackUrl);
 			User user = oauthOrchestratorService.handleOAuthCallback(oauthUser, state);
 
-			HttpSession session = request.getSession(true);
-			session.setAttribute(SessionConstants.CURRENT_USER, user);
+			request.getSession().setAttribute(SessionConstants.CURRENT_USER, user);
 
 			if (user.getRole() != null) {
-				session.setAttribute(SessionConstants.USER_ROLE, user.getRole().getCode());
+				request.getSession().setAttribute(SessionConstants.USER_ROLE, user.getRole().getCode());
 			}
+			System.out.println("[OAuthCallbackServlet]: Đăng nhập thành công\nUser: " + user.getId() + ", Role: "
+					+ user.getRole().getCode());
 
 			response.sendRedirect(request.getContextPath() + "/");
 		} catch (Exception e) {
-			HttpSession session = request.getSession(false);
-			if (session != null) {
-				session.setAttribute(SessionConstants.OAUTH_ERROR, "Đăng nhập OAuth thất bại. Vui lòng thử lại.");
-			}
+			e.printStackTrace();
+			request.getSession().setAttribute(SessionConstants.OAUTH_ERROR, "Đăng nhập Google thất bại. Vui lòng thử lại hoặc đăng nhập bằng tài khoản!");
 			response.sendRedirect(request.getContextPath() + "/signin?error=oauth_failed");
 		}
 	}

@@ -97,7 +97,7 @@
 										value="${product.id}" /> <c:if
 										test="${param.confirmId != pid}">
 										<form
-											action="${pageContext.request.contextPath}/admin/productManager/view"
+											action="${pageContext.request.contextPath}/admin/productManager"
 											method="get" style="display: inline">
 											<input type="hidden" name="confirmId" value="${product.id}" />
 											<input type="hidden" name="page" value="${requestScope.page}" />
@@ -109,16 +109,17 @@
 										<span class="badge bg-warning text-dark">Bạn có chắc
 											muốn xóa?</span>
 										<form
-											action="${pageContext.request.contextPath}/admin/productManager/delete"
+											action="${pageContext.request.contextPath}/admin/productManager"
 											method="post" style="display: inline">
 											<input type="hidden" name="id" value="${product.id}" /> <input
+												type="hidden" name="action" value="delete" /> <input
 												type="hidden" name="page" value="${requestScope.page}" />
 											<button type="submit" class="btn btn-danger btn-sm">Xác
 												nhận</button>
 										</form>
 
 										<a class="btn btn-secondary btn-sm"
-											href="${pageContext.request.contextPath}/admin/productManager/view?page=${requestScope.page}">Hủy</a>
+											href="${pageContext.request.contextPath}/admin/productManager">Hủy</a>
 									</c:if>
 
 								</td>
@@ -140,7 +141,7 @@
 			<ul class="pagination justify-content-center">
 				<li class="page-item ${requestScope.page == 1 ? 'disabled' : ''}"><a
 					class="page-link"
-					href="${pageContext.request.contextPath}/admin/productManager/view?page=${requestScope.page - 1}">
+					href="${pageContext.request.contextPath}/admin/productManager?page=${requestScope.page - 1}">
 						Trang trước </a></li>
 
 				<c:forEach begin="1" end="${requestScope.totalPages}" var="i">
@@ -150,7 +151,7 @@
 						</c:when>
 						<c:otherwise>
 							<li class="page-item"><a class="page-link"
-								href="${pageContext.request.contextPath}/admin/productManager/view?page=${i}">
+								href="${pageContext.request.contextPath}/admin/productManager?page=${i}">
 									${i} </a></li>
 						</c:otherwise>
 					</c:choose>
@@ -159,7 +160,7 @@
 				<li
 					class="page-item ${requestScope.page == requestScope.totalPages ? 'disabled' : ''}"><a
 					class="page-link"
-					href="${pageContext.request.contextPath}/admin/productManager/view?page=${requestScope.page + 1}">
+					href="${pageContext.request.contextPath}/admin/productManager?page=${requestScope.page + 1}">
 						Trang sau </a></li>
 			</ul>
 		</nav>

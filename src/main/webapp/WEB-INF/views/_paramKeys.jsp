@@ -1,10 +1,7 @@
 <%@ taglib uri="jakarta.tags.core" prefix="c" %>
-<%@ page import="constants.SystemConstants, constants.RequestParamConstants, constants.ViewAttributeConstants, constants.SessionConstants" %>
-
+<%@ page import="constants.FormConstants, constants.RequestParamConstants, constants.ViewAttributeConstants, constants.SessionConstants" %>
+<%-- Khóa form / validation — dùng trong name= và errors[...] / values[...] --%>
 <c:set var="SSN_OAUTH_ERROR" value="<%= SessionConstants.OAUTH_ERROR %>" />
-<c:set var="SSN_SIGNUP_SUCCESS" value="<%= SessionConstants.SIGNUP_SUCCESS %>" />
-<c:set var="SSN_SUCCESS_MESSAGE" value="<%= SessionConstants.SUCCESS_MESSAGE %>" />
-<c:set var="SSN_ERROR_MESSAGE" value="<%= SessionConstants.ERROR_MESSAGE %>" />
 <c:set var="P_ID" value="<%= RequestParamConstants.ID %>" />
 <c:set var="P_CODE" value="<%= RequestParamConstants.CODE %>" />
 <c:set var="P_NAME" value="<%= RequestParamConstants.NAME %>" />
@@ -25,7 +22,7 @@
 <c:set var="P_ROLE_IDS" value="<%= RequestParamConstants.Role.ROLE_IDS %>" />
 <c:set var="P_PERMISSION_IDS" value="<%= RequestParamConstants.Permission.PERMISSION_IDS %>" />
 <c:set var="P_ASSIGNED_ROLE_IDS" value="<%= RequestParamConstants.Role.ASSIGNED_ROLE_IDS %>" />
-<c:set var="ERR_GLOBAL" value="<%= SystemConstants.ERROR_GLOBAL %>" />
+<c:set var="ERR_GLOBAL" value="<%= FormConstants.ERROR_GLOBAL %>" />
 <c:set var="ATTR_ERRORS" value="<%= ViewAttributeConstants.ERRORS %>" />
 <c:set var="ATTR_VALUES" value="<%= ViewAttributeConstants.VALUES %>" />
 <c:set var="ATTR_ALL_ROLES" value="<%= ViewAttributeConstants.User.ALL_ROLES %>" />

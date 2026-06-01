@@ -23,7 +23,17 @@ public final class ViewAttributeConstants {
 		private Security() {
 		}
 
-		public static final String USER_PERMISSION_CONTEXT = "userPermissionContext";
+		public static final String SECURITY_CONTEXT = "securityContext";
+		public static final String CAN_VIEW_USERS = "canViewUsers";
+		public static final String CAN_VIEW_ROLES = "canViewRoles";
+		public static final String CAN_VIEW_PERMISSIONS = "canViewPermissions";
+		public static final String CAN_VIEW_CATEGORIES = "canViewCategories";
+		public static final String CAN_VIEW_PRODUCTS = "canViewProducts";
+		public static final String CAN_VIEW_REVIEWS = "canViewReviews";
+		public static final String CAN_VIEW_ORDERS = "canViewOrders";
+		public static final String CAN_VIEW_VOUCHERS = "canViewVouchers";
+		public static final String CAN_VIEW_SHIPMENTS = "canViewShipments";
+		public static final String CAN_VIEW_SHIPPING_CONFIGS = "canViewShippingConfigs";
 	}
 
 	public static final class User {

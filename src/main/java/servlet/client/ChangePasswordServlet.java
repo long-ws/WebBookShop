@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import beans.User;
 import constants.SessionConstants;
-import constants.SystemConstants;
 import dto.user.ChangePasswordRequest;
 import exception.BusinessException;
 import jakarta.servlet.ServletException;
@@ -12,14 +11,14 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import service.AuthenticationService;
-import service.AuthenticationServiceImpl;
+import service.PasswordService;
+import service.PasswordServiceImpl;
 
 @WebServlet(name = "ChangePassword", value = "/changePassword")
 public class ChangePasswordServlet extends HomeServlet {
 
     private static final long serialVersionUID = 1L;
-    private final AuthenticationService authenticationService = new AuthenticationServiceImpl();
+    private final PasswordService passwordService = new PasswordServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -28,8 +27,8 @@ public class ChangePasswordServlet extends HomeServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
-        User user = (session != null) ? (User) session.getAttribute(SessionConstants.CURRENT_USER) : null;
+        HttpSession session = request.getSession();
+        User user = (User) session.getAttribute(SessionConstants.CURRENT_USER);
 
         if (user == null) {
             response.sendRedirect(request.getContextPath() + "/signin");
@@ -40,6 +39,8 @@ public class ChangePasswordServlet extends HomeServlet {
         String newPassword = request.getParameter("newPassword");
         String newPasswordAgain = request.getParameter("newPasswordAgain");
 
+        boolean success = false;
+
         ChangePasswordRequest changePasswordRequest = new ChangePasswordRequest.Builder()
                 .currentPassword(currentPassword)
                 .newPassword(newPassword)
@@ -47,27 +48,17 @@ public class ChangePasswordServlet extends HomeServlet {
                 .build();
         
         try {
-            authenticationService.changePassword(user.getId(), changePasswordRequest);
-            request.setAttribute(SessionConstants.SUCCESS_MESSAGE, "Đổi mật khẩu thành công!");
-            request.getRequestDispatcher("/WEB-INF/views/changePasswordView.jsp").forward(request, response);
-            return;
+            passwordService.changePassword(user.getId(), changePasswordRequest);
+            success = true;
         } catch (BusinessException e) {
-            String message = e.getMessage();
-            if (e.getErrors() != null && !e.getErrors().isEmpty()) {
-                String global = e.getErrors().get(SystemConstants.ERROR_GLOBAL);
-                if (global != null && !global.trim().isEmpty()) {
-                    message = global;
-                } else {
-                    for (String v : e.getErrors().values()) {
-                        if (v != null && !v.trim().isEmpty()) {
-                            message = v;
-                            break;
-                        }
-                    }
-                }
-            }
-            request.setAttribute(SessionConstants.ERROR_MESSAGE, message);
+            request.setAttribute(SessionConstants.ERROR_MESSAGE, e.getMessage());
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (success) {
+            request.setAttribute(SessionConstants.SUCCESS_MESSAGE, "Đổi mật khẩu thành công!");
+        } else if (request.getAttribute(SessionConstants.ERROR_MESSAGE) == null) {
             request.setAttribute(SessionConstants.ERROR_MESSAGE, "Đổi mật khẩu thất bại! Vui lòng kiểm tra lại thông tin.");
         }
 

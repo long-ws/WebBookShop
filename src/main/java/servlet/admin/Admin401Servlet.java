@@ -8,15 +8,15 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-@WebServlet(name = "Admin403Servlet", value = "/admin/403")
-public class Admin403Servlet extends HttpServlet {
+@WebServlet(name = "Admin401Servlet", value = "/admin/401")
+public class Admin401Servlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		request.getRequestDispatcher("/WEB-INF/views/admin403View.jsp").forward(request, response);
+		request.getRequestDispatcher("/WEB-INF/views/admin401View.jsp").forward(request, response);
 	}
 
 	@Override

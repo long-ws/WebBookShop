@@ -58,9 +58,9 @@
                                 <div class="input-group">
                                     <span class="input-group-text bg-white border-end-0"><i class="bi bi-key text-muted"></i></span>
                                     <input name="${P_PASSWORD}"
-                                           class="form-control border-start-0 ps-0 ${not empty requestScope[ATTR_ERRORS][P_PASSWORD] ? 'is-invalid' : ''}"
+                                           class="form-control border-start-0 ps-0 ${not empty requestScope[ATTR_ERRORS][P_PASSWORD] ? 'is-invalid' : (not empty requestScope[ATTR_VALUES][P_PASSWORD] ? 'is-valid' : '')}"
                                            placeholder="Nhập mật khẩu" type="password" autocomplete="off"
-                                           value="">
+                                           value="${requestScope[ATTR_VALUES][P_PASSWORD]}">
                                     
                                     <c:if test="${not empty requestScope[ATTR_ERRORS][P_PASSWORD]}">
                                         <div class="invalid-feedback">${requestScope[ATTR_ERRORS][P_PASSWORD]}</div>

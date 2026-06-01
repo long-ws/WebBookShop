@@ -78,7 +78,6 @@
 
                                 <form action="${pageContext.request.contextPath}/admin/permission/update" method="post" novalidate>
                                     <input type="hidden" name="${P_ID}" value="${requestScope[ATTR_PERMISSION].id}">
-                                    <input type="hidden" name="${P_CODE}" value="${requestScope[ATTR_PERMISSION].code}">
                                     
                                     <%-- Mã định danh (Chỉ đọc) --%>
                                     <div class="mb-3">
@@ -110,12 +109,12 @@
                                     
                                     <%-- Phân loại hệ thống (Module) --%>
                                     <div class="mb-3">
-                                        <label class="form-label fw-semibold">Phân loại hệ thống (Module)</label>
+                                        <label class="form-label fw-semibold">Phân loại hệ thống (Module) <span class="text-danger">*</span></label>
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="bi bi-grid-fill text-muted"></i></span>
-                                            <select name="${P_MODULE}" class="form-select ${not empty requestScope[ATTR_ERRORS][P_MODULE] ? 'is-invalid' : ''}"
+                                            <select name="${P_MODULE}" class="form-select ${not empty requestScope[ATTR_ERRORS][P_MODULE] ? 'is-invalid' : ''}" required
                                                     ${requestScope[ATTR_PERMISSION].isSystem ? 'disabled' : ''}>
-                                                <option value="" ${empty requestScope[ATTR_PERMISSION].module ? 'selected' : ''} disabled>-- Chọn phân loại module --</option>
+                                                <option value="">-- Chọn phân loại module --</option>
                                                 <c:forEach var="moduleItem" items="${requestScope[ATTR_MODULES]}">
                                                     <option value="${moduleItem}" ${requestScope[ATTR_PERMISSION].module eq moduleItem ? 'selected="selected"' : ''}>
                                                         ${moduleItem}

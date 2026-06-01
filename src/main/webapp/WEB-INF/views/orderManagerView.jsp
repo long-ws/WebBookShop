@@ -98,7 +98,7 @@
 										<i class="bi bi-arrow-clockwise"></i>
 									</button>
 									<form
-										action="${pageContext.request.contextPath}/admin/orderManager/update"
+										action="${pageContext.request.contextPath}/admin/orderManager"
 										method="post" id="update-confirm-${order.id}">
 										<input type="hidden" name="id" value="${order.id}"> <input
 											type="hidden" name="action" value="CONFIRM"> <input
@@ -106,7 +106,7 @@
 									</form>
 
 									<form
-										action="${pageContext.request.contextPath}/admin/orderManager/update"
+										action="${pageContext.request.contextPath}/admin/orderManager"
 										method="post" id="update-cancel-${order.id}">
 										<input type="hidden" name="id" value="${order.id}"> <input
 											type="hidden" name="action" value="CANCEL"> <input
@@ -114,7 +114,7 @@
 									</form>
 
 									<form
-										action="${pageContext.request.contextPath}/admin/orderManager/update"
+										action="${pageContext.request.contextPath}/admin/orderManager"
 										method="post" id="update-reset-${order.id}">
 										<input type="hidden" name="id" value="${order.id}"> <input
 											type="hidden" name="action" value="RESET"> <input
@@ -137,7 +137,7 @@
 			<ul class="pagination justify-content-center">
 				<li class="page-item ${requestScope.page == 1 ? 'disabled' : ''}"><a
 					class="page-link"
-					href="${pageContext.request.contextPath}/admin/orderManager/view?page=${requestScope.page - 1}">
+					href="${pageContext.request.contextPath}/admin/orderManager?page=${requestScope.page - 1}">
 						Trang trước </a></li>
 
 				<c:forEach begin="1" end="${requestScope.totalPages}" var="i">
@@ -147,7 +147,7 @@
 						</c:when>
 						<c:otherwise>
 							<li class="page-item"><a class="page-link"
-								href="${pageContext.request.contextPath}/admin/orderManager/view?page=${i}">
+								href="${pageContext.request.contextPath}/admin/orderManager?page=${i}">
 									${i} </a></li>
 						</c:otherwise>
 					</c:choose>
@@ -156,7 +156,7 @@
 				<li
 					class="page-item ${requestScope.page == requestScope.totalPages ? 'disabled' : ''}"><a
 					class="page-link"
-					href="${pageContext.request.contextPath}/admin/orderManager/view?page=${requestScope.page + 1}">
+					href="${pageContext.request.contextPath}/admin/orderManager?page=${requestScope.page + 1}">
 						Trang sau </a></li>
 			</ul>
 		</nav>

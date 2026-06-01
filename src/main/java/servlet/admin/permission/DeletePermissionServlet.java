@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import beans.common.Permission;
 import constants.RequestParamConstants;
 import exception.BusinessException;
 import helpers.MessageHelper;
@@ -54,19 +53,10 @@ public class DeletePermissionServlet extends HttpServlet {
 		}
 
 		try {
-			List<String> deletedInfo = new ArrayList<>();
-			for (Integer id : idsToDelete) {
-				Permission perm = permissionService.getById(id);
-				if (perm != null) {
-					deletedInfo.add(id + " - " + perm.getCode());
-				}
-			}
-			
 			boolean success = permissionService.deletePermissions(idsToDelete);
 			SessionPermissionCache.clear(session);
 			if (success) {
-				String infoStr = String.join(", ", deletedInfo);
-				MessageHelper.setSuccessMessage(session, "Đã xóa quyền: " + infoStr);
+				MessageHelper.setSuccessMessage(session, "Đã xóa quyền");
 			} else {
 				MessageHelper.setErrorMessage(session, "Không thể xóa quyền (có thể là quyền hệ thống)");
 			}

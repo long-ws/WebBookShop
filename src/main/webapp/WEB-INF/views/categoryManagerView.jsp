@@ -76,7 +76,7 @@
 									role="button"> Sửa </a> <!-- Bước 1: Nút Xóa --> <c:if
 										test="${param.confirmId ne category.id}">
 										<form
-											action="${pageContext.request.contextPath}/admin/categoryManager/view"
+											action="${pageContext.request.contextPath}/admin/categoryManager"
 											method="get" style="display: inline">
 											<input type="hidden" name="confirmId" value="${category.id}" />
 											<input type="hidden" name="page" value="${requestScope.page}" />
@@ -88,16 +88,17 @@
 										<span class="badge bg-warning text-dark">Bạn có chắc
 											muốn xóa?</span>
 										<form
-											action="${pageContext.request.contextPath}/admin/categoryManager/delete"
+											action="${pageContext.request.contextPath}/admin/categoryManager"
 											method="post" style="display: inline">
-											<input type="hidden" name="id" value="${category.id}" /> <input
+											<input type="hidden" name="action" value="delete" /> <input
+												type="hidden" name="id" value="${category.id}" /> <input
 												type="hidden" name="page" value="${requestScope.page}" />
 											<button type="submit" class="btn btn-danger btn-sm">Xác
 												nhận</button>
 										</form>
 
 										<a class="btn btn-secondary btn-sm"
-											href="${pageContext.request.contextPath}/admin/categoryManager/view?page=${requestScope.page}">Hủy</a>
+											href="${pageContext.request.contextPath}/admin/categoryManager">Hủy</a>
 									</c:if>
 								</td>
 							</tr>
@@ -118,7 +119,7 @@
 			<ul class="pagination justify-content-center">
 				<li class="page-item ${requestScope.page == 1 ? 'disabled' : ''}"><a
 					class="page-link"
-					href="${pageContext.request.contextPath}/admin/categoryManager/view?page=${requestScope.page - 1}">
+					href="${pageContext.request.contextPath}/admin/categoryManager?page=${requestScope.page - 1}">
 						Trang trước </a></li>
 
 				<c:forEach begin="1" end="${requestScope.totalPages}" var="i">
@@ -128,7 +129,7 @@
 						</c:when>
 						<c:otherwise>
 							<li class="page-item"><a class="page-link"
-								href="${pageContext.request.contextPath}/admin/categoryManager/view?page=${i}">
+								href="${pageContext.request.contextPath}/admin/categoryManager?page=${i}">
 									${i} </a></li>
 						</c:otherwise>
 					</c:choose>
@@ -137,7 +138,7 @@
 				<li
 					class="page-item ${requestScope.page == requestScope.totalPages ? 'disabled' : ''}"><a
 					class="page-link"
-					href="${pageContext.request.contextPath}/admin/categoryManager/view?page=${requestScope.page + 1}">
+					href="${pageContext.request.contextPath}/admin/categoryManager?page=${requestScope.page + 1}">
 						Trang sau </a></li>
 			</ul>
 		</nav>

@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import constants.SystemConstants;
+import constants.FormConstants;
 import constants.ViewAttributeConstants;
 import exception.BusinessException;
 import jakarta.servlet.ServletException;
@@ -28,7 +28,8 @@ public class AdminServlet extends HttpServlet {
 	private final OrderService orderService = new OrderService();
 
 	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 
 		long totalUsers = 0;
 		int totalCategories = 0;
@@ -47,10 +48,11 @@ public class AdminServlet extends HttpServlet {
 			if (businessErrors != null && !businessErrors.isEmpty()) {
 				errors.putAll(businessErrors);
 			} else {
-				errors.put(SystemConstants.ERROR_GLOBAL, e.getMessage());
+				errors.put(FormConstants.ERROR_GLOBAL, e.getMessage());
 			}
 		} catch (Exception e) {
-			errors.put(SystemConstants.ERROR_GLOBAL, "Không thể tải dữ liệu dashboard do sự cố hệ thống.");
+			e.printStackTrace();
+			errors.put(FormConstants.ERROR_GLOBAL, "Không thể tải dữ liệu dashboard do sự cố hệ thống.");
 		}
 
 		request.setAttribute(ViewAttributeConstants.Dashboard.TOTAL_USERS, totalUsers);
@@ -63,6 +65,7 @@ public class AdminServlet extends HttpServlet {
 	}
 
 	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 	}
 }

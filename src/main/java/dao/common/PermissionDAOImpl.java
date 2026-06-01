@@ -4,19 +4,17 @@ import static config.DatabaseConstants.COL_CREATED_AT;
 import static config.DatabaseConstants.COL_ID;
 import static config.DatabaseConstants.COL_PERMISSION_CODE;
 import static config.DatabaseConstants.COL_PERMISSION_DESCRIPTION;
-import static config.DatabaseConstants.COL_PERMISSION_ID;
 import static config.DatabaseConstants.COL_PERMISSION_IS_ACTIVE;
 import static config.DatabaseConstants.COL_PERMISSION_IS_SYSTEM;
 import static config.DatabaseConstants.COL_PERMISSION_MODULE;
 import static config.DatabaseConstants.COL_PERMISSION_NAME;
-import static config.DatabaseConstants.COL_ROLE_ID;
-import static config.DatabaseConstants.COL_ROLE_IS_ACTIVE;
-import static config.DatabaseConstants.COL_ROLE_PERMISSION_IS_ACTIVE;
-import static config.DatabaseConstants.COL_USER_ID;
 import static config.DatabaseConstants.TABLE_PERMISSION_REGISTRY;
-import static config.DatabaseConstants.TABLE_ROLE_PERMISSION_ASSIGNMENT;
 import static config.DatabaseConstants.TABLE_ROLE_REGISTRY;
 import static config.DatabaseConstants.TABLE_USER_ROLE_REGISTRY;
+import static config.DatabaseConstants.COL_ROLE_ID;
+import static config.DatabaseConstants.TABLE_ROLE_PERMISSION_ASSIGNMENT;
+import static config.DatabaseConstants.COL_PERMISSION_ID;
+import static config.DatabaseConstants.COL_USER_ID;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -61,16 +59,21 @@ public class PermissionDAOImpl implements PermissionDAO {
 			JOIN %s r ON ur.%s = r.%s
 			JOIN %s rpa ON r.%s = rpa.%s
 			JOIN %s p ON rpa.%s = p.%s
-			WHERE ur.%s = ? AND r.%s = 1 AND rpa.%s = 1 AND p.%s = 1
+			WHERE ur.%s = ? AND p.%s = 1
 			""".formatted(TABLE_USER_ROLE_REGISTRY, TABLE_ROLE_REGISTRY, COL_ROLE_ID, COL_ID, TABLE_ROLE_PERMISSION_ASSIGNMENT, COL_ID, COL_ROLE_ID, TABLE_PERMISSION_REGISTRY, COL_PERMISSION_ID,
-			COL_ID, COL_USER_ID, COL_ROLE_IS_ACTIVE, COL_ROLE_PERMISSION_IS_ACTIVE, COL_PERMISSION_IS_ACTIVE);
+			COL_ID, COL_USER_ID, COL_PERMISSION_IS_ACTIVE);
 
 	private static final String SQL_FIND_BY_ROLE_ID = """
-			SELECT p.* FROM %s p
-			JOIN %s rpa ON p.%s = rpa.%s
-			WHERE rpa.%s = ? AND rpa.%s = 1 AND p.%s = 1
-			""".formatted(TABLE_PERMISSION_REGISTRY, TABLE_ROLE_PERMISSION_ASSIGNMENT, COL_ID, COL_PERMISSION_ID, COL_ROLE_ID, COL_ROLE_PERMISSION_IS_ACTIVE, COL_PERMISSION_IS_ACTIVE);
-
+	        SELECT p.* FROM %s p
+	        JOIN %s rpa ON p.%s = rpa.%s
+	        WHERE rpa.%s = ? AND p.%s = 1
+	        """.formatted(
+	        TABLE_PERMISSION_REGISTRY, 
+	        TABLE_ROLE_PERMISSION_ASSIGNMENT, 
+	        COL_ID, COL_PERMISSION_ID, 
+	        COL_ROLE_ID, COL_PERMISSION_IS_ACTIVE
+	);
+	
 	@Override
 	public int insert(Connection conn, Permission p) throws SQLException {
 		try (PreparedStatement ps = conn.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS)) {
@@ -234,19 +237,19 @@ public class PermissionDAOImpl implements PermissionDAO {
 		}
 		return permissions;
 	}
-
+	
 	@Override
 	public List<Permission> findByRoleId(Connection conn, int roleId) throws SQLException {
-		List<Permission> permissions = new ArrayList<>();
-		try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_ROLE_ID)) {
-			ps.setInt(1, roleId);
-			try (ResultSet rs = ps.executeQuery()) {
-				while (rs.next()) {
-					permissions.add(mapRow(rs));
-				}
-			}
-		}
-		return permissions;
+	    List<Permission> permissions = new ArrayList<>();
+	    try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_ROLE_ID)) {
+	        ps.setInt(1, roleId);
+	        try (ResultSet rs = ps.executeQuery()) {
+	            while (rs.next()) {
+	                permissions.add(mapRow(rs));
+	            }
+	        }
+	    }
+	    return permissions;
 	}
 
 	private Permission mapRow(ResultSet rs) throws SQLException {
@@ -262,21 +265,4 @@ public class PermissionDAOImpl implements PermissionDAO {
 		return p;
 	}
 
-	public static void main(String[] args) {
-		System.out.println(SELECT_FIELDS);
-		System.out.println(SQL_INSERT);
-		System.out.println(SQL_UPDATE);
-		System.out.println(SQL_DELETE);
-		System.out.println(SQL_FIND_BY_ID);
-		System.out.println(SQL_FIND_BY_CODE);
-		System.out.println(SQL_FIND_ALL);
-		System.out.println(SQL_FIND_ACTIVE);
-		System.out.println(SQL_FIND_BY_MODULE);
-		System.out.println(SQL_COUNT);
-		System.out.println(SQL_EXISTS_BY_CODE);
-		System.out.println(SQL_IS_SYSTEM);
-		System.out.println(SQL_GET_MODULES);
-		System.out.println(SQL_FIND_BY_USER_ID);
-		System.out.println(SQL_FIND_BY_ROLE_ID);
-	}
 }
