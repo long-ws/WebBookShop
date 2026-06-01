@@ -22,14 +22,18 @@
                         <div class="card shadow-sm">
                             <div class="card-body">
                                 <c:if test="${not empty sessionScope.successMessage}">
-                                    <div class="alert alert-success py-2">
-                                        <c:out value='${sessionScope.successMessage}' />
+                                    <div class="alert alert-success alert-dismissible fade show py-2">
+                                        <i class="bi bi-check-circle-fill me-2"></i><c:out value='${sessionScope.successMessage}' />
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                                     </div>
+                                    <c:remove var="successMessage" scope="session" />
                                 </c:if>
                                 <c:if test="${not empty sessionScope.errorMessage}">
-                                    <div class="alert alert-danger py-2">
-                                        <c:out value='${sessionScope.errorMessage}' />
+                                    <div class="alert alert-danger alert-dismissible fade show py-2">
+                                        <i class="bi bi-exclamation-triangle-fill me-2"></i><c:out value='${sessionScope.errorMessage}' />
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                                     </div>
+                                    <c:remove var="errorMessage" scope="session" />
                                 </c:if>
                                 <c:if test="${not empty requestScope[ATTR_ERRORS][ERR_GLOBAL]}">
                                     <div class="alert alert-danger alert-dismissible fade show mb-3">

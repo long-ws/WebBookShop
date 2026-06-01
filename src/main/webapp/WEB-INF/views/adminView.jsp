@@ -22,7 +22,7 @@
 					<div class="card-body p-5">
 						<h1 class="display-5 mb-5">Quản lý Shop Bán Sách</h1>
 						<div class="row">
-							<c:if test="${canViewUsers}">
+							<c:if test="${userPermissionContext.canViewUser}">
 								<div class="col-6 col-lg-3">
 									<figure class="card">
 										<div class="p-3">
@@ -32,7 +32,7 @@
 									</figure>
 								</div>
 							</c:if>
-							<c:if test="${canViewCategories}">
+							<c:if test="${userPermissionContext.canViewCategory}">
 							<div class="col-6 col-lg-3">
 								<figure class="card">
 									<div class="p-3">
@@ -42,7 +42,7 @@
 								</figure>
 							</div>
 							</c:if>
-							<c:if test="${canViewProducts}">
+							<c:if test="${userPermissionContext.canViewProduct}">
 							<div class="col-6 col-lg-3">
 								<figure class="card">
 									<div class="p-3">
@@ -52,7 +52,7 @@
 								</figure>
 							</div>
 							</c:if>
-							<c:if test="${canViewOrders}">
+							<c:if test="${userPermissionContext.canViewOrder}">
 							<div class="col-6 col-lg-3">
 								<figure class="card">
 									<div class="p-3">

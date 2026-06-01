@@ -12,14 +12,14 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import service.RoleService;
-import service.RoleServiceImpl;
+import service.AssignRolePemissionService;
+import service.AssignRolePermissionServiceImpl;
 
 @WebServlet(name = "RemoveRolePermissionServlet", urlPatterns = "/admin/role/batchRemovePermission")
 public class RemoveRolePermissionServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
-	private final RoleService roleService = new RoleServiceImpl();
+	private final AssignRolePemissionService assignRolePemissionService = new AssignRolePermissionServiceImpl();
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -35,8 +35,7 @@ public class RemoveRolePermissionServlet extends HttpServlet {
 		}
 
 		try {
-			roleService.removePermissionsFromRole(roleId,
-					RequestParamHelper.parseIntegerList(request.getParameterValues(RequestParamConstants.Role.PERMISSION_IDS)));
+			assignRolePemissionService.removePermissionsFromRole(roleId, RequestParamHelper.parseIntegerList(request.getParameterValues(RequestParamConstants.Role.PERMISSION_IDS)));
 			SessionPermissionCache.clear(request.getSession());
 			MessageHelper.setSuccessMessage(request.getSession(), "Đã xóa quyền thành công!");
 		} catch (BusinessException e) {

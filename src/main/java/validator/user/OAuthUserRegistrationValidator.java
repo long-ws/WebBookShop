@@ -1,5 +1,6 @@
 package validator.user;
 
+import constants.RequestParamConstants;
 import dto.user.OAuthUserRegistrationRequest;
 import validator.core.BaseValidator;
 import validator.core.ValidationResult;
@@ -22,16 +23,16 @@ public class OAuthUserRegistrationValidator extends BaseValidator<OAuthUserRegis
 
 		String fullname = dto.getFullname();
 		if (fullname == null || fullname.trim().isEmpty()) {
-			result.addError("fullname", "Họ và tên không được để trống");
+			result.addError(RequestParamConstants.User.FULLNAME, "Họ và tên không được để trống");
 		} else if (fullname.length() > 100) {
-			result.addError("fullname", "Họ và tên tối đa 100 ký tự");
+			result.addError(RequestParamConstants.User.FULLNAME, "Họ và tên tối đa 100 ký tự");
 		}
 
 		String email = dto.getEmail();
 		if (email == null || email.trim().isEmpty()) {
-			result.addError("email", "Email không được để trống");
+			result.addError(RequestParamConstants.User.EMAIL, "Email không được để trống");
 		} else if (!email.matches("^[^@]+@[^@]+\\.[^@]+$")) {
-			result.addError("email", "Email không hợp lệ");
+			result.addError(RequestParamConstants.User.EMAIL, "Email không hợp lệ");
 		}
 	}
 }

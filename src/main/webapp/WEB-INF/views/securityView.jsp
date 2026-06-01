@@ -2,6 +2,7 @@
 <%@ taglib uri="jakarta.tags.core" prefix="c"%>
 <%@ taglib uri="jakarta.tags.fmt" prefix="fmt"%>
 <%@ taglib uri="jakarta.tags.functions" prefix="fn"%>
+<%@ include file="_paramKeys.jsp" %>
 <fmt:setLocale value="vi_VN" />
 <!DOCTYPE html>
 <html lang="vi">
@@ -31,11 +32,20 @@
 
 						<main class="col-md-9">
 							<!-- Alert Messages -->
-							<c:if test="${not empty requestScope.successMessage}">
-								<div class="alert alert-success">${requestScope.successMessage}</div>
+							<c:if test="${not empty sessionScope[SSN_SUCCESS_MESSAGE]}">
+								<div class="alert alert-success alert-dismissible fade show shadow-sm mb-3" role="alert">
+									<i class="bi bi-check-circle-fill me-2"></i>${sessionScope[SSN_SUCCESS_MESSAGE]}
+									<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+								</div>
+								<c:remove var="successMessage" scope="session" />
 							</c:if>
-							<c:if test="${not empty requestScope.errorMessage}">
-								<div class="alert alert-danger">${requestScope.errorMessage}</div>
+							
+							<!-- Global Error -->
+							<c:if test="${not empty requestScope[ATTR_ERRORS][ERR_GLOBAL]}">
+								<div class="alert alert-danger alert-dismissible fade show shadow-sm mb-3" role="alert">
+									<i class="bi bi-exclamation-triangle-fill me-2"></i>${requestScope[ATTR_ERRORS][ERR_GLOBAL]}
+									<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+								</div>
 							</c:if>
 
 							<!-- Change Password Card -->
@@ -47,15 +57,36 @@
 									<form action="${pageContext.request.contextPath}/security" method="post">
 										<div class="mb-3">
 											<label for="currentPassword" class="form-label">Mật khẩu hiện tại</label>
-											<input type="password" class="form-control" id="currentPassword" name="currentPassword" required>
+											<input type="password" class="form-control ${not empty requestScope[ATTR_ERRORS][P_CURRENT_PASSWORD] ? 'is-invalid' : ''}" 
+												id="currentPassword" name="${P_CURRENT_PASSWORD}" 
+												value="" required>
+											<c:if test="${not empty requestScope[ATTR_ERRORS][P_CURRENT_PASSWORD]}">
+												<div class="invalid-feedback">
+													${requestScope[ATTR_ERRORS][P_CURRENT_PASSWORD]}
+												</div>
+											</c:if>
 										</div>
 										<div class="mb-3">
 											<label for="newPassword" class="form-label">Mật khẩu mới</label>
-											<input type="password" class="form-control" id="newPassword" name="newPassword" required>
+											<input type="password" class="form-control ${not empty requestScope[ATTR_ERRORS][P_NEW_PASSWORD] ? 'is-invalid' : ''}" 
+												id="newPassword" name="${P_NEW_PASSWORD}" 
+												value="" required>
+											<c:if test="${not empty requestScope[ATTR_ERRORS][P_NEW_PASSWORD]}">
+												<div class="invalid-feedback">
+													${requestScope[ATTR_ERRORS][P_NEW_PASSWORD]}
+												</div>
+											</c:if>
 										</div>
 										<div class="mb-3">
 											<label for="newPasswordAgain" class="form-label">Nhập lại mật khẩu mới</label>
-											<input type="password" class="form-control" id="newPasswordAgain" name="newPasswordAgain" required>
+											<input type="password" class="form-control ${not empty requestScope[ATTR_ERRORS][P_CONFIRM_PASSWORD] ? 'is-invalid' : ''}" 
+												id="newPasswordAgain" name="${P_CONFIRM_PASSWORD}" 
+												value="" required>
+											<c:if test="${not empty requestScope[ATTR_ERRORS][P_CONFIRM_PASSWORD]}">
+												<div class="invalid-feedback">
+													${requestScope[ATTR_ERRORS][P_CONFIRM_PASSWORD]}
+												</div>
+											</c:if>
 										</div>
 										<button type="submit" class="btn btn-primary">
 											<i class="bi bi-key me-2"></i>Đổi mật khẩu
@@ -64,32 +95,6 @@
 								</div>
 							</article>
 
-							<!-- Notification Settings Card -->
-							<article class="card">
-								<div class="card-header bg-white">
-									<h5 class="card-title mb-0">Cài đặt thông báo</h5>
-								</div>
-								<div class="card-body">
-									<div class="form-check mb-3">
-										<input class="form-check-input" type="checkbox" id="emailNotifications" checked>
-										<label class="form-check-label" for="emailNotifications">
-											Nhận thông báo qua email
-										</label>
-									</div>
-									<div class="form-check mb-3">
-										<input class="form-check-input" type="checkbox" id="orderNotifications" checked>
-										<label class="form-check-label" for="orderNotifications">
-											Thông báo về đơn hàng
-										</label>
-									</div>
-									<div class="form-check">
-										<input class="form-check-input" type="checkbox" id="promoNotifications">
-										<label class="form-check-label" for="promoNotifications">
-											Thông báo khuyến mãi
-										</label>
-									</div>
-								</div>
-							</article>
 						</main>
 					</c:otherwise>
 				</c:choose>

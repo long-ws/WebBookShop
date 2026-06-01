@@ -1,8 +1,8 @@
 package context;
 
-import constants.PermissionConstants;
-
 import java.util.Set;
+
+import constants.PermissionConstants;
 
 public class UserPermissionContext {
     private final Set<String> permissions;
@@ -22,183 +22,155 @@ public class UserPermissionContext {
     }
 
     // User Management
-    public boolean isCanManageUser() {
-        return hasPermission(PermissionConstants.USER_MANAGE);
-    }
-
     public boolean isCanCreateUser() {
-        return isCanManageUser() || hasPermission(PermissionConstants.USER_CREATE);
+        return hasPermission(PermissionConstants.USER_VIEW) && hasPermission(PermissionConstants.USER_CREATE);
     }
 
     public boolean isCanEditUser() {
-        return isCanManageUser() || hasPermission(PermissionConstants.USER_EDIT);
+        return hasPermission(PermissionConstants.USER_VIEW) && hasPermission(PermissionConstants.USER_UPDATE);
     }
 
     public boolean isCanViewUser() {
-        return isCanManageUser() || hasPermission(PermissionConstants.USER_VIEW);
+        return hasPermission(PermissionConstants.USER_VIEW);
+    }
+
+    public boolean isCanDetailUser() {
+        return hasPermission(PermissionConstants.USER_VIEW) && hasPermission(PermissionConstants.USER_DETAIL);
     }
 
     public boolean isCanDeleteUser() {
-        return isCanManageUser() || hasPermission(PermissionConstants.USER_DELETE);
+        return hasPermission(PermissionConstants.USER_VIEW) && hasPermission(PermissionConstants.USER_DELETE);
     }
 
     // Role Management
-    public boolean isCanManageRole() {
-        return hasPermission(PermissionConstants.ROLE_MANAGE);
-    }
-
     public boolean isCanCreateRole() {
-        return isCanManageRole() || hasPermission(PermissionConstants.ROLE_CREATE);
+        return hasPermission(PermissionConstants.ROLE_VIEW) && hasPermission(PermissionConstants.ROLE_CREATE);
     }
 
     public boolean isCanEditRole() {
-        return isCanManageRole() || hasPermission(PermissionConstants.ROLE_EDIT);
+        return hasPermission(PermissionConstants.ROLE_VIEW) && hasPermission(PermissionConstants.ROLE_UPDATE);
     }
 
     public boolean isCanViewRole() {
-        return isCanManageRole() || hasPermission(PermissionConstants.ROLE_VIEW);
+        return hasPermission(PermissionConstants.ROLE_VIEW);
     }
 
     public boolean isCanDeleteRole() {
-        return isCanManageRole() || hasPermission(PermissionConstants.ROLE_DELETE);
+        return hasPermission(PermissionConstants.ROLE_VIEW) && hasPermission(PermissionConstants.ROLE_DELETE);
     }
 
     public boolean isCanAssignPermissionToRole() {
-        return isCanManageRole() || hasPermission(PermissionConstants.ROLE_ASSIGN_PERMISSION);
+        return hasPermission(PermissionConstants.ROLE_VIEW) && hasPermission(PermissionConstants.ROLE_ASSIGN_PERMISSION);
     }
 
     // Permission Management
-    public boolean isCanManagePermission() {
-        return hasPermission(PermissionConstants.PERMISSION_MANAGE);
-    }
-
     public boolean isCanCreatePermission() {
-        return isCanManagePermission() || hasPermission(PermissionConstants.PERMISSION_CREATE);
+        return hasPermission(PermissionConstants.PERMISSION_VIEW) && hasPermission(PermissionConstants.PERMISSION_CREATE);
     }
 
     public boolean isCanEditPermission() {
-        return isCanManagePermission() || hasPermission(PermissionConstants.PERMISSION_EDIT);
+        return hasPermission(PermissionConstants.PERMISSION_VIEW) && hasPermission(PermissionConstants.PERMISSION_UPDATE);
     }
 
     public boolean isCanViewPermission() {
-        return isCanManagePermission() || hasPermission(PermissionConstants.PERMISSION_VIEW);
+        return hasPermission(PermissionConstants.PERMISSION_VIEW);
     }
 
     public boolean isCanDeletePermission() {
-        return isCanManagePermission() || hasPermission(PermissionConstants.PERMISSION_DELETE);
+        return hasPermission(PermissionConstants.PERMISSION_VIEW) && hasPermission(PermissionConstants.PERMISSION_DELETE);
     }
 
     // Category Management
-    public boolean isCanManageCategory() {
-        return hasPermission(PermissionConstants.CATEGORY_MANAGE);
-    }
-
     public boolean isCanCreateCategory() {
-        return isCanManageCategory() || hasPermission(PermissionConstants.CATEGORY_CREATE);
+        return hasPermission(PermissionConstants.CATEGORY_VIEW) && hasPermission(PermissionConstants.CATEGORY_CREATE);
     }
 
     public boolean isCanEditCategory() {
-        return isCanManageCategory() || hasPermission(PermissionConstants.CATEGORY_EDIT);
+        return hasPermission(PermissionConstants.CATEGORY_VIEW) && hasPermission(PermissionConstants.CATEGORY_UPDATE);
     }
 
     public boolean isCanViewCategory() {
-        return isCanManageCategory() || hasPermission(PermissionConstants.CATEGORY_VIEW);
+        return hasPermission(PermissionConstants.CATEGORY_VIEW);
     }
 
     public boolean isCanDeleteCategory() {
-        return isCanManageCategory() || hasPermission(PermissionConstants.CATEGORY_DELETE);
+        return hasPermission(PermissionConstants.CATEGORY_VIEW) && hasPermission(PermissionConstants.CATEGORY_DELETE);
     }
 
     // Product Management
-    public boolean isCanManageProduct() {
-        return hasPermission(PermissionConstants.PRODUCT_MANAGE);
-    }
-
     public boolean isCanCreateProduct() {
-        return isCanManageProduct() || hasPermission(PermissionConstants.PRODUCT_CREATE);
+        return hasPermission(PermissionConstants.PRODUCT_VIEW) && hasPermission(PermissionConstants.PRODUCT_CREATE);
     }
 
     public boolean isCanEditProduct() {
-        return isCanManageProduct() || hasPermission(PermissionConstants.PRODUCT_EDIT);
+        return hasPermission(PermissionConstants.PRODUCT_VIEW) && hasPermission(PermissionConstants.PRODUCT_UPDATE);
     }
 
     public boolean isCanViewProduct() {
-        return isCanManageProduct() || hasPermission(PermissionConstants.PRODUCT_VIEW);
+        return hasPermission(PermissionConstants.PRODUCT_VIEW);
     }
 
     public boolean isCanDeleteProduct() {
-        return isCanManageProduct() || hasPermission(PermissionConstants.PRODUCT_DELETE);
+        return hasPermission(PermissionConstants.PRODUCT_VIEW) && hasPermission(PermissionConstants.PRODUCT_DELETE);
     }
 
     // Order Management
-    public boolean isCanManageOrder() {
-        return hasPermission(PermissionConstants.ORDER_MANAGE);
-    }
-
     public boolean isCanCreateOrder() {
-        return isCanManageOrder() || hasPermission(PermissionConstants.ORDER_CREATE);
+        return hasPermission(PermissionConstants.ORDER_VIEW) && hasPermission(PermissionConstants.ORDER_CREATE);
     }
 
     public boolean isCanEditOrder() {
-        return isCanManageOrder() || hasPermission(PermissionConstants.ORDER_EDIT);
+        return hasPermission(PermissionConstants.ORDER_VIEW) && hasPermission(PermissionConstants.ORDER_UPDATE);
     }
 
     public boolean isCanViewOrder() {
-        return isCanManageOrder() || hasPermission(PermissionConstants.ORDER_VIEW);
+        return hasPermission(PermissionConstants.ORDER_VIEW);
     }
 
     public boolean isCanDeleteOrder() {
-        return isCanManageOrder() || hasPermission(PermissionConstants.ORDER_DELETE);
+        return hasPermission(PermissionConstants.ORDER_VIEW) && hasPermission(PermissionConstants.ORDER_DELETE);
     }
 
     public boolean isCanViewAllOrders() {
-        return isCanManageOrder() || hasPermission(PermissionConstants.ORDER_VIEW_ALL);
+        return hasPermission(PermissionConstants.ORDER_VIEW) && hasPermission(PermissionConstants.ORDER_VIEW_ALL);
     }
 
     // Review Management
-    public boolean isCanManageReview() {
-        return hasPermission(PermissionConstants.REVIEW_MANAGE);
-    }
-
     public boolean isCanCreateReview() {
-        return isCanManageReview() || hasPermission(PermissionConstants.REVIEW_CREATE);
+        return hasPermission(PermissionConstants.REVIEW_VIEW) && hasPermission(PermissionConstants.REVIEW_CREATE);
     }
 
     public boolean isCanEditReview() {
-        return isCanManageReview() || hasPermission(PermissionConstants.REVIEW_EDIT);
+        return hasPermission(PermissionConstants.REVIEW_VIEW) && hasPermission(PermissionConstants.REVIEW_UPDATE);
     }
 
     public boolean isCanViewReview() {
-        return isCanManageReview() || hasPermission(PermissionConstants.REVIEW_VIEW);
+        return hasPermission(PermissionConstants.REVIEW_VIEW);
     }
 
     public boolean isCanDeleteReview() {
-        return isCanManageReview() || hasPermission(PermissionConstants.REVIEW_DELETE);
+        return hasPermission(PermissionConstants.REVIEW_VIEW) && hasPermission(PermissionConstants.REVIEW_DELETE);
     }
 
     public boolean isCanModerateReview() {
-        return isCanManageReview() || hasPermission(PermissionConstants.REVIEW_MODERATE);
+        return hasPermission(PermissionConstants.REVIEW_VIEW) && hasPermission(PermissionConstants.REVIEW_MODERATE);
     }
 
     // Voucher Management
-    public boolean isCanManageVoucher() {
-        return hasPermission(PermissionConstants.VOUCHER_MANAGE);
-    }
-
     public boolean isCanCreateVoucher() {
-        return isCanManageVoucher() || hasPermission(PermissionConstants.VOUCHER_CREATE);
+        return hasPermission(PermissionConstants.VOUCHER_VIEW) && hasPermission(PermissionConstants.VOUCHER_CREATE);
     }
 
     public boolean isCanEditVoucher() {
-        return isCanManageVoucher() || hasPermission(PermissionConstants.VOUCHER_EDIT);
+        return hasPermission(PermissionConstants.VOUCHER_VIEW) && hasPermission(PermissionConstants.VOUCHER_UPDATE);
     }
 
     public boolean isCanViewVoucher() {
-        return isCanManageVoucher() || hasPermission(PermissionConstants.VOUCHER_VIEW);
+        return hasPermission(PermissionConstants.VOUCHER_VIEW);
     }
 
     public boolean isCanDeleteVoucher() {
-        return isCanManageVoucher() || hasPermission(PermissionConstants.VOUCHER_DELETE);
+        return hasPermission(PermissionConstants.VOUCHER_VIEW) && hasPermission(PermissionConstants.VOUCHER_DELETE);
     }
 
     // Report Management
@@ -207,7 +179,7 @@ public class UserPermissionContext {
     }
 
     public boolean isCanExportReport() {
-        return hasPermission(PermissionConstants.REPORT_EXPORT);
+        return hasPermission(PermissionConstants.REPORT_VIEW) && hasPermission(PermissionConstants.REPORT_EXPORT);
     }
 
     // Settings Management
@@ -216,41 +188,41 @@ public class UserPermissionContext {
     }
 
     public boolean isCanEditSettings() {
-        return hasPermission(PermissionConstants.SETTINGS_EDIT);
+        return hasPermission(PermissionConstants.SETTINGS_VIEW) && hasPermission(PermissionConstants.SETTINGS_UPDATE);
     }
 
     // Shipment Management
-    public boolean isCanManageShipment() {
-        return hasPermission(PermissionConstants.SHIPMENT_MANAGE);
-    }
-
     public boolean isCanViewShipment() {
-        return isCanManageShipment() || hasPermission(PermissionConstants.SHIPMENT_VIEW);
+        return hasPermission(PermissionConstants.SHIPMENT_VIEW);
     }
 
     public boolean isCanEditShipment() {
-        return isCanManageShipment() || hasPermission(PermissionConstants.SHIPMENT_EDIT);
+        return hasPermission(PermissionConstants.SHIPMENT_VIEW) && hasPermission(PermissionConstants.SHIPMENT_UPDATE);
     }
 
     public boolean isCanCreateShipment() {
-        return isCanManageShipment() || hasPermission(PermissionConstants.SHIPMENT_CREATE);
+        return hasPermission(PermissionConstants.SHIPMENT_VIEW) && hasPermission(PermissionConstants.SHIPMENT_CREATE);
     }
 
     public boolean isCanDeleteShipment() {
-        return isCanManageShipment() || hasPermission(PermissionConstants.SHIPMENT_DELETE);
+        return hasPermission(PermissionConstants.SHIPMENT_VIEW) && hasPermission(PermissionConstants.SHIPMENT_DELETE);
     }
 
     // Shipping Configuration Management
-    public boolean isCanManageShippingConfig() {
-        return hasPermission(PermissionConstants.SHIPPING_CONFIG_MANAGE);
-    }
-
     public boolean isCanViewShippingConfig() {
-        return isCanManageShippingConfig() || hasPermission(PermissionConstants.SHIPPING_CONFIG_VIEW);
+        return hasPermission(PermissionConstants.SHIPPING_CONFIG_VIEW);
     }
 
     public boolean isCanEditShippingConfig() {
-        return isCanManageShippingConfig() || hasPermission(PermissionConstants.SHIPPING_CONFIG_EDIT);
+        return hasPermission(PermissionConstants.SHIPPING_CONFIG_VIEW) && hasPermission(PermissionConstants.SHIPPING_CONFIG_UPDATE);
+    }
+
+    public boolean isCanCreateShippingConfig() {
+        return hasPermission(PermissionConstants.SHIPPING_CONFIG_VIEW) && hasPermission(PermissionConstants.SHIPPING_CONFIG_CREATE);
+    }
+
+    public boolean isCanDeleteShippingConfig() {
+        return hasPermission(PermissionConstants.SHIPPING_CONFIG_VIEW) && hasPermission(PermissionConstants.SHIPPING_CONFIG_DELETE);
     }
 
     // Check if user has any admin permissions

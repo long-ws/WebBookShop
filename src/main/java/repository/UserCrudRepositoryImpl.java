@@ -16,7 +16,6 @@ import beans.user.UserAuthInfo;
 import beans.user.UserLocalAuth;
 import beans.user.UserProfile;
 import constants.SystemConstants;
-import constants.UserConstants;
 import dao.common.RoleDAO;
 import dao.common.RoleDAOImpl;
 import dao.user.UserAccountDAO;
@@ -68,6 +67,9 @@ public class UserCrudRepositoryImpl implements UserCrudRepository {
 
 	@Override
 	public void update(Connection conn, User user) throws SQLException {
+		if (user != null && SystemConstants.Security.isSystemGhostUserId(user.getId())) {
+			throw new SQLException("Không thể cập nhật tài khoản hệ thống.");
+		}
 		UserAccount account = toAccount(user);
 		account.setId(user.getId());
 		accountDAO.update(conn, account);
@@ -91,6 +93,13 @@ public class UserCrudRepositoryImpl implements UserCrudRepository {
 	public boolean delete(Connection conn, List<Long> userIds) throws SQLException {
 		if (userIds == null || userIds.isEmpty())
 			return false;
+
+		for (int i = 0; i < userIds.size(); i++) {
+			Long id = userIds.get(i);
+			if (id != null && SystemConstants.Security.isSystemGhostUserId(id)) {
+				throw new SQLException("Không thể xóa tài khoản hệ thống.");
+			}
+		}
 		accountDAO.softDeleteBatch(conn, userIds);
 		return true;
 	}
@@ -121,7 +130,15 @@ public class UserCrudRepositoryImpl implements UserCrudRepository {
 		if (userIds == null || userIds.isEmpty()) {
 			return new ArrayList<>();
 		}
-		return findUsersByIds(conn, userIds);
+
+		List<Long> filteredUserIds = new ArrayList<Long>();
+		for (int i = 0; i < userIds.size(); i++) {
+			Long id = userIds.get(i);
+			if (id != null && !SystemConstants.Security.isSystemGhostUserId(id)) {
+				filteredUserIds.add(id);
+			}
+		}
+		return findUsersByIds(conn, filteredUserIds);
 	}
 
 	@Override
@@ -208,6 +225,9 @@ public class UserCrudRepositoryImpl implements UserCrudRepository {
 	}
 
 	private void assignRole(Connection conn, long userId, String roleCode) throws SQLException {
+		if (SystemConstants.Security.isSystemGhostUserId(userId)) {
+			throw new SQLException("Không thể gán vai trò cho tài khoản hệ thống.");
+		}
 		Optional<Role> roleOpt = roleDAO.findByCode(conn, roleCode);
 		if (roleOpt.isPresent()) {
 			userRoleDAO.assignByRoleId(conn, userId, roleOpt.get().getId());
@@ -217,7 +237,7 @@ public class UserCrudRepositoryImpl implements UserCrudRepository {
 	private UserAccount toAccount(User user) {
 		UserAccount account = new UserAccount();
 		account.setId(user.getId());
-		account.setStatusId(user.getStatus() != null ? user.getStatus().getId() : UserConstants.Status.ACTIVE);
+		account.setStatusId(user.getStatus() != null ? user.getStatus().getId() : SystemConstants.Status.ACTIVE);
 		account.setTokenVersion(user.getTokenVersion());
 		return account;
 	}
