@@ -102,10 +102,11 @@
                                             <div class="mb-3">
                                                 <label for="user-role" class="form-label fw-semibold">Vai trò hệ thống <span class="text-danger">*</span></label>
                                                 <select class="form-select ${not empty requestScope[ATTR_ERRORS][P_ROLE] ? 'is-invalid' : ''}" id="user-role" name="${P_ROLE}" required>
+                                                    <option value="" ${empty requestScope[ATTR_VALUES][P_ROLE] ? 'selected' : ''} disabled>--- Chọn quyền ---</option>
                                                     <c:choose>
                                                         <c:when test="${not empty requestScope[ATTR_ALL_ROLES]}">
                                                             <c:forEach var="role" items="${requestScope[ATTR_ALL_ROLES]}">
-                                                                <option value="${role.code}" ${(not empty requestScope[ATTR_VALUES][P_ROLE] and requestScope[ATTR_VALUES][P_ROLE] == role.code) or (empty requestScope[ATTR_VALUES][P_ROLE] and role.code == defaultRoleCode) ? 'selected' : ''}>
+                                                                <option value="${role.code}" ${not empty requestScope[ATTR_VALUES][P_ROLE] and requestScope[ATTR_VALUES][P_ROLE] == role.code ? 'selected' : ''}>
                                                                     ${role.name} (${role.code})
                                                                 </option>
                                                             </c:forEach>
@@ -113,7 +114,7 @@
                                                         <c:otherwise>
                                                             <option value="ADMIN" ${requestScope[ATTR_VALUES][P_ROLE] == 'ADMIN' ? 'selected' : ''}>Quản trị viên (ADMIN)</option>
                                                             <option value="EMPLOYEE" ${requestScope[ATTR_VALUES][P_ROLE] == 'EMPLOYEE' ? 'selected' : ''}>Nhân viên (EMPLOYEE)</option>
-                                                            <option value="${defaultRoleCode}" ${empty requestScope[ATTR_VALUES][P_ROLE] or requestScope[ATTR_VALUES][P_ROLE] == defaultRoleCode ? 'selected' : ''}>Khách hàng (${defaultRoleCode})</option>
+                                                            <option value="CUSTOMER" ${requestScope[ATTR_VALUES][P_ROLE] == 'CUSTOMER' ? 'selected' : ''}>Khách hàng (CUSTOMER)</option>
                                                         </c:otherwise>
                                                     </c:choose>
                                                 </select>
@@ -125,9 +126,10 @@
                                             <div class="mb-3">
                                                 <label for="user-lang" class="form-label fw-semibold">Ngôn ngữ ưa thích</label>
                                                 <select class="form-select ${not empty requestScope[ATTR_ERRORS][P_PREFERRED_LANGUAGE_ID] ? 'is-invalid' : ''}" id="user-lang" name="${P_PREFERRED_LANGUAGE_ID}">
+                                                    <option value="" ${empty requestScope[ATTR_VALUES][P_PREFERRED_LANGUAGE_ID] ? 'selected' : ''}>-- Mặc định hệ thống --</option>
                                                     <c:if test="${not empty requestScope[ATTR_LANGUAGES]}">
                                                         <c:forEach var="lang" items="${requestScope[ATTR_LANGUAGES]}">
-                                                            <option value="${lang.id}" ${empty requestScope[ATTR_VALUES][P_PREFERRED_LANGUAGE_ID] and lang.id == 1 or requestScope[ATTR_VALUES][P_PREFERRED_LANGUAGE_ID] == lang.id ? 'selected' : ''}>
+                                                            <option value="${lang.id}" ${requestScope[ATTR_VALUES][P_PREFERRED_LANGUAGE_ID] == lang.id ? 'selected' : ''}>
                                                                 ${lang.name} (${lang.code})
                                                             </option>
                                                         </c:forEach>

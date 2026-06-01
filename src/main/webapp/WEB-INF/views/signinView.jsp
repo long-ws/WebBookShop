@@ -23,14 +23,6 @@
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     </c:if>
-
-                    <c:if test="${not empty sessionScope[SSN_SIGNUP_SUCCESS]}">
-                        <div class="alert alert-success alert-dismissible fade show shadow-sm mb-3" role="alert">
-                            <i class="bi bi-check-circle-fill me-2"></i>${sessionScope[SSN_SIGNUP_SUCCESS]}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                        <c:remove var="signupSuccess" scope="session" />
-                    </c:if>
                     
                     <c:if test="${not empty sessionScope[SSN_OAUTH_ERROR]}">
                         <div class="alert alert-danger alert-dismissible fade show shadow-sm mb-3" role="alert">
@@ -67,9 +59,9 @@
                                     <div class="input-group">
                                         <span class="input-group-text bg-white border-end-0"><i class="bi bi-lock text-muted"></i></span>
                                         <input name="${P_PASSWORD}"
-                                               class="form-control border-start-0 ps-0 ${not empty requestScope[ATTR_ERRORS][P_PASSWORD] ? 'is-invalid' : ''}"
+                                               class="form-control border-start-0 ps-0 ${not empty requestScope[ATTR_ERRORS][P_PASSWORD] ? 'is-invalid' : (not empty requestScope[ATTR_VALUES][P_PASSWORD] ? 'is-valid' : '')}"
                                                placeholder="Nhập mật khẩu" type="password" autocomplete="off"
-                                               value="">
+                                               value="${requestScope[ATTR_VALUES][P_PASSWORD]}">
                                         
                                         <c:if test="${not empty requestScope[ATTR_ERRORS][P_PASSWORD]}">
                                             <div class="invalid-feedback">${requestScope[ATTR_ERRORS][P_PASSWORD]}</div>

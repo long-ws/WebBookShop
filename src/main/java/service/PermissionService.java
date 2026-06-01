@@ -20,6 +20,8 @@ public interface PermissionService {
 
 	Permission getById(int id) throws BusinessException;
 
+	List<ManagePermissionResponse> getPermissions(String orderBy, String orderDir) throws BusinessException;
+
 	List<ManagePermissionResponse> getAllPermissions() throws BusinessException;
 
 	long countPermissions() throws BusinessException;

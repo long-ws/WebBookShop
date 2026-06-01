@@ -23,30 +23,6 @@
                     </ol>
                 </nav>
 
-                <%-- Hệ thống thông báo trạng thái đồng bộ --%>
-                <div class="mb-3">
-                    <c:if test="${not empty sessionScope.successMessage}">
-                        <div class="alert alert-success alert-dismissible fade show shadow-sm border-0" role="alert">
-                            <i class="bi bi-check-circle-fill me-2"></i><c:out value="${sessionScope.successMessage}" />
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                        <c:remove var="successMessage" scope="session"/>
-                    </c:if>
-                    <c:if test="${not empty sessionScope.errorMessage}">
-                        <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0" role="alert">
-                            <i class="bi bi-exclamation-triangle-fill me-2"></i><c:out value="${sessionScope.errorMessage}" />
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                        <c:remove var="errorMessage" scope="session"/>
-                    </c:if>
-                    <c:if test="${not empty requestScope[ATTR_ERRORS][ERR_GLOBAL]}">
-                        <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0" role="alert">
-                            <i class="bi bi-exclamation-octagon-fill me-2"></i> ${requestScope[ATTR_ERRORS][ERR_GLOBAL]}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    </c:if>
-                </div>
-
                 <%-- Tiêu đề trang trang trọng --%>
                 <header class="section-heading my-3 text-center">
                     <h3 class="section-title fw-bold text-dark">
@@ -76,7 +52,7 @@
                                             <span class="input-group-text"><i class="bi bi-code-square text-muted"></i></span>
                                             <input type="text" name="${P_CODE}" class="form-control text-uppercase ${not empty requestScope[ATTR_ERRORS][P_CODE] ? 'is-invalid' : ''}" 
                                                    placeholder="VD: PRODUCT_CREATE" 
-                                                   value="<c:out value='${requestScope[ATTR_PERMISSION].code}'/>" required
+                                                   value="<c:out value='${requestScope[ATTR_VALUES][P_CODE]}'/>" required
                                                    pattern="^[A-Z][A-Z_]*$" 
                                                    title="Format: chữ hoa, dùng gạch dưới (VD: PRODUCT_CREATE)">
                                             <c:if test="${not empty requestScope[ATTR_ERRORS][P_CODE]}">
@@ -94,7 +70,7 @@
                                             <span class="input-group-text"><i class="bi bi-tags-fill text-muted"></i></span>
                                             <input type="text" name="${P_NAME}" class="form-control ${not empty requestScope[ATTR_ERRORS][P_NAME] ? 'is-invalid' : ''}" 
                                                    placeholder="VD: Tạo sản phẩm mới" 
-                                                   value="<c:out value='${requestScope[ATTR_PERMISSION].name}'/>" required>
+                                                   value="<c:out value='${requestScope[ATTR_VALUES][P_NAME]}'/>" required>
                                             <c:if test="${not empty requestScope[ATTR_ERRORS][P_NAME]}">
                                                 <div class="invalid-feedback">${requestScope[ATTR_ERRORS][P_NAME]}</div>
                                             </c:if>
@@ -102,13 +78,13 @@
                                     </div>
                                     
                                     <div class="mb-3">
-                                        <label class="form-label fw-semibold">Phân loại hệ thống (Module)</label>
+                                        <label class="form-label fw-semibold">Phân loại hệ thống (Module) <span class="text-danger">*</span></label>
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="bi bi-grid-fill text-muted"></i></span>
-                                            <select name="${P_MODULE}" class="form-select ${not empty requestScope[ATTR_ERRORS][P_MODULE] ? 'is-invalid' : ''}">
-                                                <option value="" ${empty requestScope[ATTR_PERMISSION].module ? 'selected' : ''} disabled>-- Chọn phân loại module --</option>
+                                            <select name="${P_MODULE}" class="form-select ${not empty requestScope[ATTR_ERRORS][P_MODULE] ? 'is-invalid' : ''}" required>
+                                                <option value="" ${empty requestScope[ATTR_VALUES][P_MODULE] ? 'selected' : ''} disabled>-- Chọn phân loại module --</option>
                                                 <c:forEach var="moduleItem" items="${requestScope[ATTR_MODULES]}">
-                                                    <option value="${moduleItem}" ${requestScope[ATTR_PERMISSION].module == moduleItem ? 'selected' : ''}>${moduleItem}</option>
+                                                    <option value="${moduleItem}" ${requestScope[ATTR_VALUES][P_MODULE] == moduleItem ? 'selected' : ''}>${moduleItem}</option>
                                                 </c:forEach>
                                             </select>
                                             <c:if test="${not empty requestScope[ATTR_ERRORS][P_MODULE]}">
@@ -120,7 +96,7 @@
                                     <div class="mb-3">
                                         <label class="form-label fw-semibold">Mô tả tác vụ chi tiết</label>
                                         <textarea name="${P_DESCRIPTION}" class="form-control ${not empty requestScope[ATTR_ERRORS][P_DESCRIPTION] ? 'is-invalid' : ''}" rows="4"
-                                                  placeholder="Giải trình cụ thể về phạm vi cho phép thao tác của quyền này..."><c:out value='${requestScope[ATTR_PERMISSION].description}'/></textarea>
+                                                  placeholder="Giải trình cụ thể về phạm vi cho phép thao tác của quyền này..."><c:out value='${requestScope[ATTR_VALUES][P_DESCRIPTION]}'/></textarea>
                                         <c:if test="${not empty requestScope[ATTR_ERRORS][P_DESCRIPTION]}">
                                             <div class="invalid-feedback">${requestScope[ATTR_ERRORS][P_DESCRIPTION]}</div>
                                         </c:if>

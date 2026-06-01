@@ -2,7 +2,6 @@ package service;
 
 import beans.User;
 import dto.user.AdminSigninRequest;
-import dto.user.ChangePasswordRequest;
 import dto.user.SigninRequest;
 import dto.user.UserCreateRequest;
 import dto.user.UserDetailResponse;
@@ -12,7 +11,7 @@ public interface AuthenticationService {
 
 	UserDetailResponse signupUser(UserCreateRequest dto) throws BusinessException;
 
-	void changePassword(long userId, ChangePasswordRequest request) throws BusinessException;
+	void changePassword(long userId, String newPassword) throws BusinessException;
 
 	boolean incrementTokenVersion(long userId) throws BusinessException;
 

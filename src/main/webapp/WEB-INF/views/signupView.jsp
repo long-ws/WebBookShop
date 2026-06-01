@@ -39,9 +39,9 @@
 					<div class="mb-3">
 						<label for="inputPassword" class="form-label">Mật khẩu</label> <input
 							type="password"
-							class="form-control ${not empty requestScope[ATTR_ERRORS][P_PASSWORD] ? 'is-invalid' : ''}"
+							class="form-control ${not empty requestScope[ATTR_ERRORS][P_PASSWORD] ? 'is-invalid' : (not empty requestScope[ATTR_VALUES][P_PASSWORD] ? 'is-valid' : '')}"
 							id="inputPassword" name="${P_PASSWORD}"
-							value="">
+							value="${requestScope[ATTR_VALUES][P_PASSWORD]}">
 						<c:if test="${not empty requestScope[ATTR_ERRORS][P_PASSWORD]}">
 							<div class="invalid-feedback">
 								${requestScope[ATTR_ERRORS][P_PASSWORD]}
