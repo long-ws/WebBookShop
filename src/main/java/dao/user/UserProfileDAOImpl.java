@@ -48,6 +48,26 @@ public class UserProfileDAOImpl implements UserProfileDAO {
 	private static final String SQL_DELETE = "DELETE FROM %s WHERE %s = ?".formatted(TABLE_USER_PROFILE, COL_USER_ID);
 
 	private static final String SQL_FIND_BY_ID = "SELECT %s FROM %s WHERE %s = ?".formatted(SELECT_FIELDS, TABLE_USER_PROFILE, COL_USER_ID);
+
+	private static final String SQL_FIND_ID_BY_EMAIL = """
+			SELECT %s
+			FROM %s
+			WHERE %s = ?
+			LIMIT 1
+			""".formatted(COL_USER_ID, TABLE_USER_PROFILE, COL_PROFILE_EMAIL);
+
+	private static final String SQL_COUNT_BY_EMAIL = """
+			SELECT COUNT(*)
+			FROM %s
+			WHERE %s = ?
+			""".formatted(TABLE_USER_PROFILE, COL_PROFILE_EMAIL);
+
+	private static final String SQL_COUNT_BY_EMAIL_EXCLUDE = """
+			SELECT COUNT(*)
+			FROM %s
+			WHERE %s = ?
+			  AND %s <> ?
+			""".formatted(TABLE_USER_PROFILE, COL_PROFILE_EMAIL, COL_USER_ID);
 	
 	private static final String SQL_FIND_BY_USER_IDS = """
 			SELECT %s
@@ -97,6 +117,47 @@ public class UserProfileDAOImpl implements UserProfileDAO {
 			}
 		}
 		return Optional.empty();
+	}
+
+	@Override
+	public long findUserIdByEmail(final Connection conn, final String email) throws SQLException {
+		if (email == null) {
+			return 0L;
+		}
+		final String normalized = email.trim().toLowerCase();
+		if (normalized.isEmpty()) {
+			return 0L;
+		}
+		try (PreparedStatement ps = conn.prepareStatement(SQL_FIND_ID_BY_EMAIL)) {
+			ps.setString(1, normalized);
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					return rs.getLong(COL_USER_ID);
+				}
+			}
+		}
+		return 0L;
+	}
+
+	@Override
+	public boolean existsByEmail(final Connection conn, final String email, final Long excludeUserId) throws SQLException {
+		if (email == null) {
+			return false;
+		}
+		final String normalized = email.trim().toLowerCase();
+		if (normalized.isEmpty()) {
+			return false;
+		}
+		final String sql = (excludeUserId == null) ? SQL_COUNT_BY_EMAIL : SQL_COUNT_BY_EMAIL_EXCLUDE;
+		try (PreparedStatement ps = conn.prepareStatement(sql)) {
+			ps.setString(1, normalized);
+			if (excludeUserId != null) {
+				ps.setLong(2, excludeUserId.longValue());
+			}
+			try (ResultSet rs = ps.executeQuery()) {
+				return rs.next() && rs.getInt(1) > 0;
+			}
+		}
 	}
 
 	@Override
