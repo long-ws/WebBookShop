@@ -111,7 +111,11 @@ public class CartServlet extends HttpServlet {
 			}
 
 			System.out.println("[CartServlet] cartId parsed successfully: " + cartId);
-
+			if (checkoutService.hasEnoughQty(cartId)) {
+				session.setAttribute("errorMessage", "Đặt hàng thất bại, sản phấm hết hàng!");
+				response.sendRedirect(request.getContextPath() + "/cart");
+				return;
+			}
 			int deliveryMethod = 2;
 			if (deliveryMethodStr != null && !deliveryMethodStr.trim().isEmpty()) {
 				deliveryMethod = convertServiceTypeToMethodId(Integer.parseInt(deliveryMethodStr.trim()));
