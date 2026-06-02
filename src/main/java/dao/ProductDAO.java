@@ -912,7 +912,7 @@ public class ProductDAO implements DAO<Product> {
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     long id = rs.getLong("id");
-                    int qty = rs.getInt("stock_quantity");
+                    int qty = rs.getInt("quantity");
                     map.put(id, qty);
                 }
             }
