@@ -346,10 +346,10 @@
                                                             <c:otherwise>${tracking.status}</c:otherwise>
                                                         </c:choose>
                                                     </span>
-                                                    <span class="tracking-time-badge">
-                                                        <i class="bi bi-clock me-1"></i>
-                                                        <fmt:formatDate value="${tracking.updatedAt}" pattern="dd/MM/yyyy HH:mm"/>
-                                                    </span>
+<%--                                                    <span class="tracking-time-badge">--%>
+<%--                                                        <i class="bi bi-clock me-1"></i>--%>
+<%--                                                        <fmt:formatDate value="${tracking.updatedAt}" pattern="dd/MM/yyyy HH:mm"/>--%>
+<%--                                                    </span>--%>
                                                 </div>
                                                 <c:if test="${not empty tracking.location}">
                                                     <div class="tracking-location">
