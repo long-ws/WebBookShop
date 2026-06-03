@@ -61,23 +61,11 @@ public class CartServlet extends HttpServlet {
 		response.setContentType("text/html; charset=UTF-8");
 		request.setCharacterEncoding("UTF-8");
 
-		System.out.println("========== [CartServlet] POST RECEIVED ==========");
-		System.out.println("[CartServlet] Request URI: " + request.getRequestURI());
-		System.out.println("[CartServlet] Context Path: " + request.getContextPath());
-		System.out.println("[CartServlet] All parameters:");
-		request.getParameterMap().forEach((key, value) -> {
-			System.out.println("  " + key + " = " + String.join(", ", value));
-		});
-
 		HttpSession session = request.getSession();
 		User user = (User) session.getAttribute(SessionConstants.CURRENT_USER);
 
-		System.out.println(
-				"[CartServlet] User from session: " + (user != null ? user.getId() + " - " + user.getEmail() : "NULL"));
-
 		if (user == null) {
-			System.out.println("[CartServlet] User not logged in, redirecting to signin");
-			response.sendRedirect(request.getContextPath() + "/signin");
+            response.sendRedirect(request.getContextPath() + "/signin");
 			return;
 		}
 
@@ -87,31 +75,26 @@ public class CartServlet extends HttpServlet {
 			String deliveryPriceStr = request.getParameter("deliveryPrice");
 			String estimatedDaysStr = request.getParameter("estimatedDays");
 
-			System.out.println("[CartServlet] cartId raw: '" + cartIdStr + "'");
-			System.out.println("[CartServlet] deliveryMethod raw: '" + deliveryMethodStr + "'");
-			System.out.println("[CartServlet] deliveryPrice raw: '" + deliveryPriceStr + "'");
-			System.out.println("[CartServlet] estimatedDays raw: '" + estimatedDaysStr + "'");
-
 			if (cartIdStr == null || cartIdStr.trim().isEmpty()) {
-				System.out.println("[CartServlet] ERROR: cartId is null or empty!");
-				throw new Exception("cartId is required");
+                throw new Exception("cartId is required");
 			}
 
 			long cartId = 0;
 			try {
 				cartId = Long.parseLong(cartIdStr.trim());
 			} catch (NumberFormatException e) {
-				System.out.println("[CartServlet] ERROR: cartId is not a valid number: '" + cartIdStr + "'");
-				throw new Exception("cartId must be a valid number");
+                throw new Exception("cartId must be a valid number");
 			}
 
 			if (cartId <= 0) {
-				System.out.println("[CartServlet] ERROR: cartId is not positive: " + cartId);
-				throw new Exception("cartId must be positive");
+                throw new Exception("cartId must be positive");
 			}
 
-			System.out.println("[CartServlet] cartId parsed successfully: " + cartId);
-
+            if (!checkoutService.hasEnoughQty(cartId)) {
+				session.setAttribute("errorMessage", "Đặt hàng thất bại, sản phấm hết hàng!");
+				response.sendRedirect(request.getContextPath() + "/cart");
+				return;
+			}
 			int deliveryMethod = 2;
 			if (deliveryMethodStr != null && !deliveryMethodStr.trim().isEmpty()) {
 				deliveryMethod = convertServiceTypeToMethodId(Integer.parseInt(deliveryMethodStr.trim()));
