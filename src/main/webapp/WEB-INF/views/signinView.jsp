@@ -88,7 +88,7 @@
                             </div>
 
                             <div class="mb-2">
-                                <a href="${pageContext.request.contextPath}/oauth-login?provider=google"
+                                <a href="${pageContext.request.contextPath}/oauth-login?${P_OAUTH_PROVIDER}=google"
                                    class="btn btn-outline-danger w-100 py-2 d-flex align-items-center justify-content-center fw-semibold">
                                     <i class="bi bi-google me-2"></i> Tiếp tục với Google
                                 </a>

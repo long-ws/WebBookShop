@@ -5,6 +5,7 @@
 <c:set var="SSN_SIGNUP_SUCCESS" value="<%= SessionConstants.SIGNUP_SUCCESS %>" />
 <c:set var="SSN_SUCCESS_MESSAGE" value="<%= SessionConstants.SUCCESS_MESSAGE %>" />
 <c:set var="SSN_ERROR_MESSAGE" value="<%= SessionConstants.ERROR_MESSAGE %>" />
+<c:set var="P_OAUTH_PROVIDER" value="<%= RequestParamConstants.OAuth.PROVIDER %>" />
 <c:set var="P_ID" value="<%= RequestParamConstants.ID %>" />
 <c:set var="P_CODE" value="<%= RequestParamConstants.CODE %>" />
 <c:set var="P_NAME" value="<%= RequestParamConstants.NAME %>" />

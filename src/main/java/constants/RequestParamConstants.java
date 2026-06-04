@@ -14,6 +14,16 @@ public final class RequestParamConstants {
 	public static final String MODULE = "module";
 	public static final String IS_SYSTEM = "isSystem";
 	public static final String IS_ACTIVE = "isActive";
+	public static final String ERROR = "error";
+
+	public static final class ErrorValue {
+		private ErrorValue() {
+		}
+
+		public static final String OAUTH_STATE = "oauth_state";
+		public static final String OAUTH_PROVIDER = "oauth_provider";
+		public static final String OAUTH_FAILED = "oauth_failed";
+	}
 
 	public static final class Auth {
 		private Auth() {
@@ -56,5 +66,14 @@ public final class RequestParamConstants {
 		}
 
 		public static final String PERMISSION_IDS = "permissionIds";
+	}
+
+	public static final class OAuth {
+		private OAuth() {
+		}
+
+		public static final String PROVIDER = "provider";
+		public static final String CODE = "code";
+		public static final String STATE = "state";
 	}
 }

@@ -16,19 +16,20 @@ import com.google.gson.JsonObject;
 
 import dto.oauth.OAuthUserResponse;
 import exception.BusinessException;
+import mapper.user.OAuthUserMapper;
 
 public class GoogleOAuthProvider implements OAuthProvider {
     private final Properties oauthProps;
     private final Gson gson;
-    private final mapper.user.OAuthUserMapper oauthUserMapper;
+    private final OAuthUserMapper oauthUserMapper;
 
     public GoogleOAuthProvider() {
         this.oauthProps = loadOAuthProperties();
         this.gson = new Gson();
-        this.oauthUserMapper = new mapper.user.OAuthUserMapper();
+        this.oauthUserMapper = new OAuthUserMapper();
     }
 
-    public GoogleOAuthProvider(mapper.user.OAuthUserMapper oauthUserMapper) {
+    public GoogleOAuthProvider(OAuthUserMapper oauthUserMapper) {
         this.oauthProps = loadOAuthProperties();
         this.gson = new Gson();
         this.oauthUserMapper = oauthUserMapper;
