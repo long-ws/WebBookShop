@@ -6,13 +6,17 @@
 			href="${pageContext.request.contextPath}/user" role="button">
 			<i class="bi bi-person me-2"></i>Thông tin tài khoản
 		</a>
+        <a class="list-group-item ${param.active == 'ADDRESSBOOK' ? 'active' : ''}"
+           href="${pageContext.request.contextPath}/addressBook" role="button">
+            <i class="bi bi-journal-bookmark me-2"></i>Sổ địa chỉ nhận hàng
+        </a>
 		<a class="list-group-item ${param.active == 'ORDER' ? 'active' : ''}"
 			href="${pageContext.request.contextPath}/order" role="button">
 			<i class="bi bi-bag me-2"></i>Đơn hàng của tôi
 		</a>
         <a class="list-group-item ${param.active == 'VOUCHER' ? 'active' : ''}"
            href="${pageContext.request.contextPath}/vouchers" role="button">
-            <i class="bi bi-bag me-2"></i>Voucher của tôi
+            <i class="bi bi-ticket-perforated me-2"></i>Voucher của tôi
         </a>
 		<a class="list-group-item ${param.active == 'WISHLIST' ? 'active' : ''}"
 			href="${pageContext.request.contextPath}/wishlist">
