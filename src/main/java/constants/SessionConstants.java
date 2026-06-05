@@ -21,6 +21,9 @@ public final class SessionConstants {
 	public static final String ERROR_MESSAGE = "errorMessage";
 	public static final String INFO_MESSAGE = "infoMessage";
 
+	public static final String PENDING_VERIFICATION_USER_ID = "pendingVerificationUserId";
+	public static final String PENDING_VERIFICATION_EMAIL = "pendingVerificationEmail";
+
 	private SessionConstants() {
 	}
 }

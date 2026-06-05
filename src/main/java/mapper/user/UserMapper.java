@@ -58,7 +58,7 @@ public class UserMapper {
 		localAuth.setFailedAttempts(0);
 
 		EmailVerifyStatus verifyStatus = new EmailVerifyStatus();
-		verifyStatus.setId(1);
+		verifyStatus.setId(SystemConstants.EmailVerifyStatus.UNVERIFIED);
 		localAuth.setEmailVerifyStatus(verifyStatus);
 
 		return localAuth;
@@ -103,7 +103,7 @@ public class UserMapper {
 		local.setEmail(dto.getEmail());
 
 		EmailVerifyStatus verifyStatus = new EmailVerifyStatus();
-		verifyStatus.setId(1);
+		verifyStatus.setId(SystemConstants.EmailVerifyStatus.UNVERIFIED);
 		local.setEmailVerifyStatus(verifyStatus);
 
 		authInfo.setLocal(local);

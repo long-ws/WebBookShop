@@ -11,6 +11,7 @@ import constants.SystemConstants;
 import constants.ViewAttributeConstants;
 import dto.user.SigninRequest;
 import exception.BusinessException;
+import helpers.MessageHelper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -60,6 +61,19 @@ public class SigninServlet extends HttpServlet {
 			request.setAttribute(ViewAttributeConstants.VALUES, values);
 			request.setAttribute(ViewAttributeConstants.ERRORS, errors);
 			request.getRequestDispatcher("/WEB-INF/views/signinView.jsp").forward(request, response);
+			return;
+		}
+
+		if (!userFromServer.isEmailVerified()) {
+			HttpSession oldSession = request.getSession(false);
+			if (oldSession != null) {
+				oldSession.invalidate();
+			}
+			final HttpSession newSession = request.getSession(true);
+			newSession.setAttribute(SessionConstants.PENDING_VERIFICATION_USER_ID, userFromServer.getId());
+			newSession.setAttribute(SessionConstants.PENDING_VERIFICATION_EMAIL, userFromServer.getEmail());
+			MessageHelper.setErrorMessage(newSession, "Email chưa được xác thực. Vui lòng kiểm tra hộp thư để xác thực.");
+			response.sendRedirect(request.getContextPath() + "/verify-email");
 			return;
 		}
 

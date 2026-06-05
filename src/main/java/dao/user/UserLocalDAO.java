@@ -16,6 +16,8 @@ public interface UserLocalDAO {
 
 	void updatePassword(final Connection conn, final long userId, final String passwordHash) throws SQLException;
 
+	void updateEmailVerifyStatus(final Connection conn, final long userId, final int emailVerifyStatusId) throws SQLException;
+
 	void update(final Connection conn, final long userId, final UserLocalAuth local) throws SQLException;
 
 	Optional<UserLocalAuth> findByUserId(final Connection conn, final long userId) throws SQLException;

@@ -20,6 +20,7 @@ import java.util.Optional;
 
 import beans.common.EmailVerifyStatus;
 import beans.user.UserLocalAuth;
+import constants.SystemConstants;
 
 public class UserLocalDAOImpl implements UserLocalDAO {
 
@@ -28,9 +29,9 @@ public class UserLocalDAOImpl implements UserLocalDAO {
 
 	private static final String SQL_INSERT = """
 			INSERT INTO %s (
-				%s, %s, %s, %s
-			) VALUES (?, ?, ?, ?)
-			""".formatted(TABLE_USER_LOCAL, COL_USER_ID, COL_LOCAL_USERNAME, COL_LOCAL_PASSWORD_HASH, COL_LOCAL_EMAIL);
+				%s, %s, %s, %s, %s
+			) VALUES (?, ?, ?, ?, ?)
+			""".formatted(TABLE_USER_LOCAL, COL_USER_ID, COL_LOCAL_USERNAME, COL_LOCAL_PASSWORD_HASH, COL_LOCAL_EMAIL, COL_LOCAL_EMAIL_VERIFY_STATUS_ID);
 
 	private static final String SQL_UPDATE_EMAIL = """
 			UPDATE %s
@@ -43,6 +44,12 @@ public class UserLocalDAOImpl implements UserLocalDAO {
 			SET %s = ?
 			WHERE %s = ?
 			""".formatted(TABLE_USER_LOCAL, COL_LOCAL_PASSWORD_HASH, COL_USER_ID);
+	
+	private static final String SQL_UPDATE_EMAIL_VERIFY_STATUS = """
+			UPDATE %s
+			SET %s = ?
+			WHERE %s = ?
+			""".formatted(TABLE_USER_LOCAL, COL_LOCAL_EMAIL_VERIFY_STATUS_ID, COL_USER_ID);
 
 	private static final String SQL_FIND_BY_USER_ID = """
 			SELECT %s
@@ -101,6 +108,8 @@ public class UserLocalDAOImpl implements UserLocalDAO {
 			ps.setString(2, local.getUsername());
 			ps.setString(3, local.getPasswordHash());
 			ps.setString(4, local.getEmail());
+			EmailVerifyStatus status = local.getEmailVerifyStatus();
+			ps.setInt(5, status != null ? status.getId() : SystemConstants.EmailVerifyStatus.UNVERIFIED);
 			return ps.executeUpdate();
 		}
 	}
@@ -118,6 +127,15 @@ public class UserLocalDAOImpl implements UserLocalDAO {
 	public void updatePassword(final Connection conn, final long userId, final String passwordHash) throws SQLException {
 		try (PreparedStatement ps = conn.prepareStatement(SQL_UPDATE_PASSWORD)) {
 			ps.setString(1, passwordHash);
+			ps.setLong(2, userId);
+			ps.executeUpdate();
+		}
+	}
+	
+	@Override
+	public void updateEmailVerifyStatus(final Connection conn, final long userId, final int emailVerifyStatusId) throws SQLException {
+		try (PreparedStatement ps = conn.prepareStatement(SQL_UPDATE_EMAIL_VERIFY_STATUS)) {
+			ps.setInt(1, emailVerifyStatusId);
 			ps.setLong(2, userId);
 			ps.executeUpdate();
 		}
