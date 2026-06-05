@@ -8,7 +8,6 @@
 <head>
     <jsp:include page="_meta.jsp" />
     <title>Voucher của tôi</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         .nav-tabs .nav-link {
             color: #495057;
@@ -60,7 +59,7 @@
 
 <jsp:useBean id="now" class="java.util.Date" />
 
-<section class="py-4 bg-white">
+<section class="section-content padding-y">
     <div class="container">
         <div class="row">
             <c:choose>
@@ -156,7 +155,7 @@
                                                 <div class="text-center ps-2 d-flex flex-column align-items-center justify-content-center" style="width: 95px; height: 80px;">
                                                     <c:choose>
                                                         <c:when test="${statusLabel == 'Đang diễn ra'}">
-                                                            <a href="${pageContext.request.contextPath}/products" class="btn btn-sm text-white px-2 py-1 fw-bold" style="background-color: #0d6efd; font-size: 12px; white-space: nowrap;">Dùng ngay</a>
+                                                            <a href="${pageContext.request.contextPath}/cart" class="btn btn-sm text-white px-2 py-1 fw-bold" style="background-color: #0d6efd; font-size: 12px; white-space: nowrap;">Dùng ngay</a>
                                                         </c:when>
                                                         <c:when test="${statusLabel == 'Sắp diễn ra'}">
                                                             <button class="btn btn-sm btn-outline-warning px-2 py-1 disabled" style="font-size: 12px; white-space: nowrap;">Chờ mở</button>

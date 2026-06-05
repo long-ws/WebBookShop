@@ -217,7 +217,7 @@ public class PaymentDao {
 				+ "LEFT JOIN orders o ON o.id = p.order_id " + "WHERE (p.id = ? OR o.id = ?) AND p.status = 0";
 
 		String sqlUpdatePayment = "UPDATE payments SET status = 2, is_expired = 1 WHERE order_id = ?";
-		String sqlUpdateOrder = "UPDATE orders SET status = 3 WHERE id = ?";
+		String sqlUpdateOrder = "UPDATE orders SET status = 7 WHERE id = ?";
 
 		Connection con = null;
 		try {
