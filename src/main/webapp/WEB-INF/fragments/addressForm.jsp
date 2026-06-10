@@ -32,7 +32,7 @@
             <small class="text-muted">Địa chỉ nhận hàng</small></div>
 
         <div class="col-md-4">
-            <select class="form-select" id="province" name="province" onchange="validateField(this, this.value !== '')">
+            <select class="form-select" id="province" name="provinceId">
                 <option value="">Tỉnh / Thành phố</option>
             </select>
             <div class="invalid-feedback">Vui lòng chọn Tỉnh/Thành phố.</div>
@@ -40,8 +40,7 @@
         </div>
 
         <div class="col-md-4">
-            <select class="form-select" id="district" name="district" disabled
-                    onchange="validateField(this, this.value !== '')">
+            <select class="form-select" id="district" name="districtId" disabled>
                 <option value="">Quận / Huyện</option>
             </select>
             <div class="invalid-feedback">Vui lòng chọn Quận/Huyện.</div>
@@ -49,8 +48,7 @@
         </div>
 
         <div class="col-md-4">
-            <select class="form-select" id="ward" name="ward" disabled
-                    onchange="validateField(this, this.value !== '')">
+            <select class="form-select" id="ward" name="wardCode" disabled>
                 <option value="">Phường / Xã</option>
             </select>
             <div class="invalid-feedback">Vui lòng chọn Phường/Xã.</div>
@@ -58,8 +56,9 @@
         </div>
 
         <div class="col-12">
+            <label class="form-label">Địa chỉ chi tiết (số nhà, tên đường)</label>
             <input type="text" class="form-control" id="detail" name="detail"
-                   placeholder="Số nhà, tên đường..." value="${address.addressDetail}"
+                   placeholder="Ví dụ: 123 Nguyễn Huệ, P.Bến Nghé, Q.1" value="${address.addressDetail}"
                    oninput="validateField(this, this.value.trim() !== '')">
             <div class="invalid-feedback">Vui lòng nhập số nhà, tên đường chi tiết.</div>
         </div>
@@ -67,7 +66,7 @@
 </form>
 
 <script>
-    const oldProvince = "${address != null ? address.province : ''}";
-    const oldDistrict = "${address != null ? address.district : ''}";
-    const oldWard = "${address != null ? address.ward : ''}";
+    const oldProvinceId = "${address != null ? address.provinceId : ''}";
+    const oldDistrictId = "${address != null ? address.districtId : ''}";
+    const oldWardCode = "${address != null ? address.wardCode : ''}";
 </script>

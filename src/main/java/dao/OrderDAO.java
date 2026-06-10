@@ -24,8 +24,8 @@ public class OrderDAO implements DAO<Order> {
     }
 
     public long insert(Connection conn, Order order) throws SQLException {
-        String sql = "INSERT INTO orders (userId, status, deliveryMethod, deliveryPrice, totalPrice, createdAt, updatedAt) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO orders (userId, status, deliveryMethod, deliveryPrice, totalPrice, createdAt, updatedAt, shipping_address_id) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -36,6 +36,7 @@ public class OrderDAO implements DAO<Order> {
             ps.setDouble(5, order.getTotalPrice());
             ps.setTimestamp(6, Timestamp.valueOf(order.getCreatedAt()));
             ps.setTimestamp(7, order.getUpdatedAt() != null ? Timestamp.valueOf(order.getUpdatedAt()) : null);
+            ps.setLong(8, order.getShippingAddressId());
 
             int rows = ps.executeUpdate();
             if (rows == 0)

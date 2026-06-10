@@ -25,4 +25,7 @@ public class AddressService {
     public boolean setDefaultAddress(long userId, long addressId){
         return dao.setDefaultAddress(userId, addressId);
     }
+    public Address getDefaultAddress(long userId){
+        return dao.getDefaultAddress(userId);
+    }
 }

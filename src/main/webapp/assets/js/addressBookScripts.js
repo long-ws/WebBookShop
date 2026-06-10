@@ -117,7 +117,6 @@ function openCreateModal() {
     fetch(API_BASE + "/address/create")
         .then(res => res.text())
         .then(html => {
-            document.getElementById('addressModalBody').innerHTML = html;
             initModalForm(html);
             loadProvinces();
             addressModal.show();
@@ -187,29 +186,42 @@ function saveAddress() {
     var formEl = document.getElementById('addressForm');
     var btnSave = document.getElementById('btnSaveAddress');
     if (!formEl) return;
+
     var isFormValid = checkFormValidity();
     if (!isFormValid) {
         return;
     }
+
     var addressIdEl = document.getElementById('addressId');
     var addressId = addressIdEl ? addressIdEl.value : '';
-
     var isUpdate = addressId && addressId.trim() !== '';
+
     var confirmMessage = isUpdate ? "Bạn có chắc chắn muốn cập nhật địa chỉ này không?" : "Bạn có chắc chắn muốn thêm địa chỉ mới này không?";
     if (!confirm(confirmMessage)) {
         return;
     }
-    if (btnSave) {
-        btnSave.disabled = true;
-        btnSave.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang lưu...';
-    }
+
     var provinceSelect = document.getElementById('province');
     var districtSelect = document.getElementById('district');
     var wardSelect = document.getElementById('ward');
 
+    if (!provinceSelect.value || !districtSelect.value || !wardSelect.value) {
+        alert("Vui lòng chọn đầy đủ thông tin Tỉnh, Quận, Phường!");
+        return;
+    }
+
+    if (btnSave) {
+        btnSave.disabled = true;
+        btnSave.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang lưu...';
+    }
+
     document.getElementById('provinceName').value = provinceSelect.options[provinceSelect.selectedIndex]?.text || '';
     document.getElementById('districtName').value = districtSelect.options[districtSelect.selectedIndex]?.text || '';
     document.getElementById('wardName').value = wardSelect.options[wardSelect.selectedIndex]?.text || '';
+
+    provinceSelect.disabled = false;
+    districtSelect.disabled = false;
+    wardSelect.disabled = false;
 
     if (isUpdate) {
         updateAddress(formEl);
@@ -231,42 +243,42 @@ function updateAddress(formEl) {
 function openUpdateModal(addressId) {
     addressModal = new bootstrap.Modal(document.getElementById('addressModal'));
     document.getElementById('addressModalLabel').textContent = "Chỉnh sửa địa chỉ";
+
     fetch(API_BASE + "/address/update?addressId=" + addressId)
         .then(res => res.text())
-        .then(html => {
+        .then(async html => {
             initModalForm(html);
 
-            const oldProvince = document.getElementById('provinceName').value;
-            const oldDistrict = document.getElementById('districtName').value;
-            const oldWard = document.getElementById('wardName').value;
+            try {
+                await loadProvinces();
+                if (oldProvinceId) {
+                    selectOptionById('province', oldProvinceId);
 
-            loadProvinces().then(() => {
-                var pId = selectOptionByText('province', oldProvince);
-                if (pId) {
-                    return loadDistricts(pId).then(() => {
-                        var dId = selectOptionByText('district', oldDistrict);
-                        if (dId) {
-                            return loadWards(dId).then(() => {
-                                selectOptionByText('ward', oldWard);
-                            });
+                    await loadDistricts(oldProvinceId);
+                    if (oldDistrictId) {
+                        selectOptionById('district', oldDistrictId);
+
+                        await loadWards(oldDistrictId);
+                        if (oldWardCode) {
+                            selectOptionById('ward', oldWardCode);
                         }
-                    });
+                    }
                 }
-            });
+            } catch (error) {
+                console.error(error);
+            }
+
             addressModal.show();
         });
 }
-
-function selectOptionByText(selectId, targetText) {
+function selectOptionById(selectId, targetValue) {
     var select = document.getElementById(selectId);
-    if (!select || !targetText) return null;
+    if (!select || !targetValue) return false;
 
-    for (var i = 0; i < select.options.length; i++) {
-        if (select.options[i].textContent.trim() === targetText.trim()) {
-            select.selectedIndex = i;
-            select.disabled = false;
-            return select.options[i].value;
-        }
+    select.value = targetValue;
+    if (select.value === targetValue) {
+        select.disabled = false;
+        return true;
     }
-    return null;
+    return false;
 }

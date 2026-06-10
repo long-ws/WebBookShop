@@ -15,6 +15,7 @@ public class Order {
 	private User user;
 	private List<OrderItem> orderItems;
 	private double totalPrice;
+    private long shippingAddressId;
 
 	public Order() {
 	}
@@ -117,4 +118,12 @@ public class Order {
 				.add("createdAt=" + createdAt).add("updatedAt=" + updatedAt).add("user=" + user)
 				.add("orderItems=" + orderItems).add("totalPrice=" + totalPrice).toString();
 	}
+
+    public long getShippingAddressId() {
+        return shippingAddressId;
+    }
+
+    public void setShippingAddressId(long shippingAddressId) {
+        this.shippingAddressId = shippingAddressId;
+    }
 }

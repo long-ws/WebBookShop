@@ -100,7 +100,7 @@ public class CheckoutService {
      */
     public Payment checkoutFromCart(long userId, long cartId, int deliveryMethod, double deliveryPrice,
             String receiverName, String receiverPhone, String province, String district,
-            String ward, String addressDetail, int estimatedDays, Long finalVoucherId, Long finalShipVoucherId, String customerNote) throws SQLException {
+            String ward, String addressDetail, int estimatedDays, Long finalVoucherId, Long finalShipVoucherId, String customerNote, long shippingAddressId) throws SQLException {
 
         Cart cart = cartDAO.getById(cartId);
         if (cart == null) {
@@ -198,8 +198,9 @@ public class CheckoutService {
         order.setStatus(1);
         order.setDeliveryMethod(deliveryMethod);
         order.setDeliveryPrice(deliveryPrice);
-        order.setTotalPrice(finalTotalPrice);
+        order.setTotalPrice(cartTotal);
         order.setCreatedAt(LocalDateTime.now());
+        order.setShippingAddressId(shippingAddressId);
 
         long orderId = orderDAO.insert(order);
         if (orderId <= 0) {
@@ -289,21 +290,21 @@ public class CheckoutService {
             String receiverName, String receiverPhone, String province, String district,
             String ward, String addressDetail, int estimatedDays) throws SQLException {
         return checkoutFromCart(userId, cartId, deliveryMethod, deliveryPrice,
-                receiverName, receiverPhone, province, district, ward, addressDetail, estimatedDays, null, null, null);
+                receiverName, receiverPhone, province, district, ward, addressDetail, estimatedDays, null, null, null, 0);
     }
 
     /**
      * Legacy method - tương thích với signature cũ
      */
     public Payment checkoutFromCart(long userId, long cartId, int deliveryMethod, double deliveryPrice) throws SQLException {
-        return checkoutFromCart(userId, cartId, deliveryMethod, deliveryPrice, null, null, null, null, null, null, 3, null, null, null);
+        return checkoutFromCart(userId, cartId, deliveryMethod, deliveryPrice, null, null, null, null, null, null, 3, null, null, null, 0);
     }
 
     public Payment checkoutFromCart(long userId, long cartId, int deliveryMethod, double deliveryPrice,
                                     String receiverName, String receiverPhone, String province, String district,
                                     String ward, String addressDetail) throws SQLException {
         return checkoutFromCart(userId, cartId, deliveryMethod, deliveryPrice,
-                receiverName, receiverPhone, province, district, ward, addressDetail, 3, null, null, null);
+                receiverName, receiverPhone, province, district, ward, addressDetail, 3, null, null, null, 0);
     }
 
     /**
@@ -319,7 +320,7 @@ public class CheckoutService {
 
         return checkoutFromCart(userId, cartId, (int) shippingInfo.getMethodId(), shippingInfo.getShippingFee(),
                 receiverName, receiverPhone, province, district, ward, addressDetail,
-                shippingInfo.getEstimatedDaysMax(),null ,null, null);
+                shippingInfo.getEstimatedDaysMax(),null ,null, null, 0);
     }
     public boolean hasEnoughQty(long cartId) {
         Cart cart = cartDAO.getById(cartId);

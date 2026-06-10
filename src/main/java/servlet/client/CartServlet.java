@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import beans.Cart;
 import beans.CartItem;
 import beans.User;
+import beans.shipping.Address;
 import beans.vnpay.Payment;
 import constants.SessionConstants;
 import jakarta.servlet.ServletException;
@@ -14,6 +15,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import service.AddressService;
 import service.CartService;
 import service.CheckoutService;
 import service.PaymentService;
@@ -25,6 +27,7 @@ public class CartServlet extends HttpServlet {
 	private final CheckoutService checkoutService = new CheckoutService();
 	private final PaymentService paymentService = new PaymentService();
 	private final CartService cartService = new CartService();
+    private final AddressService addressService = new AddressService();
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -44,6 +47,8 @@ public class CartServlet extends HttpServlet {
 				// Cap nhat cartCount vao session
 				int cartCount = cartService.countCartItemQuantityByUserId(user.getId());
 				session.setAttribute("cartCount", cartCount);
+                Address defaultAddress =  addressService.getDefaultAddress(user.getId());
+                request.setAttribute("defaultAddress", defaultAddress);
 			}
 			request.getRequestDispatcher("/WEB-INF/views/cartView.jsp").forward(request, response);
 
@@ -179,10 +184,12 @@ public class CartServlet extends HttpServlet {
 					finalShipVoucherId = null;
 				}
 			}
+            long shippingAddressId = Long.parseLong(request.getParameter("shippingAddressId"));
+
 			System.out.println("[CartServlet] Calling checkoutService.checkoutFromCart...");
 			Payment p = checkoutService.checkoutFromCart(user.getId(), cartId, deliveryMethod, deliveryPrice,
 					receiverName, receiverPhone, province, district, ward, addressDetail, estimatedDays, finalVoucherId,
-					finalShipVoucherId, request.getParameter("customerNote"));
+					finalShipVoucherId, request.getParameter("customerNote"), shippingAddressId);
 			System.out.println(
 					"[CartServlet] Order created - orderId: " + p.getOrderId() + ", paymentRef: " + p.getVnpTxnRef());
 
