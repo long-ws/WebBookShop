@@ -7,8 +7,9 @@ import java.util.Map;
 import beans.common.Role;
 import constants.RequestParamConstants;
 import constants.SessionConstants;
-import constants.SystemConstants;
 import constants.ViewAttributeConstants;
+import constants.system.SystemKeys;
+import domain.user.UserDefaults;
 import dto.user.UserCreateRequest;
 import dto.user.UserDetailResponse;
 import exception.BusinessException;
@@ -53,7 +54,7 @@ public class SignupServlet extends HttpServlet {
 		final Map<String, String> errors = new HashMap<>();
 
 		final Role roleObj = new Role();
-		roleObj.setCode(SystemConstants.DEFAULT_ROLE_CODE);
+		roleObj.setCode(UserDefaults.DEFAULT_ROLE_CODE);
 
 		final UserCreateRequest dto = new UserCreateRequest.Builder().username(username).password(password).fullname(fullname).email(email).role(roleObj).build();
 
@@ -63,7 +64,7 @@ public class SignupServlet extends HttpServlet {
 			final String createdEmail = createdUser != null ? createdUser.getEmail() : null;
 
 			if (userId == null || createdEmail == null || createdEmail.isBlank()) {
-				errors.put(SystemConstants.ERROR_GLOBAL, "Đăng ký thành công nhưng không thể khởi tạo xác thực email.");
+				errors.put(SystemKeys.ERROR_GLOBAL, "Đăng ký thành công nhưng không thể khởi tạo xác thực email.");
 				request.setAttribute(ViewAttributeConstants.VALUES, values);
 				request.setAttribute(ViewAttributeConstants.ERRORS, errors);
 				request.getRequestDispatcher("/WEB-INF/views/signupView.jsp").forward(request, response);
@@ -92,14 +93,14 @@ public class SignupServlet extends HttpServlet {
 			if (businessErrors != null && !businessErrors.isEmpty()) {
 				errors.putAll(businessErrors);
 			} else {
-				errors.put(SystemConstants.ERROR_GLOBAL, e.getMessage());
+				errors.put(SystemKeys.ERROR_GLOBAL, e.getMessage());
 			}
 
 			request.setAttribute(ViewAttributeConstants.VALUES, values);
 			request.setAttribute(ViewAttributeConstants.ERRORS, errors);
 			request.getRequestDispatcher("/WEB-INF/views/signupView.jsp").forward(request, response);
 		} catch (Exception e) {
-			errors.put(SystemConstants.ERROR_GLOBAL, "Đăng ký thất bại do sự cố hệ thống.");
+			errors.put(SystemKeys.ERROR_GLOBAL, "Đăng ký thất bại do sự cố hệ thống.");
 			request.setAttribute(ViewAttributeConstants.VALUES, values);
 			request.setAttribute(ViewAttributeConstants.ERRORS, errors);
 			request.getRequestDispatcher("/WEB-INF/views/signupView.jsp").forward(request, response);

@@ -1,17 +1,17 @@
 package dao.user;
 
-import static config.DatabaseConstants.COL_ACCOUNT_DELETED_AT;
-import static config.DatabaseConstants.COL_ACCOUNT_DELETED_BY;
-import static config.DatabaseConstants.COL_ACCOUNT_DELETION_SCHEDULED_AT;
-import static config.DatabaseConstants.COL_ACCOUNT_LAST_LOGIN_AT;
-import static config.DatabaseConstants.COL_ACCOUNT_REMEMBER_EXPIRES_AT;
-import static config.DatabaseConstants.COL_ACCOUNT_REMEMBER_TOKEN;
-import static config.DatabaseConstants.COL_ACCOUNT_STATUS_ID;
-import static config.DatabaseConstants.COL_ACCOUNT_TOKEN_VERSION;
-import static config.DatabaseConstants.COL_CREATED_AT;
-import static config.DatabaseConstants.COL_ID;
-import static config.DatabaseConstants.COL_UPDATED_AT;
-import static config.DatabaseConstants.TABLE_USER_ACCOUNT;
+import static config.db.DatabaseSchema.COL_ACCOUNT_DELETED_AT;
+import static config.db.DatabaseSchema.COL_ACCOUNT_DELETED_BY;
+import static config.db.DatabaseSchema.COL_ACCOUNT_DELETION_SCHEDULED_AT;
+import static config.db.DatabaseSchema.COL_ACCOUNT_LAST_LOGIN_AT;
+import static config.db.DatabaseSchema.COL_ACCOUNT_REMEMBER_EXPIRES_AT;
+import static config.db.DatabaseSchema.COL_ACCOUNT_REMEMBER_TOKEN;
+import static config.db.DatabaseSchema.COL_ACCOUNT_STATUS_ID;
+import static config.db.DatabaseSchema.COL_ACCOUNT_TOKEN_VERSION;
+import static config.db.DatabaseSchema.COL_CREATED_AT;
+import static config.db.DatabaseSchema.COL_ID;
+import static config.db.DatabaseSchema.COL_UPDATED_AT;
+import static config.db.DatabaseSchema.TABLE_USER_ACCOUNT;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -26,7 +26,7 @@ import java.util.Optional;
 
 import beans.common.UserStatus;
 import beans.user.UserAccount;
-import constants.SystemConstants;
+import config.security.SecurityConfig;
 
 public class UserAccountDAOImpl implements UserAccountDAO {
 
@@ -112,7 +112,7 @@ public class UserAccountDAOImpl implements UserAccountDAO {
 
 	@Override
 	public void update(final Connection conn, final UserAccount account) throws SQLException {
-		if (account != null && SystemConstants.Security.isSystemGhostUserId(account.getId())) {
+		if (account != null && SecurityConfig.isSystemGhostUserId(account.getId())) {
 			throw new SQLException("Không thể cập nhật tài khoản hệ thống.");
 		}
 		try (PreparedStatement ps = conn.prepareStatement(SQL_UPDATE)) {
@@ -130,7 +130,7 @@ public class UserAccountDAOImpl implements UserAccountDAO {
 		}
 		try (PreparedStatement ps = conn.prepareStatement(SQL_SOFT_DELETE)) {
 			for (final Long id : userIds) {
-				if (id != null && !SystemConstants.Security.isSystemGhostUserId(id)) {
+				if (id != null && !SecurityConfig.isSystemGhostUserId(id)) {
 					ps.setLong(1, id);
 					ps.addBatch();
 				}

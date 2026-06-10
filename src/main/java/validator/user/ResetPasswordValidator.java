@@ -1,8 +1,8 @@
 package validator.user;
 
 import constants.RequestParamConstants;
-import constants.SystemConstants;
 import dto.user.ResetPasswordRequest;
+import domain.user.UserValidation;
 import validator.core.BaseValidator;
 import validator.core.ValidationResult;
 
@@ -18,12 +18,12 @@ public class ResetPasswordValidator extends BaseValidator<ResetPasswordRequest> 
 			result.addError(RequestParamConstants.User.NEW_PASSWORD, "Mật khẩu mới không được để trống");
 		} else if (!newPassword.equals(newPassword.trim())) {
 			result.addError(RequestParamConstants.User.NEW_PASSWORD, "Mật khẩu mới không có dấu cách ở hai đầu");
-		} else if (newPassword.length() < SystemConstants.Validation.PASSWORD_MIN_LENGTH) {
+		} else if (newPassword.length() < UserValidation.PASSWORD_MIN_LENGTH) {
 			result.addError(RequestParamConstants.User.NEW_PASSWORD,
-					"Mật khẩu mới phải có ít nhất " + SystemConstants.Validation.PASSWORD_MIN_LENGTH + " ký tự");
-		} else if (newPassword.length() > SystemConstants.Validation.PASSWORD_MAX_LENGTH) {
+					"Mật khẩu mới phải có ít nhất " + UserValidation.PASSWORD_MIN_LENGTH + " ký tự");
+		} else if (newPassword.length() > UserValidation.PASSWORD_MAX_LENGTH) {
 			result.addError(RequestParamConstants.User.NEW_PASSWORD,
-					"Mật khẩu mới tối đa " + SystemConstants.Validation.PASSWORD_MAX_LENGTH + " ký tự");
+					"Mật khẩu mới tối đa " + UserValidation.PASSWORD_MAX_LENGTH + " ký tự");
 		} else {
 			boolean hasUppercase = !newPassword.equals(newPassword.toLowerCase());
 			boolean hasLowercase = !newPassword.equals(newPassword.toUpperCase());

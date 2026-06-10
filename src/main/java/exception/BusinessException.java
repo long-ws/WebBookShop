@@ -3,7 +3,7 @@ package exception;
 import java.util.HashMap;
 import java.util.Map;
 
-import constants.SystemConstants;
+import constants.system.SystemKeys;
 
 public class BusinessException extends RuntimeException {
 	private static final long serialVersionUID = 1L;
@@ -12,7 +12,7 @@ public class BusinessException extends RuntimeException {
 	public BusinessException(String message) {
 		super(message);
 		this.errors = new HashMap<>();
-		this.errors.put(SystemConstants.ERROR_GLOBAL, message);
+		this.errors.put(SystemKeys.ERROR_GLOBAL, message);
 	}
 
 	public BusinessException(String field, String message) {

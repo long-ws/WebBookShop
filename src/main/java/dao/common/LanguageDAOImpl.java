@@ -1,12 +1,12 @@
 package dao.common;
 
-import static config.DatabaseConstants.COL_CREATED_AT;
-import static config.DatabaseConstants.COL_ID;
-import static config.DatabaseConstants.COL_LANGUAGE_CODE;
-import static config.DatabaseConstants.COL_LANGUAGE_DESCRIPTION;
-import static config.DatabaseConstants.COL_LANGUAGE_IS_ACTIVE;
-import static config.DatabaseConstants.COL_LANGUAGE_NAME;
-import static config.DatabaseConstants.TABLE_LANGUAGE_REGISTRY;
+import static config.db.DatabaseSchema.COL_CREATED_AT;
+import static config.db.DatabaseSchema.COL_ID;
+import static config.db.DatabaseSchema.COL_LANGUAGE_CODE;
+import static config.db.DatabaseSchema.COL_LANGUAGE_DESCRIPTION;
+import static config.db.DatabaseSchema.COL_LANGUAGE_IS_ACTIVE;
+import static config.db.DatabaseSchema.COL_LANGUAGE_NAME;
+import static config.db.DatabaseSchema.TABLE_LANGUAGE_REGISTRY;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

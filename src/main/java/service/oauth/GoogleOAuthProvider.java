@@ -1,9 +1,5 @@
 package service.oauth;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
-
 import com.github.scribejava.apis.GoogleApi20;
 import com.github.scribejava.core.builder.ServiceBuilder;
 import com.github.scribejava.core.model.OAuth2AccessToken;
@@ -14,44 +10,30 @@ import com.github.scribejava.core.oauth.OAuth20Service;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
+import config.oauth.OAuthConfig;
 import dto.oauth.OAuthUserResponse;
 import exception.BusinessException;
 import mapper.user.OAuthUserMapper;
 
 public class GoogleOAuthProvider implements OAuthProvider {
-    private final Properties oauthProps;
     private final Gson gson;
     private final OAuthUserMapper oauthUserMapper;
 
     public GoogleOAuthProvider() {
-        this.oauthProps = loadOAuthProperties();
         this.gson = new Gson();
         this.oauthUserMapper = new OAuthUserMapper();
     }
 
     public GoogleOAuthProvider(OAuthUserMapper oauthUserMapper) {
-        this.oauthProps = loadOAuthProperties();
         this.gson = new Gson();
         this.oauthUserMapper = oauthUserMapper;
     }
 
-    private Properties loadOAuthProperties() {
-        Properties props = new Properties();
-        try (InputStream input = GoogleOAuthProvider.class.getClassLoader().getResourceAsStream("oauth.properties")) {
-            if (input != null) {
-                props.load(input);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return props;
-    }
-
     private OAuth20Service buildService(String callbackUrl) {
-        return new ServiceBuilder(oauthProps.getProperty("google.client.id"))
-                .apiSecret(oauthProps.getProperty("google.client.secret"))
+        return new ServiceBuilder(OAuthConfig.googleClientId())
+                .apiSecret(OAuthConfig.googleClientSecret())
                 .callback(callbackUrl)
-                .defaultScope(oauthProps.getProperty("google.scope"))
+                .defaultScope(OAuthConfig.googleScope())
                 .build(GoogleApi20.instance());
     }
 

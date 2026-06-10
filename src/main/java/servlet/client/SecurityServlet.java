@@ -7,8 +7,8 @@ import java.util.Map;
 import beans.User;
 import constants.RequestParamConstants;
 import constants.SessionConstants;
-import constants.SystemConstants;
 import constants.ViewAttributeConstants;
+import constants.system.SystemKeys;
 import dto.user.ChangePasswordRequest;
 import exception.BusinessException;
 import helpers.MessageHelper;
@@ -81,10 +81,10 @@ public class SecurityServlet extends HttpServlet {
             if (businessErrors != null && !businessErrors.isEmpty()) {
                 errors.putAll(businessErrors);
             } else {
-                errors.put(SystemConstants.ERROR_GLOBAL, e.getMessage());
+                errors.put(SystemKeys.ERROR_GLOBAL, e.getMessage());
             }
         } catch (Exception e) {
-            errors.put(SystemConstants.ERROR_GLOBAL, "Đổi mật khẩu thất bại! Vui lòng kiểm tra lại thông tin.");
+            errors.put(SystemKeys.ERROR_GLOBAL, "Đổi mật khẩu thất bại! Vui lòng kiểm tra lại thông tin.");
         }
 
         if (!errors.isEmpty()) {

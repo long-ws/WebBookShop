@@ -1,12 +1,12 @@
 package dao.user;
 
-import static config.DatabaseConstants.COL_LOCAL_EMAIL;
-import static config.DatabaseConstants.COL_LOCAL_EMAIL_VERIFY_STATUS_ID;
-import static config.DatabaseConstants.COL_LOCAL_LOCKED_UNTIL;
-import static config.DatabaseConstants.COL_LOCAL_PASSWORD_HASH;
-import static config.DatabaseConstants.COL_LOCAL_USERNAME;
-import static config.DatabaseConstants.COL_USER_ID;
-import static config.DatabaseConstants.TABLE_USER_LOCAL;
+import static config.db.DatabaseSchema.COL_LOCAL_EMAIL;
+import static config.db.DatabaseSchema.COL_LOCAL_EMAIL_VERIFY_STATUS_ID;
+import static config.db.DatabaseSchema.COL_LOCAL_LOCKED_UNTIL;
+import static config.db.DatabaseSchema.COL_LOCAL_PASSWORD_HASH;
+import static config.db.DatabaseSchema.COL_LOCAL_USERNAME;
+import static config.db.DatabaseSchema.COL_USER_ID;
+import static config.db.DatabaseSchema.TABLE_USER_LOCAL;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -20,7 +20,7 @@ import java.util.Optional;
 
 import beans.common.EmailVerifyStatus;
 import beans.user.UserLocalAuth;
-import constants.SystemConstants;
+import domain.user.UserIds;
 
 public class UserLocalDAOImpl implements UserLocalDAO {
 
@@ -109,7 +109,7 @@ public class UserLocalDAOImpl implements UserLocalDAO {
 			ps.setString(3, local.getPasswordHash());
 			ps.setString(4, local.getEmail());
 			EmailVerifyStatus status = local.getEmailVerifyStatus();
-			ps.setInt(5, status != null ? status.getId() : SystemConstants.EmailVerifyStatus.UNVERIFIED);
+			ps.setInt(5, status != null ? status.getId() : UserIds.EmailVerifyStatus.UNVERIFIED);
 			return ps.executeUpdate();
 		}
 	}

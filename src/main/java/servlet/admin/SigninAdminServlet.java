@@ -8,10 +8,11 @@ import java.util.Set;
 
 import beans.User;
 import beans.common.Permission;
+import config.security.SecurityConfig;
 import constants.RequestParamConstants;
 import constants.SessionConstants;
-import constants.SystemConstants;
 import constants.ViewAttributeConstants;
+import constants.system.SystemKeys;
 import dto.user.AdminSigninRequest;
 import exception.BusinessException;
 import jakarta.servlet.ServletException;
@@ -59,7 +60,7 @@ public class SigninAdminServlet extends HttpServlet {
 			if (businessErrors != null && !businessErrors.isEmpty()) {
 				errors.putAll(businessErrors);
 			} else {
-				errors.put(SystemConstants.ERROR_GLOBAL, e.getMessage());
+				errors.put(SystemKeys.ERROR_GLOBAL, e.getMessage());
 			}
 		}
 
@@ -77,7 +78,7 @@ public class SigninAdminServlet extends HttpServlet {
 		final HttpSession newSession = request.getSession(true);
 		newSession.setAttribute(SessionConstants.CURRENT_USER, userFromServer);
 
-		final boolean isSuperAdmin = SystemConstants.Security.isSuperAdminUsername(userFromServer.getUsername());
+		final boolean isSuperAdmin = SecurityConfig.isSuperAdminUsername(userFromServer.getUsername());
 		newSession.setAttribute(SessionConstants.IS_SUPER_ADMIN, isSuperAdmin);
 
 		final Set<String> permissionCodes = new HashSet<>();

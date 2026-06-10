@@ -1,5 +1,5 @@
 <%@ taglib uri="jakarta.tags.core" prefix="c" %>
-<%@ page import="constants.SystemConstants, constants.RequestParamConstants, constants.ViewAttributeConstants, constants.SessionConstants" %>
+<%@ page import="constants.system.SystemKeys, constants.RequestParamConstants, constants.ViewAttributeConstants, constants.SessionConstants" %>
 
 <c:set var="SSN_OAUTH_ERROR" value="<%= SessionConstants.OAUTH_ERROR %>" />
 <c:set var="SSN_SIGNUP_SUCCESS" value="<%= SessionConstants.SIGNUP_SUCCESS %>" />
@@ -26,7 +26,7 @@
 <c:set var="P_ROLE_IDS" value="<%= RequestParamConstants.Role.ROLE_IDS %>" />
 <c:set var="P_PERMISSION_IDS" value="<%= RequestParamConstants.Permission.PERMISSION_IDS %>" />
 <c:set var="P_ASSIGNED_ROLE_IDS" value="<%= RequestParamConstants.Role.ASSIGNED_ROLE_IDS %>" />
-<c:set var="ERR_GLOBAL" value="<%= SystemConstants.ERROR_GLOBAL %>" />
+<c:set var="ERR_GLOBAL" value="<%= SystemKeys.ERROR_GLOBAL %>" />
 <c:set var="ATTR_ERRORS" value="<%= ViewAttributeConstants.ERRORS %>" />
 <c:set var="ATTR_VALUES" value="<%= ViewAttributeConstants.VALUES %>" />
 <c:set var="ATTR_ALL_ROLES" value="<%= ViewAttributeConstants.User.ALL_ROLES %>" />

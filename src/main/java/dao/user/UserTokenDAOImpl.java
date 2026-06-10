@@ -1,15 +1,15 @@
 package dao.user;
 
-import static config.DatabaseConstants.COL_ID;
-import static config.DatabaseConstants.COL_STATUS_ID;
-import static config.DatabaseConstants.COL_TOKEN_EXPIRES_AT;
-import static config.DatabaseConstants.COL_TOKEN_HASH;
-import static config.DatabaseConstants.COL_TOKEN_TYPE_ID;
-import static config.DatabaseConstants.COL_TOKEN_USED_AT;
-import static config.DatabaseConstants.COL_USER_ID;
-import static config.DatabaseConstants.TABLE_TOKEN_STATUS;
-import static config.DatabaseConstants.TABLE_TOKEN_TYPE;
-import static config.DatabaseConstants.TABLE_USER_TOKEN;
+import static config.db.DatabaseSchema.COL_ID;
+import static config.db.DatabaseSchema.COL_STATUS_ID;
+import static config.db.DatabaseSchema.COL_TOKEN_EXPIRES_AT;
+import static config.db.DatabaseSchema.COL_TOKEN_HASH;
+import static config.db.DatabaseSchema.COL_TOKEN_TYPE_ID;
+import static config.db.DatabaseSchema.COL_TOKEN_USED_AT;
+import static config.db.DatabaseSchema.COL_USER_ID;
+import static config.db.DatabaseSchema.TABLE_TOKEN_STATUS;
+import static config.db.DatabaseSchema.TABLE_TOKEN_TYPE;
+import static config.db.DatabaseSchema.TABLE_USER_TOKEN;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -18,7 +18,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 
-import constants.TokenConstants;
+import domain.token.TokenStatus;
 
 public class UserTokenDAOImpl implements UserTokenDAO {
 
@@ -95,7 +95,7 @@ public class UserTokenDAOImpl implements UserTokenDAO {
 			ps.setLong(1, userId);
 			ps.setString(2, tokenHash);
 			ps.setString(3, tokenTypeCode);
-			ps.setString(4, TokenConstants.TokenStatus.ACTIVE.getCode());
+			ps.setString(4, TokenStatus.ACTIVE.getCode());
 			ps.setInt(5, expiresInMinutes);
 			ps.executeUpdate();
 			try (ResultSet rs = ps.getGeneratedKeys()) {
@@ -113,7 +113,7 @@ public class UserTokenDAOImpl implements UserTokenDAO {
 			ps.setLong(1, userId);
 			ps.setString(2, tokenHash);
 			ps.setString(3, tokenTypeCode);
-			ps.setString(4, TokenConstants.TokenStatus.ACTIVE.getCode());
+			ps.setString(4, TokenStatus.ACTIVE.getCode());
 			try (ResultSet rs = ps.executeQuery()) {
 				if (rs.next()) {
 					return rs.getLong(COL_ID);
@@ -126,7 +126,7 @@ public class UserTokenDAOImpl implements UserTokenDAO {
 	@Override
 	public boolean markTokenUsed(final Connection conn, final long tokenId) throws SQLException {
 		try (PreparedStatement ps = conn.prepareStatement(SQL_MARK_USED)) {
-			ps.setString(1, TokenConstants.TokenStatus.USED.getCode());
+			ps.setString(1, TokenStatus.USED.getCode());
 			ps.setLong(2, tokenId);
 			return ps.executeUpdate() > 0;
 		}
@@ -135,10 +135,10 @@ public class UserTokenDAOImpl implements UserTokenDAO {
 	@Override
 	public int expireActiveTokens(final Connection conn, final long userId, final String tokenTypeCode) throws SQLException {
 		try (PreparedStatement ps = conn.prepareStatement(SQL_EXPIRE_ACTIVE_TOKENS)) {
-			ps.setString(1, TokenConstants.TokenStatus.EXPIRED.getCode());
+			ps.setString(1, TokenStatus.EXPIRED.getCode());
 			ps.setLong(2, userId);
 			ps.setString(3, tokenTypeCode);
-			ps.setString(4, TokenConstants.TokenStatus.ACTIVE.getCode());
+			ps.setString(4, TokenStatus.ACTIVE.getCode());
 			return ps.executeUpdate();
 		}
 	}

@@ -15,7 +15,9 @@ import beans.user.UserAccount;
 import beans.user.UserAuthInfo;
 import beans.user.UserLocalAuth;
 import beans.user.UserProfile;
-import constants.SystemConstants;
+import config.security.SecurityConfig;
+import domain.user.UserDefaults;
+import domain.user.UserIds;
 import dao.common.RoleDAO;
 import dao.common.RoleDAOImpl;
 import dao.user.UserAccountDAO;
@@ -61,13 +63,13 @@ public class UserCrudRepositoryImpl implements UserCrudRepository {
 		localDAO.insert(conn, userId, user.getAuthInfo().getLocal());
 		user.getProfile().setUserId(userId);
 		profileDAO.insert(conn, user.getProfile());
-		assignRole(conn, userId, user.getRole() != null ? user.getRole().getCode() : SystemConstants.DEFAULT_ROLE_CODE);
+		assignRole(conn, userId, user.getRole() != null ? user.getRole().getCode() : UserDefaults.DEFAULT_ROLE_CODE);
 		return userId;
 	}
 
 	@Override
 	public void update(Connection conn, User user) throws SQLException {
-		if (user != null && SystemConstants.Security.isSystemGhostUserId(user.getId())) {
+		if (user != null && SecurityConfig.isSystemGhostUserId(user.getId())) {
 			throw new SQLException("Không thể cập nhật tài khoản hệ thống.");
 		}
 		UserAccount account = toAccount(user);
@@ -96,7 +98,7 @@ public class UserCrudRepositoryImpl implements UserCrudRepository {
 
 		for (int i = 0; i < userIds.size(); i++) {
 			Long id = userIds.get(i);
-			if (id != null && SystemConstants.Security.isSystemGhostUserId(id)) {
+			if (id != null && SecurityConfig.isSystemGhostUserId(id)) {
 				throw new SQLException("Không thể xóa tài khoản hệ thống.");
 			}
 		}
@@ -134,7 +136,7 @@ public class UserCrudRepositoryImpl implements UserCrudRepository {
 		List<Long> filteredUserIds = new ArrayList<Long>();
 		for (int i = 0; i < userIds.size(); i++) {
 			Long id = userIds.get(i);
-			if (id != null && !SystemConstants.Security.isSystemGhostUserId(id)) {
+			if (id != null && !SecurityConfig.isSystemGhostUserId(id)) {
 				filteredUserIds.add(id);
 			}
 		}
@@ -225,7 +227,7 @@ public class UserCrudRepositoryImpl implements UserCrudRepository {
 	}
 
 	private void assignRole(Connection conn, long userId, String roleCode) throws SQLException {
-		if (SystemConstants.Security.isSystemGhostUserId(userId)) {
+		if (SecurityConfig.isSystemGhostUserId(userId)) {
 			throw new SQLException("Không thể gán vai trò cho tài khoản hệ thống.");
 		}
 		Optional<Role> roleOpt = roleDAO.findByCode(conn, roleCode);
@@ -237,7 +239,7 @@ public class UserCrudRepositoryImpl implements UserCrudRepository {
 	private UserAccount toAccount(User user) {
 		UserAccount account = new UserAccount();
 		account.setId(user.getId());
-		account.setStatusId(user.getStatus() != null ? user.getStatus().getId() : SystemConstants.Status.ACTIVE);
+		account.setStatusId(user.getStatus() != null ? user.getStatus().getId() : UserIds.Status.ACTIVE);
 		account.setTokenVersion(user.getTokenVersion());
 		return account;
 	}

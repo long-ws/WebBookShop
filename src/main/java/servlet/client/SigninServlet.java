@@ -5,10 +5,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import beans.User;
+import config.security.SecurityConfig;
 import constants.RequestParamConstants;
 import constants.SessionConstants;
-import constants.SystemConstants;
 import constants.ViewAttributeConstants;
+import constants.system.SystemKeys;
 import dto.user.SigninRequest;
 import exception.BusinessException;
 import helpers.MessageHelper;
@@ -53,8 +54,10 @@ public class SigninServlet extends HttpServlet {
 			if (businessErrors != null && !businessErrors.isEmpty()) {
 				errors.putAll(businessErrors);
 			} else {
-				errors.put(SystemConstants.ERROR_GLOBAL, e.getMessage());
+				errors.put(SystemKeys.ERROR_GLOBAL, e.getMessage());
 			}
+		} catch (Exception e) {
+			errors.put(SystemKeys.ERROR_GLOBAL, "Đăng nhập thất bại do sự cố hệ thống.");
 		}
 
 		if (!errors.isEmpty() || userFromServer == null) {
@@ -64,14 +67,26 @@ public class SigninServlet extends HttpServlet {
 			return;
 		}
 
-		if (!userFromServer.isEmailVerified()) {
+		final String roleCode = userFromServer.getRole() != null ? userFromServer.getRole().getCode() : null;
+		final boolean isSuperAdmin = SecurityConfig.isSuperAdminUsername(userFromServer.getUsername());
+
+		if (!isSuperAdmin && !userFromServer.isEmailVerified()) {
+			final String email = userFromServer.getEmail();
+			if (email == null || email.isBlank()) {
+				errors.put(SystemKeys.ERROR_GLOBAL, "Email chưa được xác thực.");
+				request.setAttribute(ViewAttributeConstants.VALUES, values);
+				request.setAttribute(ViewAttributeConstants.ERRORS, errors);
+				request.getRequestDispatcher("/WEB-INF/views/signinView.jsp").forward(request, response);
+				return;
+			}
+
 			HttpSession oldSession = request.getSession(false);
 			if (oldSession != null) {
 				oldSession.invalidate();
 			}
 			final HttpSession newSession = request.getSession(true);
 			newSession.setAttribute(SessionConstants.PENDING_VERIFICATION_USER_ID, userFromServer.getId());
-			newSession.setAttribute(SessionConstants.PENDING_VERIFICATION_EMAIL, userFromServer.getEmail());
+			newSession.setAttribute(SessionConstants.PENDING_VERIFICATION_EMAIL, email);
 			MessageHelper.setErrorMessage(newSession, "Email chưa được xác thực. Vui lòng kiểm tra hộp thư để xác thực.");
 			response.sendRedirect(request.getContextPath() + "/verify-email");
 			return;
@@ -84,9 +99,11 @@ public class SigninServlet extends HttpServlet {
 		final HttpSession newSession = request.getSession(true);
 		newSession.setAttribute(SessionConstants.CURRENT_USER, userFromServer);
 
-		final String role = userFromServer.getRole() != null ? userFromServer.getRole().getCode() : null;
-		if (role != null) {
-			newSession.setAttribute(SessionConstants.USER_ROLE, role);
+		if (roleCode != null) {
+			newSession.setAttribute(SessionConstants.USER_ROLE, roleCode);
+		}
+		if (isSuperAdmin) {
+			newSession.setAttribute(SessionConstants.IS_SUPER_ADMIN, Boolean.TRUE);
 		}
 
 		response.sendRedirect(request.getContextPath() + "/");

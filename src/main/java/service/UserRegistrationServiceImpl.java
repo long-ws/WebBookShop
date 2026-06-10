@@ -11,7 +11,8 @@ import beans.user.UserLocalAuth;
 import beans.user.UserOAuthAuth;
 import beans.user.UserProfile;
 import constants.RequestParamConstants;
-import constants.SystemConstants;
+import constants.system.SystemKeys;
+import domain.user.UserDefaults;
 import dto.user.LocalUserRegistrationRequest;
 import dto.user.OAuthUserRegistrationRequest;
 import dto.user.UserProfileRequest;
@@ -154,7 +155,7 @@ public class UserRegistrationServiceImpl implements UserRegistrationService {
 
 	private UserProfile createProfile(String fullname, String email, String avatarUrl) {
 		final Language defaultLanguage = new Language();
-		defaultLanguage.setId(SystemConstants.DEFAULT_LANGUAGE_ID);
+		defaultLanguage.setId(UserDefaults.DEFAULT_LANGUAGE_ID);
 
 		final UserProfileRequest profileRequest = new UserProfileRequest.Builder().fullname(fullname).email(email).avatarUrl(avatarUrl).preferredLanguage(defaultLanguage).build();
 
@@ -172,7 +173,7 @@ public class UserRegistrationServiceImpl implements UserRegistrationService {
 			} else if (message.contains("username")) {
 				errors.put(RequestParamConstants.User.USERNAME, "Tên đăng nhập đã tồn tại.");
 			} else {
-				errors.put(SystemConstants.ERROR_GLOBAL, "Dữ liệu bạn nhập đã tồn tại trong hệ thống.");
+				errors.put(SystemKeys.ERROR_GLOBAL, "Dữ liệu bạn nhập đã tồn tại trong hệ thống.");
 			}
 			throw new BusinessException(errors);
 		}

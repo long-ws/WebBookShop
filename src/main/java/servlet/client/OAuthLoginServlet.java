@@ -58,7 +58,7 @@ public class OAuthLoginServlet extends HttpServlet {
 				session.setAttribute(SessionConstants.OAUTH_ERROR, "Lỗi khởi tạo OAuth. Vui lòng thử lại.");
 			}
 			response.sendRedirect(request.getContextPath() + "/signin");
-			e.printStackTrace();		}
+		}
 	}
 
 	private static String generateState() {

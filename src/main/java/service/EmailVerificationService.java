@@ -9,12 +9,13 @@ import java.sql.SQLException;
 import java.util.HexFormat;
 
 import constants.RequestParamConstants;
-import constants.SystemConstants;
-import constants.TokenConstants;
 import dao.user.UserLocalDAO;
 import dao.user.UserLocalDAOImpl;
 import dao.user.UserTokenDAO;
 import dao.user.UserTokenDAOImpl;
+import domain.token.TokenType;
+import domain.user.UserIds;
+import policy.email.EmailVerificationPolicy;
 import utils.DbTransaction;
 import utils.TransactionCallback;
 
@@ -27,7 +28,7 @@ public class EmailVerificationService {
 		FAILED
 	}
 
-	private static final TokenConstants.TokenType TOKEN_TYPE_VERIFY_EMAIL = TokenConstants.TokenType.VERIFY_EMAIL;
+	private static final TokenType TOKEN_TYPE_VERIFY_EMAIL = TokenType.VERIFY_EMAIL;
 
 	private static final SecureRandom RANDOM = new SecureRandom();
 
@@ -57,18 +58,18 @@ public class EmailVerificationService {
 			@Override
 			public Long doInTransaction(Connection conn) throws SQLException {
 				int countLastHour = userTokenDAO.countCreatedAfterMinutes(conn, userId, TOKEN_TYPE_VERIFY_EMAIL.getCode(), 60);
-				if (countLastHour >= SystemConstants.EmailVerificationPolicy.MAX_SEND_PER_HOUR) {
+				if (countLastHour >= EmailVerificationPolicy.MAX_SEND_PER_HOUR) {
 					return 0L;
 				}
 
 				int countLastInterval = userTokenDAO.countCreatedAfterSeconds(conn, userId, TOKEN_TYPE_VERIFY_EMAIL.getCode(),
-						SystemConstants.EmailVerificationPolicy.MIN_SEND_INTERVAL_SECONDS);
+						EmailVerificationPolicy.MIN_SEND_INTERVAL_SECONDS);
 				if (countLastInterval > 0) {
 					return -1L;
 				}
 
 				userTokenDAO.expireActiveTokens(conn, userId, TOKEN_TYPE_VERIFY_EMAIL.getCode());
-				return userTokenDAO.insertToken(conn, userId, tokenHash, TOKEN_TYPE_VERIFY_EMAIL.getCode(), SystemConstants.EmailVerificationPolicy.TOKEN_EXPIRES_MINUTES);
+				return userTokenDAO.insertToken(conn, userId, tokenHash, TOKEN_TYPE_VERIFY_EMAIL.getCode(), EmailVerificationPolicy.TOKEN_EXPIRES_MINUTES);
 			}
 		});
 
@@ -84,7 +85,7 @@ public class EmailVerificationService {
 
 		final String confirmUrl = baseUrl + "/verify-email/confirm?" + RequestParamConstants.CODE + "=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
 		final String subject = "Xác thực email";
-		final String content = "Vui lòng xác thực email bằng cách nhấn vào liên kết sau:\n\n" + confirmUrl + "\n\nLiên kết sẽ hết hạn sau " + SystemConstants.EmailVerificationPolicy.TOKEN_EXPIRES_MINUTES + " phút.";
+		final String content = "Vui lòng xác thực email bằng cách nhấn vào liên kết sau:\n\n" + confirmUrl + "\n\nLiên kết sẽ hết hạn sau " + EmailVerificationPolicy.TOKEN_EXPIRES_MINUTES + " phút.";
 		boolean sent = emailService.send(email, subject, content);
 		return sent ? SendVerificationStatus.SENT : SendVerificationStatus.FAILED;
 	}
@@ -109,7 +110,7 @@ public class EmailVerificationService {
 					return false;
 				}
 
-				userLocalDAO.updateEmailVerifyStatus(conn, userId, SystemConstants.EmailVerifyStatus.VERIFIED);
+				userLocalDAO.updateEmailVerifyStatus(conn, userId, UserIds.EmailVerifyStatus.VERIFIED);
 				return true;
 			}
 		});

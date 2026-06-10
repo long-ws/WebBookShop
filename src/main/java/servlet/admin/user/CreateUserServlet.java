@@ -10,9 +10,10 @@ import beans.common.Gender;
 import beans.common.Language;
 import beans.common.Role;
 import constants.RequestParamConstants;
-import constants.SystemConstants;
 import constants.ViewAttributeConstants;
+import constants.system.SystemKeys;
 import dto.user.UserCreateRequest;
+import domain.user.UserDefaults;
 import exception.BusinessException;
 import helpers.MessageHelper;
 import helpers.SessionPermissionCache;
@@ -101,7 +102,7 @@ public class CreateUserServlet extends HttpServlet {
 				if (businessErrors != null && !businessErrors.isEmpty()) {
 					errors.putAll(businessErrors);
 				} else {
-					errors.put(SystemConstants.ERROR_GLOBAL, e.getMessage());
+					errors.put(SystemKeys.ERROR_GLOBAL, e.getMessage());
 				}
 			}
 		}
@@ -132,6 +133,6 @@ public class CreateUserServlet extends HttpServlet {
 
 		request.setAttribute(ViewAttributeConstants.User.ALL_ROLES, filtered);
 		request.setAttribute(ViewAttributeConstants.User.LANGUAGES, languageService.getAllActiveLanguages());
-		request.setAttribute("defaultRoleCode", SystemConstants.DEFAULT_ROLE_CODE);
+		request.setAttribute("defaultRoleCode", UserDefaults.DEFAULT_ROLE_CODE);
 	}
 }

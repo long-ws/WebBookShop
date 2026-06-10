@@ -1,16 +1,16 @@
 package dao.user;
 
-import static config.DatabaseConstants.COL_PROFILE_AVATAR_URL;
-import static config.DatabaseConstants.COL_PROFILE_EMAIL;
-import static config.DatabaseConstants.COL_PROFILE_FULLNAME;
-import static config.DatabaseConstants.COL_PROFILE_GENDER_ID;
-import static config.DatabaseConstants.COL_PROFILE_PHONE_NUMBER;
-import static config.DatabaseConstants.COL_PROFILE_PREFERRED_LANGUAGE_ID;
-import static config.DatabaseConstants.COL_UPDATED_AT;
-import static config.DatabaseConstants.COL_USER_ID;
-import static config.DatabaseConstants.TABLE_USER_PROFILE;
-import static config.DatabaseConstants.TABLE_USER_ACCOUNT;
-import static config.DatabaseConstants.COL_ID;
+import static config.db.DatabaseSchema.COL_PROFILE_AVATAR_URL;
+import static config.db.DatabaseSchema.COL_PROFILE_EMAIL;
+import static config.db.DatabaseSchema.COL_PROFILE_FULLNAME;
+import static config.db.DatabaseSchema.COL_PROFILE_GENDER_ID;
+import static config.db.DatabaseSchema.COL_PROFILE_PHONE_NUMBER;
+import static config.db.DatabaseSchema.COL_PROFILE_PREFERRED_LANGUAGE_ID;
+import static config.db.DatabaseSchema.COL_UPDATED_AT;
+import static config.db.DatabaseSchema.COL_USER_ID;
+import static config.db.DatabaseSchema.TABLE_USER_PROFILE;
+import static config.db.DatabaseSchema.TABLE_USER_ACCOUNT;
+import static config.db.DatabaseSchema.COL_ID;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
