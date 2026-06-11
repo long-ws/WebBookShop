@@ -1,9 +1,9 @@
 package dao.oauth;
 
-import static config.DatabaseConstants.COL_ID;
-import static config.DatabaseConstants.COL_OAUTH_PROVIDER_CODE;
-import static config.DatabaseConstants.COL_OAUTH_PROVIDER_NAME;
-import static config.DatabaseConstants.TABLE_OAUTH_PROVIDER;
+import static config.db.DatabaseSchema.COL_ID;
+import static config.db.DatabaseSchema.COL_OAUTH_PROVIDER_CODE;
+import static config.db.DatabaseSchema.COL_OAUTH_PROVIDER_NAME;
+import static config.db.DatabaseSchema.TABLE_OAUTH_PROVIDER;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

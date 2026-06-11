@@ -7,14 +7,14 @@ import java.util.Optional;
 import beans.User;
 import beans.common.Language;
 import beans.user.UserProfile;
-import constants.SystemConstants;
+import domain.user.UserDefaults;
 import dao.common.LanguageDAO;
 
-public class UserLanguageResolver {
+public class UserLanguageService {
 
 	private final LanguageDAO languageDAO;
 
-	public UserLanguageResolver(LanguageDAO languageDAO) {
+	public UserLanguageService(LanguageDAO languageDAO) {
 		this.languageDAO = languageDAO;
 	}
 
@@ -46,7 +46,7 @@ public class UserLanguageResolver {
 			}
 		}
 
-		int defaultLanguageId = SystemConstants.DEFAULT_LANGUAGE_ID;
+		int defaultLanguageId = UserDefaults.DEFAULT_LANGUAGE_ID;
 		Optional<Language> defaultLanguageOptional = languageDAO.findById(conn, defaultLanguageId);
 		if (defaultLanguageOptional.isPresent()) {
 			Language defaultLanguage = defaultLanguageOptional.get();

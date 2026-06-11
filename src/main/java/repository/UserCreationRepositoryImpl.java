@@ -5,7 +5,7 @@ import beans.user.UserAccount;
 import beans.user.UserLocalAuth;
 import beans.user.UserOAuthAuth;
 import beans.user.UserProfile;
-import constants.SystemConstants;
+import domain.user.UserDefaults;
 import dao.common.RoleDAO;
 import dao.common.RoleDAOImpl;
 import dao.user.UserAccountDAO;
@@ -54,7 +54,7 @@ public class UserCreationRepositoryImpl implements UserCreationRepository {
 	    
 	    localDAO.insert(conn, userId, localAuth);
 	    profileDAO.insert(conn, profile);
-	    assignRole(conn, userId, SystemConstants.DEFAULT_ROLE_CODE);
+	    assignRole(conn, userId, UserDefaults.DEFAULT_ROLE_CODE);
 	    
 	    return userId;
 	}
@@ -69,7 +69,7 @@ public class UserCreationRepositoryImpl implements UserCreationRepository {
 	    profile.setUserId(userId);
 	    profileDAO.insert(conn, profile);
 	    
-	    assignRole(conn, userId, SystemConstants.DEFAULT_ROLE_CODE);
+	    assignRole(conn, userId, UserDefaults.DEFAULT_ROLE_CODE);
 	    
 	    return userId;
 	}

@@ -8,7 +8,7 @@ import java.util.Optional;
 
 import beans.common.Permission;
 import beans.common.Role;
-import constants.SystemConstants;
+import config.security.SecurityConfig;
 import dao.common.PermissionDAO;
 import dao.common.PermissionDAOImpl;
 import dao.common.RoleDAO;
@@ -76,14 +76,14 @@ public class AuthorizationRepositoryImpl implements AuthorizationRepository {
 
 	@Override
 	public boolean userIsSuperAdmin(Connection conn, long userId) throws SQLException {
-		if (SystemConstants.Security.isSuperAdminUserId(userId)) {
+		if (SecurityConfig.isSuperAdminUserId(userId)) {
 			return true;
 		}
 		Optional<beans.user.UserLocalAuth> localOpt = userLocalDAO.findByUserId(conn, userId);
 		if (!localOpt.isPresent()) {
 			return false;
 		}
-		return SystemConstants.Security.isSuperAdminUsername(localOpt.get().getUsername());
+		return SecurityConfig.isSuperAdminUsername(localOpt.get().getUsername());
 	}
 
 	@Override

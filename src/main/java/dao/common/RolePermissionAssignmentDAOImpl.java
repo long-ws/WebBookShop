@@ -1,20 +1,20 @@
 package dao.common;
 
-import static config.DatabaseConstants.COL_CREATED_AT;
-import static config.DatabaseConstants.COL_ID;
-import static config.DatabaseConstants.COL_PERMISSION_CODE;
-import static config.DatabaseConstants.COL_PERMISSION_ID;
-import static config.DatabaseConstants.COL_PERMISSION_IS_ACTIVE;
-import static config.DatabaseConstants.COL_ROLE_ID;
-import static config.DatabaseConstants.COL_ROLE_IS_ACTIVE;
-import static config.DatabaseConstants.COL_ROLE_PERMISSION_IS_ACTIVE;
-import static config.DatabaseConstants.COL_ROLE_PERMISSION_PERMISSION_ID;
-import static config.DatabaseConstants.COL_ROLE_PERMISSION_ROLE_ID;
-import static config.DatabaseConstants.COL_USER_ID;
-import static config.DatabaseConstants.TABLE_PERMISSION_REGISTRY;
-import static config.DatabaseConstants.TABLE_ROLE_PERMISSION_ASSIGNMENT;
-import static config.DatabaseConstants.TABLE_ROLE_REGISTRY;
-import static config.DatabaseConstants.TABLE_USER_ROLE_REGISTRY;
+import static config.db.DatabaseSchema.COL_CREATED_AT;
+import static config.db.DatabaseSchema.COL_ID;
+import static config.db.DatabaseSchema.COL_PERMISSION_CODE;
+import static config.db.DatabaseSchema.COL_PERMISSION_ID;
+import static config.db.DatabaseSchema.COL_PERMISSION_IS_ACTIVE;
+import static config.db.DatabaseSchema.COL_ROLE_ID;
+import static config.db.DatabaseSchema.COL_ROLE_IS_ACTIVE;
+import static config.db.DatabaseSchema.COL_ROLE_PERMISSION_IS_ACTIVE;
+import static config.db.DatabaseSchema.COL_ROLE_PERMISSION_PERMISSION_ID;
+import static config.db.DatabaseSchema.COL_ROLE_PERMISSION_ROLE_ID;
+import static config.db.DatabaseSchema.COL_USER_ID;
+import static config.db.DatabaseSchema.TABLE_PERMISSION_REGISTRY;
+import static config.db.DatabaseSchema.TABLE_ROLE_PERMISSION_ASSIGNMENT;
+import static config.db.DatabaseSchema.TABLE_ROLE_REGISTRY;
+import static config.db.DatabaseSchema.TABLE_USER_ROLE_REGISTRY;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

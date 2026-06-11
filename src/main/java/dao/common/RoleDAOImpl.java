@@ -1,17 +1,17 @@
 package dao.common;
 
-import static config.DatabaseConstants.COL_CREATED_AT;
-import static config.DatabaseConstants.COL_ID;
-import static config.DatabaseConstants.COL_ROLE_CODE;
-import static config.DatabaseConstants.COL_ROLE_DESCRIPTION;
-import static config.DatabaseConstants.COL_ROLE_ID;
-import static config.DatabaseConstants.COL_ROLE_IS_ACTIVE;
-import static config.DatabaseConstants.COL_ROLE_IS_SYSTEM;
-import static config.DatabaseConstants.COL_ROLE_NAME;
-import static config.DatabaseConstants.COL_UPDATED_AT;
-import static config.DatabaseConstants.COL_USER_ID;
-import static config.DatabaseConstants.TABLE_ROLE_REGISTRY;
-import static config.DatabaseConstants.TABLE_USER_ROLE_REGISTRY;
+import static config.db.DatabaseSchema.COL_CREATED_AT;
+import static config.db.DatabaseSchema.COL_ID;
+import static config.db.DatabaseSchema.COL_ROLE_CODE;
+import static config.db.DatabaseSchema.COL_ROLE_DESCRIPTION;
+import static config.db.DatabaseSchema.COL_ROLE_ID;
+import static config.db.DatabaseSchema.COL_ROLE_IS_ACTIVE;
+import static config.db.DatabaseSchema.COL_ROLE_IS_SYSTEM;
+import static config.db.DatabaseSchema.COL_ROLE_NAME;
+import static config.db.DatabaseSchema.COL_UPDATED_AT;
+import static config.db.DatabaseSchema.COL_USER_ID;
+import static config.db.DatabaseSchema.TABLE_ROLE_REGISTRY;
+import static config.db.DatabaseSchema.TABLE_USER_ROLE_REGISTRY;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

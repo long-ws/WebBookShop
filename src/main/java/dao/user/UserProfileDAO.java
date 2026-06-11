@@ -17,6 +17,10 @@ public interface UserProfileDAO {
 	int delete(final Connection conn, final long userId) throws SQLException;
 	
 	Optional<UserProfile> findUserProfileById(final Connection conn, final long userId) throws SQLException;
+
+	long findUserIdByEmail(final Connection conn, final String email) throws SQLException;
+
+	boolean existsByEmail(final Connection conn, final String email, final Long excludeUserId) throws SQLException;
 	
 	List<Long> findAllIdsOrderByFullname(Connection conn, boolean ascending) throws SQLException;
 	

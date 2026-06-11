@@ -8,7 +8,8 @@ import java.util.Optional;
 
 import beans.User;
 import constants.RequestParamConstants;
-import constants.SystemConstants;
+import config.security.SecurityConfig;
+import constants.system.SystemKeys;
 import dao.common.LanguageDAO;
 import dao.common.LanguageDAOImpl;
 import dto.user.UserProfileRequest;
@@ -17,7 +18,7 @@ import exception.BusinessException;
 import mapper.user.UserMapper;
 import repository.UserRepository;
 import repository.UserRepositoryImpl;
-import service.user.UserLanguageResolver;
+import service.user.UserLanguageService;
 import utils.DbTransaction;
 import utils.TransactionCallback;
 import validator.core.ValidationResult;
@@ -27,7 +28,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 
 	private final UserRepository userRepository;
 	private final UserMapper userMapper;
-	private final UserLanguageResolver languageResolver;
+	private final UserLanguageService languageResolver;
 	private final UserProfileValidator userProfileValidator;
 
 	private static final String ERR_DB_UPDATE = "Cập nhật thông tin hồ sơ thất bại. Vui lòng thử lại sau.";
@@ -40,7 +41,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 	public UserProfileServiceImpl(UserRepository userRepository, UserMapper userMapper, LanguageDAO languageDAO, UserProfileValidator userProfileValidator) {
 		this.userRepository = userRepository;
 		this.userMapper = userMapper;
-		this.languageResolver = new UserLanguageResolver(languageDAO);
+		this.languageResolver = new UserLanguageService(languageDAO);
 		this.userProfileValidator = userProfileValidator;
 	}
 
@@ -52,8 +53,8 @@ public class UserProfileServiceImpl implements UserProfileService {
 
 	@Override
 	public UserProfileResponse updateUserProfile(final long userId, final UserProfileRequest request) throws BusinessException {
-		if (SystemConstants.Security.isSystemGhostUserId(userId)) {
-			throw new BusinessException(SystemConstants.ERROR_GLOBAL, "Không thể cập nhật tài khoản hệ thống.");
+		if (SecurityConfig.isSystemGhostUserId(userId)) {
+			throw new BusinessException(SystemKeys.ERROR_GLOBAL, "Không thể cập nhật tài khoản hệ thống.");
 		}
 		ValidationResult validationResult = userProfileValidator.validate(request);
 		if (validationResult.hasErrors()) {
@@ -68,7 +69,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 
 					Optional<User> existingOpt = userRepository.findById(conn, userId);
 					if (!existingOpt.isPresent()) {
-						errors.put(SystemConstants.ERROR_GLOBAL, "Hồ sơ tài khoản không tồn tại.");
+						errors.put(SystemKeys.ERROR_GLOBAL, "Hồ sơ tài khoản không tồn tại.");
 						throw new BusinessException(errors);
 					}
 

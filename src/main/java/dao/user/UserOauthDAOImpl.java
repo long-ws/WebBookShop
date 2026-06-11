@@ -1,15 +1,15 @@
 package dao.user;
 
-import static config.DatabaseConstants.COL_ID;
-import static config.DatabaseConstants.COL_OAUTH_AVATAR_URL;
-import static config.DatabaseConstants.COL_OAUTH_DISPLAY_NAME;
-import static config.DatabaseConstants.COL_OAUTH_EMAIL;
-import static config.DatabaseConstants.COL_OAUTH_PROVIDER_CODE;
-import static config.DatabaseConstants.COL_OAUTH_PROVIDER_ID;
-import static config.DatabaseConstants.COL_OAUTH_PROVIDER_USER_ID;
-import static config.DatabaseConstants.COL_USER_ID;
-import static config.DatabaseConstants.TABLE_OAUTH_PROVIDER;
-import static config.DatabaseConstants.TABLE_USER_OAUTH;
+import static config.db.DatabaseSchema.COL_ID;
+import static config.db.DatabaseSchema.COL_OAUTH_AVATAR_URL;
+import static config.db.DatabaseSchema.COL_OAUTH_DISPLAY_NAME;
+import static config.db.DatabaseSchema.COL_OAUTH_EMAIL;
+import static config.db.DatabaseSchema.COL_OAUTH_PROVIDER_CODE;
+import static config.db.DatabaseSchema.COL_OAUTH_PROVIDER_ID;
+import static config.db.DatabaseSchema.COL_OAUTH_PROVIDER_USER_ID;
+import static config.db.DatabaseSchema.COL_USER_ID;
+import static config.db.DatabaseSchema.TABLE_OAUTH_PROVIDER;
+import static config.db.DatabaseSchema.TABLE_USER_OAUTH;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

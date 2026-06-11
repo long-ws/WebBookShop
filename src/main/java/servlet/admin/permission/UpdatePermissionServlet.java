@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.util.Map;
 
 import constants.RequestParamConstants;
-import constants.SystemConstants;
 import constants.ViewAttributeConstants;
+import constants.system.SystemKeys;
 import dto.permission.PermissionDetailResponse;
 import dto.permission.PermissionUpdateRequest;
 import exception.BusinessException;
@@ -75,7 +75,7 @@ public class UpdatePermissionServlet extends HttpServlet {
 		} catch (BusinessException e) {
 			Map<String, String> errors = e.getErrors();
 			if (errors == null || errors.isEmpty()) {
-				errors = Map.of(SystemConstants.ERROR_GLOBAL, e.getMessage());
+				errors = Map.of(SystemKeys.ERROR_GLOBAL, e.getMessage());
 			}
 			request.setAttribute(ViewAttributeConstants.Permission.PERMISSION, dto);
 			request.setAttribute(ViewAttributeConstants.ERRORS, errors);

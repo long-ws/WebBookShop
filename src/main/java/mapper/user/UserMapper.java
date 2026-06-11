@@ -9,7 +9,9 @@ import beans.user.UserAuthInfo;
 import beans.user.UserLocalAuth;
 import beans.user.UserOAuthAuth;
 import beans.user.UserProfile;
-import constants.SystemConstants;
+import domain.user.UserDefaults;
+import domain.user.UserIds;
+import policy.security.AuthenticationPolicy;
 import dto.user.LocalUserRegistrationRequest;
 import dto.user.OAuthUserRegistrationRequest;
 import dto.user.UserCreateRequest;
@@ -26,8 +28,8 @@ public class UserMapper {
 
 	public UserAccount toUserAccount() {
 		UserAccount account = new UserAccount();
-		account.setStatusId(1);
-		account.setTokenVersion(0);
+		account.setStatusId(UserIds.Status.ACTIVE);
+		account.setTokenVersion(AuthenticationPolicy.TOKEN_VERSION_INITIAL);
 		return account;
 	}
 
@@ -58,7 +60,7 @@ public class UserMapper {
 		localAuth.setFailedAttempts(0);
 
 		EmailVerifyStatus verifyStatus = new EmailVerifyStatus();
-		verifyStatus.setId(1);
+		verifyStatus.setId(UserIds.EmailVerifyStatus.UNVERIFIED);
 		localAuth.setEmailVerifyStatus(verifyStatus);
 
 		return localAuth;
@@ -92,7 +94,7 @@ public class UserMapper {
 
 		Role role = dto.getRole() != null ? dto.getRole() : new Role();
 		if (role.getCode() == null) {
-			role.setCode(SystemConstants.DEFAULT_ROLE_CODE);
+			role.setCode(UserDefaults.DEFAULT_ROLE_CODE);
 		}
 		user.setRole(role);
 
@@ -103,7 +105,7 @@ public class UserMapper {
 		local.setEmail(dto.getEmail());
 
 		EmailVerifyStatus verifyStatus = new EmailVerifyStatus();
-		verifyStatus.setId(1);
+		verifyStatus.setId(UserIds.EmailVerifyStatus.UNVERIFIED);
 		local.setEmailVerifyStatus(verifyStatus);
 
 		authInfo.setLocal(local);
@@ -154,7 +156,7 @@ public class UserMapper {
 			local.setEmailVerifyStatus(existing.getAuthInfo().getLocal().getEmailVerifyStatus());
 		} else {
 			EmailVerifyStatus verifyStatus = new EmailVerifyStatus();
-			verifyStatus.setId(1);
+			verifyStatus.setId(UserIds.EmailVerifyStatus.VERIFIED);
 			local.setEmailVerifyStatus(verifyStatus);
 		}
 
@@ -166,7 +168,7 @@ public class UserMapper {
 			user.setStatus(existing.getStatus());
 		} else {
 			UserStatus status = new UserStatus();
-			status.setId(1);
+			status.setId(UserIds.Status.ACTIVE);
 			user.setStatus(status);
 		}
 

@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import constants.SystemConstants;
+import constants.system.SystemKeys;
 import constants.ViewAttributeConstants;
 import exception.BusinessException;
 import jakarta.servlet.ServletException;
@@ -47,10 +47,10 @@ public class AdminServlet extends HttpServlet {
 			if (businessErrors != null && !businessErrors.isEmpty()) {
 				errors.putAll(businessErrors);
 			} else {
-				errors.put(SystemConstants.ERROR_GLOBAL, e.getMessage());
+				errors.put(SystemKeys.ERROR_GLOBAL, e.getMessage());
 			}
 		} catch (Exception e) {
-			errors.put(SystemConstants.ERROR_GLOBAL, "Không thể tải dữ liệu dashboard do sự cố hệ thống.");
+			errors.put(SystemKeys.ERROR_GLOBAL, "Không thể tải dữ liệu dashboard do sự cố hệ thống.");
 		}
 
 		request.setAttribute(ViewAttributeConstants.Dashboard.TOTAL_USERS, totalUsers);

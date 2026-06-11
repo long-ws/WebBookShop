@@ -6,8 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import constants.SystemConstants;
 import constants.ViewAttributeConstants;
+import constants.system.SystemKeys;
 import context.UserPermissionContext;
 import dto.user.UserManageResponse;
 import exception.BusinessException;
@@ -38,10 +38,10 @@ public class ManageUserServlet extends HttpServlet {
 			if (businessErrors != null && !businessErrors.isEmpty()) {
 				errors.putAll(businessErrors);
 			} else {
-				errors.put(SystemConstants.ERROR_GLOBAL, e.getMessage());
+				errors.put(SystemKeys.ERROR_GLOBAL, e.getMessage());
 			}
 		} catch (Exception e) {
-			errors.put(SystemConstants.ERROR_GLOBAL, "Không thể tải danh sách người dùng do sự cố hệ thống.");
+			errors.put(SystemKeys.ERROR_GLOBAL, "Không thể tải danh sách người dùng do sự cố hệ thống.");
 		}
 
 		final List<UserManageResponse> users = rawUsers != null ? rawUsers : new ArrayList<>();

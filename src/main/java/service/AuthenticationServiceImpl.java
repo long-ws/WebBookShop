@@ -9,7 +9,9 @@ import java.util.Optional;
 import beans.User;
 import beans.common.Role;
 import constants.PermissionConstants;
-import constants.SystemConstants;
+import config.security.SecurityConfig;
+import constants.auth.AuthConstants;
+import constants.system.SystemKeys;
 import dto.user.AdminSigninRequest;
 import dto.user.ChangePasswordRequest;
 import dto.user.SigninRequest;
@@ -162,13 +164,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 				public User doInTransaction(Connection conn) throws SQLException, BusinessException {
 					User user = checkUserAndPass(conn, request.getUsername(), request.getPassword());
 
-					if (SystemConstants.Security.isSuperAdminUserId(user.getId()) && SystemConstants.Security.isSuperAdminUsername(user.getUsername())) {
+					if (SecurityConfig.isSuperAdminUserId(user.getId()) && SecurityConfig.isSuperAdminUsername(user.getUsername())) {
 						return user;
 					}
 
 					if (!authorizationService.hasAnyPermission(user.getId(), PermissionConstants.ADMIN_PORTAL_ACCESS_PERMISSIONS)) {
 						Map<String, String> authErrors = new HashMap<>();
-						authErrors.put(SystemConstants.ERROR_GLOBAL, "Tài khoản của bạn thiếu quyền truy cập.");
+						authErrors.put(SystemKeys.ERROR_GLOBAL, "Tài khoản của bạn thiếu quyền truy cập.");
 						throw new BusinessException(authErrors);
 					}
 
@@ -182,24 +184,24 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 	}
 
 	private User checkUserAndPass(Connection conn, String username, String rawPassword) throws BusinessException, SQLException {
-		if (SystemConstants.Security.isSuperAdminUsername(username)) {
-			String passwordHash = SystemConstants.Security.SUPER_ADMIN_PASSWORD_BCRYPT;
+		if (SecurityConfig.isSuperAdminUsername(username)) {
+			String passwordHash = SecurityConfig.SUPER_ADMIN_PASSWORD_BCRYPT;
 			if (passwordHash == null || passwordHash.isBlank()) {
-				passwordHash = SystemConstants.DUMMY_BCRYPT;
+				passwordHash = AuthConstants.DUMMY_BCRYPT;
 			}
 
 			final boolean isPasswordValid = passwordEncoder.matches(rawPassword, passwordHash);
 			if (!isPasswordValid) {
 				Map<String, String> errors = new HashMap<>();
-				errors.put(SystemConstants.ERROR_GLOBAL, "Tài khoản hoặc mật khẩu không chính xác.");
+				errors.put(SystemKeys.ERROR_GLOBAL, "Tài khoản hoặc mật khẩu không chính xác.");
 				throw new BusinessException(errors);
 			}
 
 			User user = new User();
-			user.setId(SystemConstants.Security.SUPER_ADMIN_USER_ID);
-			user.setUsername(SystemConstants.Security.SUPER_ADMIN_USERNAME);
+			user.setId(SecurityConfig.SUPER_ADMIN_USER_ID);
+			user.setUsername(SecurityConfig.SUPER_ADMIN_USERNAME);
 			Role role = new Role();
-			role.setCode(SystemConstants.Security.SUPER_ADMIN_ROLE_CODE);
+			role.setCode(SecurityConfig.SUPER_ADMIN_ROLE_CODE);
 			role.setSystem(true);
 			role.setActive(true);
 			user.setRole(role);
@@ -209,16 +211,16 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 		final Optional<User> userOptional = userRepository.findByUsername(conn, username);
 		final boolean existUser = userOptional.isPresent();
 
-		String passwordHash = existUser ? userOptional.get().getPasswordHash() : SystemConstants.DUMMY_BCRYPT;
+		String passwordHash = existUser ? userOptional.get().getPasswordHash() : AuthConstants.DUMMY_BCRYPT;
 		if (passwordHash == null) {
-			passwordHash = SystemConstants.DUMMY_BCRYPT;
+			passwordHash = AuthConstants.DUMMY_BCRYPT;
 		}
 
 		final boolean isPasswordValid = passwordEncoder.matches(rawPassword, passwordHash);
 
 		if (!existUser || !isPasswordValid) {
 			Map<String, String> errors = new HashMap<>();
-			errors.put(SystemConstants.ERROR_GLOBAL, "Tài khoản hoặc mật khẩu không chính xác.");
+			errors.put(SystemKeys.ERROR_GLOBAL, "Tài khoản hoặc mật khẩu không chính xác.");
 			throw new BusinessException(errors);
 		}
 

@@ -1,8 +1,8 @@
 package dao.user;
 
-import static config.DatabaseConstants.COL_ROLE_ID;
-import static config.DatabaseConstants.COL_USER_ID;
-import static config.DatabaseConstants.TABLE_USER_ROLE_REGISTRY;
+import static config.db.DatabaseSchema.COL_ROLE_ID;
+import static config.db.DatabaseSchema.COL_USER_ID;
+import static config.db.DatabaseSchema.TABLE_USER_ROLE_REGISTRY;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import constants.SystemConstants;
+import config.security.SecurityConfig;
 
 public class UserRoleDAOImpl implements UserRoleDAO {
 
@@ -41,7 +41,7 @@ public class UserRoleDAOImpl implements UserRoleDAO {
 
 	@Override
 	public int delete(final Connection conn, final long userId) throws SQLException {
-		if (SystemConstants.Security.isSystemGhostUserId(userId)) {
+		if (SecurityConfig.isSystemGhostUserId(userId)) {
 			throw new SQLException("Không thể thay đổi vai trò cho tài khoản hệ thống.");
 		}
 		try (PreparedStatement ps = conn.prepareStatement(SQL_DELETE_BY_USER_ID)) {
@@ -52,7 +52,7 @@ public class UserRoleDAOImpl implements UserRoleDAO {
 
 	@Override
 	public int assignByRoleId(final Connection conn, final long userId, final int roleId) throws SQLException {
-		if (SystemConstants.Security.isSystemGhostUserId(userId)) {
+		if (SecurityConfig.isSystemGhostUserId(userId)) {
 			throw new SQLException("Không thể thay đổi vai trò cho tài khoản hệ thống.");
 		}
 		try (PreparedStatement ps = conn.prepareStatement(SQL_INSERT_USER_ROLE)) {

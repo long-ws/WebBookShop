@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.util.Map;
 
 import constants.RequestParamConstants;
-import constants.SystemConstants;
 import constants.ViewAttributeConstants;
+import constants.system.SystemKeys;
 import dto.role.RoleEditFormResponse;
 import dto.role.RoleUpdateRequest;
 import exception.BusinessException;
@@ -67,7 +67,7 @@ public class UpdateRoleServlet extends HttpServlet {
 		} catch (BusinessException e) {
 			Map<String, String> errors = e.getErrors();
 			if (errors == null || errors.isEmpty()) {
-				errors = Map.of(SystemConstants.ERROR_GLOBAL, e.getMessage());
+				errors = Map.of(SystemKeys.ERROR_GLOBAL, e.getMessage());
 			}
 			if (dto.getId() != null) {
 				try {

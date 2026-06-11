@@ -9,9 +9,13 @@ public class OAuthFactory {
             throw new IllegalArgumentException("Không thể lấy thông tin provider");
         }
         
-        String providerUpper = provider.toUpperCase();
-        switch (providerUpper) {
-            case "GOOGLE":
+        String normalized = provider.trim().toLowerCase();
+        if (normalized.isEmpty()) {
+            throw new IllegalArgumentException("Không thể lấy thông tin provider");
+        }
+
+        switch (normalized) {
+            case "google":
                 return googleOAuthProvider;
             default:
                 throw new IllegalArgumentException("Không hỗ trợ đăng nhập bằng: " + provider);

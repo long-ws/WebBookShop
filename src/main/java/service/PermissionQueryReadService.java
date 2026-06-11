@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import beans.common.Permission;
-import constants.SystemConstants;
+import constants.system.SystemKeys;
 import dto.permission.ManagePermissionResponse;
 import dto.permission.PermissionCreateRequest;
 import dto.permission.PermissionDetailResponse;
@@ -48,7 +48,7 @@ public class PermissionQueryReadService {
 					Permission p = getById(conn, id);
 					if (p == null) {
 						Map<String, String> errors = new HashMap<String, String>();
-						errors.put(SystemConstants.ERROR_GLOBAL, "Quyền có ID = " + id + " không tồn tại.");
+						errors.put(SystemKeys.ERROR_GLOBAL, "Quyền có ID = " + id + " không tồn tại.");
 						throw new BusinessException(errors);
 					}
 					return p;

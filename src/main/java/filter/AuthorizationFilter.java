@@ -11,8 +11,8 @@ import java.util.Set;
 import beans.User;
 import beans.common.Permission;
 import config.PermissionRegistry;
+import config.security.SecurityConfig;
 import constants.SessionConstants;
-import constants.SystemConstants;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -75,7 +75,7 @@ public class AuthorizationFilter implements Filter {
 	}
 
 	private boolean isSuperAdmin(HttpSession session, User user) {
-		boolean isSuperAdmin = SystemConstants.Security.isSuperAdminUsername(user.getUsername());
+		boolean isSuperAdmin = SecurityConfig.isSuperAdminUsername(user.getUsername());
 		session.setAttribute(SessionConstants.IS_SUPER_ADMIN, isSuperAdmin);
 		return isSuperAdmin;
 	}

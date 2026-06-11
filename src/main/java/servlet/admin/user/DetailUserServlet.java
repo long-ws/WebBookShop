@@ -5,8 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import constants.RequestParamConstants;
-import constants.SystemConstants;
 import constants.ViewAttributeConstants;
+import constants.system.SystemKeys;
 import dto.user.UserDetailResponse;
 import exception.BusinessException;
 import jakarta.servlet.ServletException;
@@ -31,12 +31,12 @@ public class DetailUserServlet extends HttpServlet {
 		long id = 0;
 
 		if (idStr == null || idStr.trim().isEmpty()) {
-			errors.put(SystemConstants.ERROR_GLOBAL, "Yêu cầu ID người dùng để xem chi tiết.");
+			errors.put(SystemKeys.ERROR_GLOBAL, "Yêu cầu ID người dùng để xem chi tiết.");
 		} else {
 			try {
 				id = Long.parseLong(idStr.trim());
 			} catch (NumberFormatException e) {
-				errors.put(SystemConstants.ERROR_GLOBAL, "Định dạng ID người dùng không hợp lệ.");
+				errors.put(SystemKeys.ERROR_GLOBAL, "Định dạng ID người dùng không hợp lệ.");
 			}
 		}
 
@@ -51,17 +51,17 @@ public class DetailUserServlet extends HttpServlet {
 		try {
 			user = userManagementService.getUserById(id);
 			if (user == null) {
-				errors.put(SystemConstants.ERROR_GLOBAL, "Người dùng không tồn tại trên hệ thống.");
+				errors.put(SystemKeys.ERROR_GLOBAL, "Người dùng không tồn tại trên hệ thống.");
 			}
 		} catch (BusinessException e) {
 			final Map<String, String> businessErrors = e.getErrors();
 			if (businessErrors != null && !businessErrors.isEmpty()) {
 				errors.putAll(businessErrors);
 			} else {
-				errors.put(SystemConstants.ERROR_GLOBAL, e.getMessage());
+				errors.put(SystemKeys.ERROR_GLOBAL, e.getMessage());
 			}
 		} catch (Exception e) {
-			errors.put(SystemConstants.ERROR_GLOBAL, "Không thể tải thông tin người dùng do sự cố hệ thống.");
+			errors.put(SystemKeys.ERROR_GLOBAL, "Không thể tải thông tin người dùng do sự cố hệ thống.");
 		}
 
 		if (!errors.isEmpty()) {

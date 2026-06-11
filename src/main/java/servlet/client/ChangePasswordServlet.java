@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import beans.User;
 import constants.SessionConstants;
-import constants.SystemConstants;
+import constants.system.SystemKeys;
 import dto.user.ChangePasswordRequest;
 import exception.BusinessException;
 import jakarta.servlet.ServletException;
@@ -54,7 +54,7 @@ public class ChangePasswordServlet extends HomeServlet {
         } catch (BusinessException e) {
             String message = e.getMessage();
             if (e.getErrors() != null && !e.getErrors().isEmpty()) {
-                String global = e.getErrors().get(SystemConstants.ERROR_GLOBAL);
+                String global = e.getErrors().get(SystemKeys.ERROR_GLOBAL);
                 if (global != null && !global.trim().isEmpty()) {
                     message = global;
                 } else {

@@ -10,8 +10,8 @@ import beans.common.Gender;
 import beans.common.Language;
 import beans.common.Role;
 import constants.RequestParamConstants;
-import constants.SystemConstants;
 import constants.ViewAttributeConstants;
+import constants.system.SystemKeys;
 import dto.user.UserDetailResponse;
 import dto.user.UserUpdateRequest;
 import exception.BusinessException;
@@ -49,7 +49,7 @@ public class UpdateUserServlet extends HttpServlet {
 			}
 		} catch (NumberFormatException e) {
 			final Map<String, String> errors = new HashMap<>();
-			errors.put(SystemConstants.ERROR_GLOBAL, "ID người dùng không hợp lệ.");
+			errors.put(SystemKeys.ERROR_GLOBAL, "ID người dùng không hợp lệ.");
 			request.setAttribute(ViewAttributeConstants.ERRORS, errors);
 			request.getRequestDispatcher("/admin/user").forward(request, response);
 			return;
@@ -61,17 +61,17 @@ public class UpdateUserServlet extends HttpServlet {
 		try {
 			user = userManagementService.getUserById(id);
 			if (user == null) {
-				errors.put(SystemConstants.ERROR_GLOBAL, "Người dùng không tồn tại trên hệ thống.");
+				errors.put(SystemKeys.ERROR_GLOBAL, "Người dùng không tồn tại trên hệ thống.");
 			}
 		} catch (BusinessException e) {
 			final Map<String, String> businessErrors = e.getErrors();
 			if (businessErrors != null && !businessErrors.isEmpty()) {
 				errors.putAll(businessErrors);
 			} else {
-				errors.put(SystemConstants.ERROR_GLOBAL, e.getMessage());
+				errors.put(SystemKeys.ERROR_GLOBAL, e.getMessage());
 			}
 		} catch (Exception e) {
-			errors.put(SystemConstants.ERROR_GLOBAL, "Không thể tải thông tin người dùng do sự cố hệ thống.");
+			errors.put(SystemKeys.ERROR_GLOBAL, "Không thể tải thông tin người dùng do sự cố hệ thống.");
 		}
 
 		if (!errors.isEmpty()) {
@@ -169,10 +169,10 @@ public class UpdateUserServlet extends HttpServlet {
 				if (businessErrors != null && !businessErrors.isEmpty()) {
 					errors.putAll(businessErrors);
 				} else {
-					errors.put(SystemConstants.ERROR_GLOBAL, e.getMessage());
+					errors.put(SystemKeys.ERROR_GLOBAL, e.getMessage());
 				}
 			} catch (Exception e) {
-				errors.put(SystemConstants.ERROR_GLOBAL, "Sự cố hệ thống không thể cập nhật dữ liệu.");
+				errors.put(SystemKeys.ERROR_GLOBAL, "Sự cố hệ thống không thể cập nhật dữ liệu.");
 			}
 		}
 

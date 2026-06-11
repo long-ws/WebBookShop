@@ -3,6 +3,8 @@ package repository;
 import beans.User;
 import dao.user.UserLocalDAO;
 import dao.user.UserLocalDAOImpl;
+import dao.user.UserProfileDAO;
+import dao.user.UserProfileDAOImpl;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -12,14 +14,16 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
 
 	private final UserCrudRepository userCrudRepository;
 	private final UserLocalDAO localDAO;
+	private final UserProfileDAO profileDAO;
 
 	public UserQueryRepositoryImpl() {
-		this(new UserCrudRepositoryImpl(), new UserLocalDAOImpl());
+		this(new UserCrudRepositoryImpl(), new UserLocalDAOImpl(), new UserProfileDAOImpl());
 	}
 
-	public UserQueryRepositoryImpl(UserCrudRepository userCrudRepository, UserLocalDAO localDAO) {
+	public UserQueryRepositoryImpl(UserCrudRepository userCrudRepository, UserLocalDAO localDAO, UserProfileDAO profileDAO) {
 		this.userCrudRepository = userCrudRepository;
 		this.localDAO = localDAO;
+		this.profileDAO = profileDAO;
 	}
 
 	@Override
@@ -33,15 +37,12 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
 
 	@Override
 	public Optional<User> findByEmail(Connection conn, String email) throws SQLException {
-		if (email == null)
+		if (email == null || email.isBlank()) {
 			return Optional.empty();
+		}
 
-		long userId = localDAO.findUserIdByEmail(conn, email);
-
-		if (userId <= 0)
-			return Optional.empty();
-
-		return userCrudRepository.findById(conn, userId);
+		long userId = profileDAO.findUserIdByEmail(conn, email);
+		return (userId <= 0) ? Optional.empty() : userCrudRepository.findById(conn, userId);
 	}
 
 	@Override
@@ -56,11 +57,11 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
 
 	@Override
 	public boolean existUserByEmail(Connection conn, String email) throws SQLException {
-		return localDAO.existsByEmail(conn, email, null);
+		return profileDAO.existsByEmail(conn, email, null);
 	}
 
 	@Override
 	public boolean existUserByEmail(Connection conn, String email, long excludeUserId) throws SQLException {
-		return localDAO.existsByEmail(conn, email, excludeUserId);
+		return profileDAO.existsByEmail(conn, email, excludeUserId);
 	}
 }

@@ -10,8 +10,9 @@ import java.util.Optional;
 
 import beans.User;
 import beans.common.Role;
+import config.security.SecurityConfig;
 import constants.RequestParamConstants;
-import constants.SystemConstants;
+import constants.system.SystemKeys;
 import dao.common.LanguageDAO;
 import dao.common.LanguageDAOImpl;
 import dao.common.RoleDAO;
@@ -24,7 +25,7 @@ import exception.BusinessException;
 import mapper.user.UserMapper;
 import repository.UserRepository;
 import repository.UserRepositoryImpl;
-import service.user.UserLanguageResolver;
+import service.user.UserLanguageService;
 import utils.BCryptPasswordEncoder;
 import utils.DBConnection;
 import utils.DbTransaction;
@@ -40,7 +41,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 	private final UserCreateValidator userCreateValidator;
 	private final UserUpdateValidator userUpdateValidator;
 	private final UserMapper userMapper;
-	private final UserLanguageResolver languageResolver;
+	private final UserLanguageService languageResolver;
 	private final PasswordEncoder passwordEncoder;
 
 	public UserManagementServiceImpl() {
@@ -76,7 +77,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 		this.userCreateValidator = userCreateValidator;
 		this.userUpdateValidator = userUpdateValidator;
 		this.userMapper = userMapper;
-		this.languageResolver = new UserLanguageResolver(languageDAO);
+		this.languageResolver = new UserLanguageService(languageDAO);
 		this.passwordEncoder = passwordEncoder;
 	}
 
@@ -89,7 +90,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 		}
 
 		try (Connection readConn = DBConnection.getConnection()) {
-			if (SystemConstants.Security.isSuperAdminUsername(dto.getUsername())) {
+			if (SecurityConfig.isSuperAdminUsername(dto.getUsername())) {
 				errors.put(RequestParamConstants.User.USERNAME, "Tên đăng nhập này được bảo vệ bởi hệ thống.");
 			}
 
@@ -147,8 +148,8 @@ public class UserManagementServiceImpl implements UserManagementService {
 			errors.put(RequestParamConstants.ID, "Yêu cầu user id");
 		}
 
-		if (dto.getId() != null && SystemConstants.Security.isSystemGhostUserId(dto.getId())) {
-			errors.put(SystemConstants.ERROR_GLOBAL, "Không thể cập nhật tài khoản hệ thống.");
+		if (dto.getId() != null && SecurityConfig.isSystemGhostUserId(dto.getId())) {
+			errors.put(SystemKeys.ERROR_GLOBAL, "Không thể cập nhật tài khoản hệ thống.");
 		}
 
 		if (!errors.isEmpty()) {
@@ -167,11 +168,11 @@ public class UserManagementServiceImpl implements UserManagementService {
 
 			final Optional<User> existingOptional = userRepository.findById(readConn, dto.getId());
 			if (!existingOptional.isPresent()) {
-				errors.put(SystemConstants.ERROR_GLOBAL, "Người dùng không tồn tại trên hệ thống");
+				errors.put(SystemKeys.ERROR_GLOBAL, "Người dùng không tồn tại trên hệ thống");
 			} else {
 				final User user = existingOptional.get();
 				if (user.getRole() != null && user.getRole().isSystem()) {
-					errors.put(SystemConstants.ERROR_GLOBAL, "Không thể cập nhật người dùng có vai trò hệ thống");
+					errors.put(SystemKeys.ERROR_GLOBAL, "Không thể cập nhật người dùng có vai trò hệ thống");
 				}
 			}
 
@@ -181,7 +182,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 
 			existing = existingOptional.get();
 
-			if (SystemConstants.Security.isSuperAdminUsername(dto.getUsername()) && !SystemConstants.Security.isSuperAdminUsername(existing.getUsername())) {
+			if (SecurityConfig.isSuperAdminUsername(dto.getUsername()) && !SecurityConfig.isSuperAdminUsername(existing.getUsername())) {
 				errors.put(RequestParamConstants.User.USERNAME, "Tên đăng nhập này được bảo vệ bởi hệ thống.");
 				throw new BusinessException(errors);
 			}
@@ -233,7 +234,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 
 		try (Connection readConn = DBConnection.getConnection()) {
 			for (final Long id : ids) {
-				if (id != null && SystemConstants.Security.isSystemGhostUserId(id)) {
+				if (id != null && SecurityConfig.isSystemGhostUserId(id)) {
 					throw new BusinessException("Không thể xóa tài khoản hệ thống.");
 				}
 				final Optional<User> userOptional = userRepository.findById(readConn, id);
@@ -262,7 +263,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 
 	@Override
 	public UserDetailResponse getUserById(long id) {
-		if (SystemConstants.Security.isSystemGhostUserId(id)) {
+		if (SecurityConfig.isSystemGhostUserId(id)) {
 			return null;
 		}
 		try (Connection conn = DBConnection.getConnection()) {
@@ -279,7 +280,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 
 	@Override
 	public User getById(long id) {
-		if (SystemConstants.Security.isSystemGhostUserId(id)) {
+		if (SecurityConfig.isSystemGhostUserId(id)) {
 			return null;
 		}
 		try (Connection conn = DBConnection.getConnection()) {
