@@ -60,10 +60,6 @@
                     <input type="hidden" id="estimatedDays" name="estimatedDays" value="2" />
                     <input type="hidden" id="toDistrictId" name="toDistrictId" value="" />
                     <input type="hidden" id="toWardCode" name="toWardCode" value="" />
-                    <input type="hidden" id="addressDetailHidden" name="addressDetailHidden" value="" />
-                    <input type="hidden" id="provinceName" name="provinceName" value="" />
-                    <input type="hidden" id="districtName" name="districtName" value="" />
-                    <input type="hidden" id="wardName" name="wardName" value="" />
                     <input type="hidden" id="deliveryMethod" name="deliveryMethod" value="2" />
 
                     <input type="hidden" name="selectedVoucherId" id="inputVoucherId" value="" />
@@ -90,7 +86,7 @@
 
                                 <c:set var="tempTotal" value="0" />
                                 <c:forEach var="item" items="${cartItems}">
-                                    <c:set var="itemTotal" value="${item.product.price * item.quantity}" />
+                                    <c:set var="itemTotal" value="${item.product.finalPrice * item.quantity}" />
                                     <c:set var="tempTotal" value="${tempTotal + itemTotal}" />
 
                                     <div class="cart-item" data-product-id="${item.productId}" data-weight="${item.product.weight > 0 ? item.product.weight : 300}" data-length="${item.product.length > 0 ? item.product.length : 20}" data-width="${item.product.width > 0 ? item.product.width : 15}" data-height="${item.product.height > 0 ? item.product.height : 10}">
@@ -114,7 +110,11 @@
                                         </div>
 
                                         <div class="item-price">
-                                            <fmt:formatNumber value="${item.product.price}" pattern="#,##0" />₫
+                                            <fmt:formatNumber value="${item.product.finalPrice}" pattern="#,##0" />₫
+
+                                            <c:if test="${item.product.discount > 0}">
+                                                <span class="ms-1 badge bg-info">-${item.product.discount}%</span>
+                                            </c:if>
                                         </div>
 
                                         <div class="item-quantity">

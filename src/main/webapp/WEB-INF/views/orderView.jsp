@@ -10,28 +10,10 @@
 <title>Đơn hàng của tôi</title>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/styles.css">
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/orderStatusCheck.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 
 <body>
 	<jsp:include page="_header.jsp"/>
-
-	<section class="section-pagetop bg-light">
-		<div class="container">
-			<div class="d-flex justify-content-between align-items-center">
-				<div>
-					<h2 class="title-page mb-1">
-						<i class="bi bi-bag-check me-2"></i>Đơn hàng của tôi
-					</h2>
-					<p class="text-muted mb-0">Theo dõi và quản lý đơn hàng của bạn</p>
-				</div>
-				<div class="realtime-indicator">
-					<span class="pulse-dot"></span>
-					<span>Cập nhật tự động</span>
-				</div>
-			</div>
-		</div>
-	</section>
 
 	<section class="section-content padding-y">
 		<div class="container">

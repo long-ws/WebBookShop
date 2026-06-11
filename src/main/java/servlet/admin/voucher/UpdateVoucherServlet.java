@@ -60,9 +60,8 @@ public class UpdateVoucherServlet extends HttpServlet {
             int usageLimit = Integer.parseInt(request.getParameter("usageLimit"));
             int perUserLimit = Integer.parseInt(request.getParameter("perUserLimit"));
             boolean isActive = request.getParameter("isActive") != null;
-            Timestamp startDate = Timestamp.valueOf(LocalDateTime.parse(request.getParameter("startDate"), FORMATTER));
-            Timestamp endDate = Timestamp.valueOf(LocalDateTime.parse(request.getParameter("endDate"), FORMATTER));
-
+            Timestamp startDate = Timestamp.valueOf(LocalDateTime.parse(request.getParameter("startDate"), DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+            Timestamp endDate = Timestamp.valueOf(LocalDateTime.parse(request.getParameter("endDate"), DateTimeFormatter.ISO_LOCAL_DATE_TIME));
             if (code != null) code = code.toUpperCase().trim();
 
             if (calculationMethod == 1) {

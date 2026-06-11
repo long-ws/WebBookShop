@@ -8,12 +8,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PaymentDao {
-	public long createPayment(Payment p) throws SQLException {
+	public long createPayment(Connection con, Payment p) throws SQLException {
 		String sql = "INSERT INTO payments (order_id, user_id, vnp_TxnRef, amount, status, created_at, expired_at) "
 				+ "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
-		try (Connection conn = DBConnection.getConnection();
-				PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+		try (PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
 			ps.setLong(1, p.getOrderId());
 			ps.setLong(2, p.getUserId());

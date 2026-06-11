@@ -385,19 +385,43 @@
                                         <tr>
                                             <td class="text-muted ps-0">Tạm tính:</td>
                                             <td class="text-end fw-medium pe-0">
-                                                <fmt:formatNumber pattern="#,##0" value="${requestScope.tempPrice}"/>đ
+                                                <fmt:formatNumber pattern="#,##0" value="${requestScope.order.totalProductPrice}"/>đ
                                             </td>
                                         </tr>
+
                                         <tr>
                                             <td class="text-muted ps-0">Phí vận chuyển:</td>
                                             <td class="text-end fw-medium pe-0">
                                                 <fmt:formatNumber pattern="#,##0" value="${requestScope.order.deliveryPrice}"/>đ
                                             </td>
                                         </tr>
+
+                                        <c:if test="${requestScope.order.productDiscount > 0}">
+                                            <tr class="text-danger">
+                                                <td class="ps-0 text-sm">
+                                                    <i class="bi bi-tags-fill me-1"></i> Giảm giá đơn hàng:
+                                                </td>
+                                                <td class="text-end pe-0 fw-medium text-sm">
+                                                    -<fmt:formatNumber pattern="#,##0" value="${requestScope.order.productDiscount}"/>đ
+                                                </td>
+                                            </tr>
+                                        </c:if>
+
+                                        <c:if test="${requestScope.order.shipDiscount > 0}">
+                                            <tr class="text-success">
+                                                <td class="ps-0 text-sm">
+                                                    <i class="bi bi-truck me-1"></i> Giảm phí vận chuyển:
+                                                </td>
+                                                <td class="text-end pe-0 fw-medium text-sm">
+                                                    -<fmt:formatNumber pattern="#,##0" value="${requestScope.order.shipDiscount}"/>đ
+                                                </td>
+                                            </tr>
+                                        </c:if>
+
                                         <tr class="border-top pt-2">
                                             <td class="ps-0 fw-bold fs-5">Tổng cộng:</td>
                                             <td class="text-end pe-0 fw-bold fs-4 text-danger">
-                                                <fmt:formatNumber pattern="#,##0" value="${requestScope.tempPrice + requestScope.order.deliveryPrice}"/>đ
+                                                <fmt:formatNumber pattern="#,##0" value="${requestScope.order.totalPrice}"/>đ
                                             </td>
                                         </tr>
                                     </table>

@@ -469,18 +469,17 @@ public class VoucherDao {
         }
         return list;
     }
-    public boolean saveVoucherUsage(long orderId, long voucherId, long userId, double discountAmount) {
-        String sql = "INSERT INTO voucher_usages (order_id, voucher_id, user_id, discount_amount, applied_at) VALUES (?, ?, ?, ?, ?)";
+    public boolean saveVoucherUsage(Connection con, long orderId, long voucherId, long userId, double discountAmount, int voucherType) {
+        String sql = "INSERT INTO voucher_usages (order_id, voucher_id, user_id, discount_amount, applied_at, voucher_type) VALUES (?, ?, ?, ?, ?, ?)";
 
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setLong(1, orderId);
             ps.setLong(2, voucherId);
             ps.setLong(3, userId);
             ps.setDouble(4, discountAmount);
             ps.setTimestamp(5, java.sql.Timestamp.valueOf(java.time.LocalDateTime.now()));
-
+            ps.setInt(6, voucherType);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -488,11 +487,10 @@ public class VoucherDao {
         return false;
     }
 
-    public boolean incrementUsedCount(long voucherId) {
+    public boolean incrementUsedCount(Connection con, long voucherId) {
         String sql = "UPDATE vouchers SET used_count = used_count + 1 WHERE id = ?";
 
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setLong(1, voucherId);
             return ps.executeUpdate() > 0;

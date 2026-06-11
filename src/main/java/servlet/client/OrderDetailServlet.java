@@ -34,7 +34,7 @@ public class OrderDetailServlet extends HttpServlet {
     private final PaymentService  paymentService = new PaymentService();
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        long id = 0;
+        long id = -1;
         try {
             id = Long.parseLong(request.getParameter("id"));
         } catch (NumberFormatException e) {
@@ -124,7 +124,7 @@ public class OrderDetailServlet extends HttpServlet {
 
             request.getRequestDispatcher("/WEB-INF/views/orderDetailView.jsp").forward(request, response);
         } else {
-            response.sendRedirect(request.getContextPath() + "/");
+            response.sendRedirect(request.getContextPath() + "/error");
         }
     }
 

@@ -24,8 +24,8 @@ public class OrderDAO implements DAO<Order> {
     }
 
     public long insert(Connection conn, Order order) throws SQLException {
-        String sql = "INSERT INTO orders (userId, status, deliveryMethod, deliveryPrice, totalPrice, createdAt, updatedAt, shipping_address_id) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO orders (userId, status, deliveryMethod, deliveryPrice, totalProductPrice, productDiscount, shipDiscount, totalPrice, createdAt, updatedAt, shipping_address_id) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -33,10 +33,13 @@ public class OrderDAO implements DAO<Order> {
             ps.setInt(2, order.getStatus());
             ps.setInt(3, order.getDeliveryMethod());
             ps.setDouble(4, order.getDeliveryPrice());
-            ps.setDouble(5, order.getTotalPrice());
-            ps.setTimestamp(6, Timestamp.valueOf(order.getCreatedAt()));
-            ps.setTimestamp(7, order.getUpdatedAt() != null ? Timestamp.valueOf(order.getUpdatedAt()) : null);
-            ps.setLong(8, order.getShippingAddressId());
+            ps.setDouble(5, order.getTotalProductPrice());
+            ps.setDouble(6, order.getProductDiscount());
+            ps.setDouble(7, order.getShipDiscount());
+            ps.setDouble(8, order.getTotalPrice());
+            ps.setTimestamp(9, Timestamp.valueOf(order.getCreatedAt()));
+            ps.setTimestamp(10, order.getUpdatedAt() != null ? Timestamp.valueOf(order.getUpdatedAt()) : null);
+            ps.setLong(11, order.getShippingAddressId());
 
             int rows = ps.executeUpdate();
             if (rows == 0)
@@ -280,8 +283,13 @@ public class OrderDAO implements DAO<Order> {
         order.setStatus(rs.getInt("status"));
         order.setDeliveryMethod(rs.getInt("deliveryMethod")); // <-- int
         order.setDeliveryPrice(rs.getDouble("deliveryPrice"));
+        order.setTotalProductPrice(rs.getDouble("totalProductPrice"));
+        order.setShipDiscount(rs.getDouble("shipDiscount"));
+        order.setProductDiscount(rs.getDouble("productDiscount"));
+        order.setTotalPrice(rs.getDouble("totalPrice"));
         order.setCreatedAt(rs.getTimestamp("createdAt").toLocalDateTime());
         Timestamp updatedAt = rs.getTimestamp("updatedAt");
+        order.setShippingAddressId(rs.getLong("shipping_address_id"));
         if (updatedAt != null)
             order.setUpdatedAt(updatedAt.toLocalDateTime());
         return order;

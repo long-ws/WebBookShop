@@ -9,8 +9,11 @@ public class Order {
 	private long userId;
 	private int status;
 	private int deliveryMethod;
-	private double deliveryPrice;
-	private LocalDateTime createdAt;
+    private double totalProductPrice;
+    private double deliveryPrice;
+    private double productDiscount;
+    private double shipDiscount;
+    private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
 	private User user;
 	private List<OrderItem> orderItems;
@@ -71,7 +74,31 @@ public class Order {
 		this.deliveryPrice = deliveryPrice;
 	}
 
-	public LocalDateTime getCreatedAt() {
+    public double getTotalProductPrice() {
+        return totalProductPrice;
+    }
+
+    public void setTotalProductPrice(double totalProductPrice) {
+        this.totalProductPrice = totalProductPrice;
+    }
+
+    public double getProductDiscount() {
+        return productDiscount;
+    }
+
+    public void setProductDiscount(double productDiscount) {
+        this.productDiscount = productDiscount;
+    }
+
+    public double getShipDiscount() {
+        return shipDiscount;
+    }
+
+    public void setShipDiscount(double shipDiscount) {
+        this.shipDiscount = shipDiscount;
+    }
+
+    public LocalDateTime getCreatedAt() {
 		return createdAt;
 	}
 

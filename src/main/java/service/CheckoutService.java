@@ -1,18 +1,22 @@
 package service;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.*;
 
 import beans.*;
+import beans.shipping.Address;
 import beans.shipping.ShippingCalculationResult;
 import beans.shipping.ShippingInfo;
 import beans.vnpay.Payment;
 import dao.*;
 import dto.CategoryDTO;
+import dto.CheckoutResult;
 import dto.ProductDTO;
 import servlet.vnpay.VNPConfig;
+import utils.DBConnection;
 import utils.ShippingStatus;
 
 public class CheckoutService {
@@ -26,7 +30,7 @@ public class CheckoutService {
     private final ShipmentTrackingDAO trackingDAO = new ShipmentTrackingDAO();
     private final ShippingCalculatorService shippingCalculator = new ShippingCalculatorService();
     private final VoucherDao voucherDao = new VoucherDao();
-
+    private final PaymentService paymentService = new PaymentService();
     /**
      * Lấy cart với items và products
      */
@@ -98,229 +102,218 @@ public class CheckoutService {
     /**
      * Checkout đầy đủ tham số (signature mới - có customerNote)
      */
-    public Payment checkoutFromCart(long userId, long cartId, int deliveryMethod, double deliveryPrice,
-            String receiverName, String receiverPhone, String province, String district,
-            String ward, String addressDetail, int estimatedDays, Long finalVoucherId, Long finalShipVoucherId, String customerNote, long shippingAddressId) throws SQLException {
+    public CheckoutResult checkoutFromCart(long userId, long cartId, Order order, String customerNote, Address address, int estimatedDays, Long finalVoucherId, Long finalShipVoucherId) throws SQLException {
+        CheckoutResult result = null;
 
-        Cart cart = cartDAO.getById(cartId);
-        if (cart == null) {
-            throw new RuntimeException("Giỏ hàng không tồn tại");
-        }
-        if (cart.getUserId() != userId) {
-            throw new RuntimeException("Giỏ hàng không thuộc tài khoản hiện tại");
-        }
+        Connection con = null;
+        try{
+            con = DBConnection.getConnection();
+            con.setAutoCommit(false);
 
-        List<CartItem> items = cartItemDAO.getByCartId(cartId);
-        if (items == null || items.isEmpty()) {
-            throw new RuntimeException("Giỏ hàng trống, không thể đặt hàng");
-        }
-
-        double cartTotal = 0;
-        double totalWeight = 0;
-        Map<Long, Double> categoryTotalMap = new HashMap<>();
-        Map<Long, Double> productTotalMap = new HashMap<>();
-        for (CartItem ci : items) {
-            Product p = productDAO.getById(ci.getProductId());
-            if (p == null) {
-                throw new RuntimeException("Sản phẩm không tồn tại (ID: " + ci.getProductId() + ")");
+            Cart cart = cartDAO.getById(cartId);
+            if (cart == null) {
+                throw new RuntimeException("Giỏ hàng không tồn tại");
             }
-            ci.setProduct(p);
-            double linePrice = p.getPrice();
-            if (p.getDiscount() > 0) {
-                linePrice = p.getPrice() * (100 - p.getDiscount()) / 100.0;
+            if (cart.getUserId() != userId) {
+                throw new RuntimeException("Giỏ hàng không thuộc tài khoản hiện tại");
             }
-            double itemTotal = linePrice * ci.getQuantity();
-            cartTotal += itemTotal;
-            long categoryId = productDAO.getCategoryIdByProductId(p.getId());
-            categoryTotalMap.put(categoryId, categoryTotalMap.getOrDefault(categoryId, 0.0) + itemTotal);
-            productTotalMap.put(p.getId(), productTotalMap.getOrDefault(p.getId(), 0.0) + itemTotal);
-            double weight = p.getWeight() > 0 ? p.getWeight() : 0.3;
-            totalWeight += weight * ci.getQuantity();
-        }
-        cart.setCartItems(items);
-        double discountOrderAmount = 0;
-        Voucher discountVoucher = null;
-        if (finalVoucherId != null && finalVoucherId > 0) {
-            discountVoucher = voucherDao.getVoucherWithRelations(finalVoucherId);
-            if (discountVoucher != null && discountVoucher.isActive() && cartTotal >= discountVoucher.getMinPurchase()) {
-                double baseAmountForDiscount = 0;
-                switch (discountVoucher.getApplyTo()) {
-                    case 0:
-                    case 3:
-                        baseAmountForDiscount = cartTotal;
-                        break;
-                    case 1:
-                        if (discountVoucher.getCategories() != null) {
-                            for (CategoryDTO cat : discountVoucher.getCategories()) {
-                                baseAmountForDiscount += categoryTotalMap.getOrDefault(cat.getId(), 0.0);
-                            }
-                        }
-                        break;
-                    case 2:
-                        if (discountVoucher.getProducts() != null) {
-                            for (ProductDTO prod : discountVoucher.getProducts()) {
-                                baseAmountForDiscount += productTotalMap.getOrDefault(prod.getId(), 0.0);
-                            }
-                        }
-                        break;
+
+            List<CartItem> items = cartItemDAO.getByCartId(cartId);
+            if (items == null || items.isEmpty()) {
+                throw new RuntimeException("Giỏ hàng trống, không thể đặt hàng");
+            }
+            double cartTotal = 0;
+            double totalWeight = 0;
+            Map<Long, Double> categoryTotalMap = new HashMap<>();
+            Map<Long, Double> productTotalMap = new HashMap<>();
+            for (CartItem ci : items) {
+                Product p = productDAO.getById(ci.getProductId());
+                if (p == null) {
+                    throw new RuntimeException("Sản phẩm không tồn tại (ID: " + ci.getProductId() + ")");
                 }
-                if (baseAmountForDiscount > 0) {
-                    if (discountVoucher.getCalculationMethod() == 1) {
-                        double calculated = (baseAmountForDiscount * discountVoucher.getValue()) / 100.0;
-                        discountOrderAmount = Math.min(calculated, discountVoucher.getMaxDiscount() > 0 ? discountVoucher.getMaxDiscount() : Double.MAX_VALUE);
-                    } else {
-                        discountOrderAmount = Math.min(discountVoucher.getValue(), baseAmountForDiscount);
+                ci.setProduct(p);
+                double linePrice = p.getPrice();
+                if (p.getDiscount() > 0) {
+                    linePrice = p.getPrice() * (100 - p.getDiscount()) / 100.0;
+                }
+                double itemTotal = linePrice * ci.getQuantity();
+                cartTotal += itemTotal;
+                long categoryId = productDAO.getCategoryIdByProductId(p.getId());
+                categoryTotalMap.put(categoryId, categoryTotalMap.getOrDefault(categoryId, 0.0) + itemTotal);
+                productTotalMap.put(p.getId(), productTotalMap.getOrDefault(p.getId(), 0.0) + itemTotal);
+                double weight = p.getWeight() > 0 ? p.getWeight() : 0.3;
+                totalWeight += weight * ci.getQuantity();
+            }
+            cart.setCartItems(items);
+            double discountOrderAmount = 0;
+            Voucher discountVoucher = null;
+            if (finalVoucherId != null && finalVoucherId > 0) {
+                discountVoucher = voucherDao.getVoucherWithRelations(finalVoucherId);
+                if (discountVoucher != null && discountVoucher.isActive() && cartTotal >= discountVoucher.getMinPurchase()) {
+                    double baseAmountForDiscount = 0;
+                    switch (discountVoucher.getApplyTo()) {
+                        case 0:
+                        case 3:
+                            baseAmountForDiscount = cartTotal;
+                            break;
+                        case 1:
+                            if (discountVoucher.getCategories() != null) {
+                                for (CategoryDTO cat : discountVoucher.getCategories()) {
+                                    baseAmountForDiscount += categoryTotalMap.getOrDefault(cat.getId(), 0.0);
+                                }
+                            }
+                            break;
+                        case 2:
+                            if (discountVoucher.getProducts() != null) {
+                                for (ProductDTO prod : discountVoucher.getProducts()) {
+                                    baseAmountForDiscount += productTotalMap.getOrDefault(prod.getId(), 0.0);
+                                }
+                            }
+                            break;
+                    }
+                    if (baseAmountForDiscount > 0) {
+                        if (discountVoucher.getCalculationMethod() == 1) {
+                            double calculated = (baseAmountForDiscount * discountVoucher.getValue()) / 100.0;
+                            discountOrderAmount = Math.min(calculated, discountVoucher.getMaxDiscount() > 0 ? discountVoucher.getMaxDiscount() : Double.MAX_VALUE);
+                        } else {
+                            discountOrderAmount = Math.min(discountVoucher.getValue(), baseAmountForDiscount);
+                        }
                     }
                 }
             }
-        }
 
-        double discountShipAmount = 0;
-        Voucher shipVoucher = null;
-        if (finalShipVoucherId != null && finalShipVoucherId > 0) {
-            shipVoucher = voucherDao.getVoucherWithRelations(finalShipVoucherId);
-            if (shipVoucher != null && shipVoucher.isActive() && cartTotal >= shipVoucher.getMinPurchase()) {
-                if (shipVoucher.getCalculationMethod() == 1) {
-                    discountShipAmount = (deliveryPrice * shipVoucher.getValue()) / 100.0;
-                } else {
-                    discountShipAmount = shipVoucher.getValue();
+            double discountShipAmount = 0;
+            Voucher shipVoucher = null;
+            double deliveryPrice = order.getDeliveryPrice();
+            if (finalShipVoucherId != null && finalShipVoucherId > 0) {
+                shipVoucher = voucherDao.getVoucherWithRelations(finalShipVoucherId);
+                if (shipVoucher != null && shipVoucher.isActive() && cartTotal >= shipVoucher.getMinPurchase()) {
+                    if (shipVoucher.getCalculationMethod() == 1) {
+                        discountShipAmount = (deliveryPrice * shipVoucher.getValue()) / 100.0;
+                    } else {
+                        discountShipAmount = shipVoucher.getValue();
+                    }
+                    discountShipAmount = Math.min(discountShipAmount, deliveryPrice);
                 }
-                discountShipAmount = Math.min(discountShipAmount, deliveryPrice);
             }
-        }
 
-        double finalDeliveryPrice = Math.max(0, deliveryPrice - discountShipAmount);
-        double finalTotalPrice = cartTotal + finalDeliveryPrice - discountOrderAmount;
-        if (finalTotalPrice < 0) finalTotalPrice = 0;
+            double finalDeliveryPrice = Math.max(0, deliveryPrice - discountShipAmount);
+            double finalTotalPrice = cartTotal + finalDeliveryPrice - discountOrderAmount;
+            if (finalTotalPrice < 0) finalTotalPrice = 0;
 
-        Order order = new Order();
-        order.setUserId(userId);
-        order.setStatus(1);
-        order.setDeliveryMethod(deliveryMethod);
-        order.setDeliveryPrice(deliveryPrice);
-        order.setTotalPrice(cartTotal);
-        order.setCreatedAt(LocalDateTime.now());
-        order.setShippingAddressId(shippingAddressId);
-
-        long orderId = orderDAO.insert(order);
-        if (orderId <= 0) {
-            throw new RuntimeException("Tạo đơn hàng thất bại");
-        }
-
-        for (CartItem ci : items) {
-            Product p = ci.getProduct();
-            if (p == null) {
-                p = productDAO.getById(ci.getProductId());
+            order.setTotalProductPrice(cartTotal);
+            order.setProductDiscount(discountOrderAmount);
+            order.setShipDiscount(discountShipAmount);
+            order.setTotalPrice(finalTotalPrice);
+            long orderId = orderDAO.insert(con, order);
+            if (orderId <= 0) {
+                throw new RuntimeException("Tạo đơn hàng thất bại");
             }
-            if (p == null) {
-                throw new RuntimeException("Sản phẩm không tồn tại (ID: " + ci.getProductId() + ")");
+
+            List<OrderItem> orderItems = new ArrayList<>();
+
+            for (CartItem ci : items) {
+                Product p = ci.getProduct();
+                if (p == null) {
+                    p = productDAO.getById(ci.getProductId());
+                }
+                if (p == null) {
+                    throw new RuntimeException("Sản phẩm không tồn tại (ID: " + ci.getProductId() + ")");
+                }
+                OrderItem orderItem = new OrderItem(0L, orderId, p.getId(),
+                        p.getPrice(), p.getDiscount(),
+                        ci.getQuantity(), order.getCreatedAt(), null);
+                orderItem.setProduct(p);
+                orderItems.add(orderItem);
+
+                orderItemDAO.insert(con, orderItem);
+                try{
+                    cartItemDAO.delete(con, ci.getId());
+                }catch(Exception e){
+                    e.printStackTrace();
+                }
             }
-            orderItemDAO.insert(new OrderItem(0L, orderId, p.getId(),
-                    p.getPrice(), p.getDiscount(),
-                    ci.getQuantity(), LocalDateTime.now(), null));
-            try{
-                cartItemDAO.delete(ci.getId());
-            }catch(Exception e){
+            if (discountVoucher != null && discountOrderAmount > 0) {
+                voucherDao.saveVoucherUsage(con, orderId, discountVoucher.getId(), userId, discountOrderAmount, 0);
+                voucherDao.incrementUsedCount(con, discountVoucher.getId());
+            }
+            if (shipVoucher != null && discountShipAmount > 0) {
+                voucherDao.saveVoucherUsage(con, orderId, shipVoucher.getId(), userId, discountShipAmount, 1);
+                voucherDao.incrementUsedCount(con, shipVoucher.getId());
+            }
+
+            String trackingCode = "WEB" + String.format("%08d", orderId);
+            LocalDateTime estimatedDelivery = LocalDateTime.now().plusDays(estimatedDays > 0 ? estimatedDays : 3);
+
+            String receiverName = address.getFullname();
+            String receiverPhone = address.getPhone();
+            String province = address.getProvince();
+            String district = address.getDistrict();
+            String ward = address.getWard();
+            String addressDetail = address.getAddressDetail();
+
+            Shipment shipment = new Shipment();
+            shipment.setOrderId(orderId);
+            shipment.setShippingMethodId(order.getDeliveryMethod());
+            shipment.setTrackingCode(trackingCode);
+            shipment.setReceiverName(receiverName != null ? receiverName : "Khach hang");
+            shipment.setReceiverPhone(receiverPhone != null ? receiverPhone : "");
+            shipment.setProvince(province != null ? province : "");
+            shipment.setDistrict(district != null ? district : "");
+            shipment.setWard(ward != null ? ward : "");
+            shipment.setAddressDetail(addressDetail != null ? addressDetail : "");
+            shipment.setShippingFee(deliveryPrice);
+            shipment.setShippingStatus(ShippingStatus.WAITING_PICKUP);
+            shipment.setProviderType("GHN");
+            shipment.setTotalWeight(totalWeight);
+            shipment.setEstimatedDeliveryDate(estimatedDelivery);
+            shipment.setCreatedAt(LocalDateTime.now());
+            shipment.setCustomerNote(customerNote != null ? customerNote.trim() : "");
+
+            try {
+                long shipmentId = shipmentDAO.insert(con, shipment);
+                shipment.setId(shipmentId);
+
+                ShipmentTracking initialTracking = new ShipmentTracking();
+                initialTracking.setShipmentId(shipmentId);
+                initialTracking.setStatus(ShippingStatus.WAITING_PICKUP);
+                initialTracking.setNote("Đơn hàng đã được tạo, đang chờ lấy hàng");
+                initialTracking.setLocation("Kho hàng - Shop Bán Sách");
+                initialTracking.setUpdatedBy("SYSTEM");
+                initialTracking.setUpdatedAt(LocalDateTime.now());
+                trackingDAO.insert(con, initialTracking);
+            } catch (SQLException e) {
                 e.printStackTrace();
             }
+
+            Timestamp createdAt = Timestamp.valueOf(order.getCreatedAt());
+            Payment payment = new Payment();
+            payment.setOrderId(orderId);
+            payment.setUserId(userId);
+            payment.setStatus(0);
+            payment.setCreatedAt(createdAt);
+            payment.setExpiredAt(VNPConfig.getExpireTime(createdAt));
+            payment.setAmount(finalTotalPrice);
+            payment.setVnpTxnRef(VNPConfig.getRandomCode(orderId, userId, createdAt));
+            paymentService.createPayment(con, payment);
+
+            con.commit();
+
+            result = new CheckoutResult();
+            order.setId(orderId);
+            order.setOrderItems(orderItems);
+            result.setOrder(order);
+            result.setPayment(payment);
+            result.setShipment(shipment);
+        }catch(Exception e){
+            if (con != null) con.rollback();
+            throw new RuntimeException(e);
+        }finally{
+            if (con != null) {
+                con.close();
+            }
         }
-        if (discountVoucher != null && discountOrderAmount > 0) {
-            voucherDao.saveVoucherUsage(orderId, discountVoucher.getId(), userId, discountOrderAmount);
-            voucherDao.incrementUsedCount(discountVoucher.getId());
-        }
-        if (shipVoucher != null && discountShipAmount > 0) {
-            voucherDao.saveVoucherUsage(orderId, shipVoucher.getId(), userId, discountShipAmount);
-            voucherDao.incrementUsedCount(shipVoucher.getId());
-        }
-
-        String trackingCode = "WEB" + String.format("%08d", orderId);
-        LocalDateTime estimatedDelivery = LocalDateTime.now().plusDays(estimatedDays > 0 ? estimatedDays : 3);
-
-        Shipment shipment = new Shipment();
-        shipment.setOrderId(orderId);
-        shipment.setShippingMethodId(deliveryMethod);
-        shipment.setTrackingCode(trackingCode);
-        shipment.setReceiverName(receiverName != null ? receiverName : "Khach hang");
-        shipment.setReceiverPhone(receiverPhone != null ? receiverPhone : "");
-        shipment.setProvince(province != null ? province : "");
-        shipment.setDistrict(district != null ? district : "");
-        shipment.setWard(ward != null ? ward : "");
-        shipment.setAddressDetail(addressDetail != null ? addressDetail : "");
-        shipment.setShippingFee(deliveryPrice);
-        shipment.setShippingStatus(ShippingStatus.WAITING_PICKUP);
-        shipment.setProviderType("GHN");
-        shipment.setTotalWeight(totalWeight);
-        shipment.setEstimatedDeliveryDate(estimatedDelivery);
-        shipment.setCreatedAt(LocalDateTime.now());
-        shipment.setCustomerNote(customerNote != null ? customerNote.trim() : "");
-
-        try {
-            long shipmentId = shipmentDAO.insert(shipment);
-            shipment.setId(shipmentId);
-
-            ShipmentTracking initialTracking = new ShipmentTracking();
-            initialTracking.setShipmentId(shipmentId);
-            initialTracking.setStatus(ShippingStatus.WAITING_PICKUP);
-            initialTracking.setNote("Đơn hàng đã được tạo, đang chờ lấy hàng");
-            initialTracking.setLocation("Kho hàng - Shop Bán Sách");
-            initialTracking.setUpdatedBy("SYSTEM");
-            initialTracking.setUpdatedAt(LocalDateTime.now());
-            trackingDAO.insert(initialTracking);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        Timestamp now = new Timestamp(System.currentTimeMillis());
-        Payment payment = new Payment();
-        payment.setOrderId(orderId);
-        payment.setUserId(userId);
-        payment.setStatus(0);
-        payment.setCreatedAt(now);
-        payment.setExpiredAt(VNPConfig.getExpireTime(now));
-        payment.setAmount(finalTotalPrice);
-        payment.setVnpTxnRef(VNPConfig.getRandomCode(orderId, userId, now));
-
-        return payment;
-    }
-
-    /**
-     * Checkout đầy đủ tham số (signature cũ - không có customerNote)
-     */
-    public Payment checkoutFromCart(long userId, long cartId, int deliveryMethod, double deliveryPrice,
-            String receiverName, String receiverPhone, String province, String district,
-            String ward, String addressDetail, int estimatedDays) throws SQLException {
-        return checkoutFromCart(userId, cartId, deliveryMethod, deliveryPrice,
-                receiverName, receiverPhone, province, district, ward, addressDetail, estimatedDays, null, null, null, 0);
-    }
-
-    /**
-     * Legacy method - tương thích với signature cũ
-     */
-    public Payment checkoutFromCart(long userId, long cartId, int deliveryMethod, double deliveryPrice) throws SQLException {
-        return checkoutFromCart(userId, cartId, deliveryMethod, deliveryPrice, null, null, null, null, null, null, 3, null, null, null, 0);
-    }
-
-    public Payment checkoutFromCart(long userId, long cartId, int deliveryMethod, double deliveryPrice,
-                                    String receiverName, String receiverPhone, String province, String district,
-                                    String ward, String addressDetail) throws SQLException {
-        return checkoutFromCart(userId, cartId, deliveryMethod, deliveryPrice,
-                receiverName, receiverPhone, province, district, ward, addressDetail, 3, null, null, null, 0);
-    }
-
-    /**
-     * Checkout với ShippingInfo (mới)
-     */
-    public Payment checkoutWithShippingInfo(long userId, long cartId, ShippingInfo shippingInfo,
-                                            String receiverName, String receiverPhone, String province, String district,
-                                            String ward, String addressDetail) throws SQLException {
-
-        if (shippingInfo == null) {
-            throw new RuntimeException("Thông tin vận chuyển không hợp lệ");
-        }
-
-        return checkoutFromCart(userId, cartId, (int) shippingInfo.getMethodId(), shippingInfo.getShippingFee(),
-                receiverName, receiverPhone, province, district, ward, addressDetail,
-                shippingInfo.getEstimatedDaysMax(),null ,null, null, 0);
+        return result;
     }
     public boolean hasEnoughQty(long cartId) {
         Cart cart = cartDAO.getById(cartId);

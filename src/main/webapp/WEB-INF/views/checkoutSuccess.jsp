@@ -127,7 +127,7 @@
             </div>
             
             <div class="p-6">
-                <c:forEach var="item" items="${requestScope.orderItems}">
+                <c:forEach var="item" items="${requestScope.order.orderItems}">
                     <div class="flex flex-col md:flex-row gap-4 md:gap-6 pb-6 border-b border-slate-100">
                         <div class="w-full md:w-24 h-24 flex-shrink-0">
                             <c:choose>
@@ -287,25 +287,52 @@
                     <h3 class="font-bold text-slate-800 tracking-wide">THÔNG TIN THANH TOÁN</h3>
                 </div>
                 <div class="p-5 space-y-3">
-                    <div class="flex items-center justify-between py-2">
+                    <div class="flex items-center justify-between py-1">
                         <span class="text-slate-600">Tạm tính</span>
-                        <span class="font-medium text-slate-800"><fmt:formatNumber pattern="#,##0" value="${requestScope.subtotal}" />₫</span>
-                    </div>
-                    <div class="flex items-center justify-between py-2 border-b border-slate-100">
-                        <span class="text-slate-600">Phí vận chuyển</span>
-                        <span class="font-semibold text-success">
-                            <c:choose>
-                                <c:when test="${requestScope.order.deliveryPrice == 0}">Miễn phí</c:when>
-                                <c:otherwise><fmt:formatNumber pattern="#,##0" value="${requestScope.order.deliveryPrice}" />₫</c:otherwise>
-                            </c:choose>
+                        <span class="font-medium text-slate-800">
+                            <fmt:formatNumber pattern="#,##0" value="${requestScope.subtotal}" />₫
                         </span>
                     </div>
-                    <div class="flex items-center justify-between py-4 pt-4">
-                        <span class="text-lg font-bold text-slate-800">Tổng cộng:</span>
-                        <span class="text-2xl font-extrabold text-red-600"><fmt:formatNumber pattern="#,##0" value="${requestScope.order.totalPrice}" />₫</span>
+
+                    <div class="flex items-center justify-between py-1">
+                        <span class="text-slate-600">Phí vận chuyển</span>
+                        <span class="font-semibold text-slate-800">
+                            <fmt:formatNumber pattern="#,##0" value="${requestScope.order.deliveryPrice}" />₫
+                        </span>
                     </div>
-                    
-                    <div class="flex items-center justify-center gap-2 bg-indigo text-white px-4 py-3 rounded-xl font-semibold">
+
+                    <c:if test="${requestScope.discountOrderAmount > 0}">
+                        <div class="flex items-center justify-between py-1 text-red-500 text-sm">
+                            <span class="flex items-center gap-1">
+                                <i class="fas fa-ticket-percent"></i> Giảm giá đơn hàng
+                            </span>
+                            <span class="font-semibold">
+                                -<fmt:formatNumber pattern="#,##0" value="${requestScope.discountOrderAmount}" />₫
+                            </span>
+                        </div>
+                    </c:if>
+
+                    <c:if test="${requestScope.discountShipAmount > 0}">
+                        <div class="flex items-center justify-between py-1 text-green-600 text-sm">
+                            <span class="flex items-center gap-1">
+                                <i class="fas fa-truck"></i> Giảm phí vận chuyển
+                            </span>
+                            <span class="font-semibold">
+                                -<fmt:formatNumber pattern="#,##0" value="${requestScope.discountShipAmount}" />₫
+                            </span>
+                        </div>
+                    </c:if>
+
+                    <div class="border-t border-dashed border-slate-200 my-2 pt-3"></div>
+
+                    <div class="flex items-center justify-between py-1">
+                        <span class="text-lg font-bold text-slate-800">Tổng cộng:</span>
+                        <span class="text-2xl font-extrabold text-red-600">
+                            <fmt:formatNumber pattern="#,##0" value="${requestScope.order.totalPrice}" />₫
+                        </span>
+                    </div>
+
+                    <div class="flex items-center justify-center gap-2 bg-indigo-600 text-white px-4 py-3 rounded-xl font-semibold text-sm mt-4">
                         <i class="fas fa-wallet"></i>
                         <span>VNPAY</span>
                     </div>
