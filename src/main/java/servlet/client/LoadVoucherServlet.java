@@ -1,7 +1,6 @@
 package servlet.client;
 
 import beans.User;
-import beans.Voucher;
 import constants.SessionConstants;
 import dto.getUsableVouchers.VoucherDTO;
 import jakarta.servlet.ServletException;
@@ -37,7 +36,7 @@ public class LoadVoucherServlet extends HttpServlet {
 
             response.setContentType("text/html; charset=UTF-8");
             response.setCharacterEncoding("UTF-8");
-            request.getRequestDispatcher("/WEB-INF/views/fragments/listVoucher.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/fragments/listVoucher.jsp").forward(request, response);
 
         } catch (Exception e) {
             e.printStackTrace();

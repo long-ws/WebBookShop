@@ -35,10 +35,10 @@
         </c:if>
         <c:choose>
             <c:when test="${empty sessionScope.currentUser}">
-                <div class="login-required">
-                    <i class="bi bi-person"></i>
-                    <p>Vui lòng đăng nhập để xem giỏ hàng của bạn</p>
-                    <a href="${pageContext.request.contextPath}/signin">Đăng nhập ngay</a>
+                <div class="col-12 text-center py-5">
+                    <p class="text-muted mb-3">Vui lòng đăng nhập để sử dụng trang này.</p>
+                    <a href="${pageContext.request.contextPath}/signin" class="btn btn-primary px-4">Đăng nhập
+                        ngay</a>
                 </div>
             </c:when>
 
@@ -54,15 +54,12 @@
             <c:otherwise>
                 <form id="checkoutForm" action="${pageContext.request.contextPath}/cart" method="post" data-submitting="false">
                     <input type="hidden" name="cartId" value="${cartId}" />
+                    <input type="hidden" id="shippingAddressId" name="shippingAddressId" value="${defaultAddress != null ? defaultAddress.id : ''}" />
                     <input type="hidden" id="selectedServiceId" name="selectedServiceId" value="2" />
                     <input type="hidden" id="deliveryPrice" name="deliveryPrice" value="0" />
                     <input type="hidden" id="estimatedDays" name="estimatedDays" value="2" />
                     <input type="hidden" id="toDistrictId" name="toDistrictId" value="" />
                     <input type="hidden" id="toWardCode" name="toWardCode" value="" />
-                    <input type="hidden" id="addressDetailHidden" name="addressDetailHidden" value="" />
-                    <input type="hidden" id="provinceName" name="provinceName" value="" />
-                    <input type="hidden" id="districtName" name="districtName" value="" />
-                    <input type="hidden" id="wardName" name="wardName" value="" />
                     <input type="hidden" id="deliveryMethod" name="deliveryMethod" value="2" />
 
                     <input type="hidden" name="selectedVoucherId" id="inputVoucherId" value="" />
@@ -89,7 +86,7 @@
 
                                 <c:set var="tempTotal" value="0" />
                                 <c:forEach var="item" items="${cartItems}">
-                                    <c:set var="itemTotal" value="${item.product.price * item.quantity}" />
+                                    <c:set var="itemTotal" value="${item.product.finalPrice * item.quantity}" />
                                     <c:set var="tempTotal" value="${tempTotal + itemTotal}" />
 
                                     <div class="cart-item" data-product-id="${item.productId}" data-weight="${item.product.weight > 0 ? item.product.weight : 300}" data-length="${item.product.length > 0 ? item.product.length : 20}" data-width="${item.product.width > 0 ? item.product.width : 15}" data-height="${item.product.height > 0 ? item.product.height : 10}">
@@ -113,7 +110,11 @@
                                         </div>
 
                                         <div class="item-price">
-                                            <fmt:formatNumber value="${item.product.price}" pattern="#,##0" />₫
+                                            <fmt:formatNumber value="${item.product.finalPrice}" pattern="#,##0" />₫
+
+                                            <c:if test="${item.product.discount > 0}">
+                                                <span class="ms-1 badge bg-info">-${item.product.discount}%</span>
+                                            </c:if>
                                         </div>
 
                                         <div class="item-quantity">
@@ -141,33 +142,40 @@
                             <div class="shipping-section">
                                 <div class="shipping-header">
                                     <i class="bi bi-geo-alt-fill"></i>
-                                    <span>Địa chỉ giao hàng</span>
+                                    <span>Thông tin nhận hàng</span>
                                 </div>
                                 <div class="shipping-body">
-                                    <div class="row g-3 address-form">
-                                        <div class="col-md-4">
-                                            <label class="form-label">Tỉnh/Thành phố</label>
-                                            <select class="form-select" id="province" name="province">
-                                                <option value="">-- Chọn Tỉnh/TP --</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label">Quận/Huyện</label>
-                                            <select class="form-select" id="district" name="district" disabled>
-                                                <option value="">-- Chọn Quận/Huyện --</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label">Phường/Xã</label>
-                                            <select class="form-select" id="ward" name="ward" disabled>
-                                                <option value="">-- Chọn Phường/Xã --</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-12">
-                                            <label class="form-label">Địa chỉ chi tiết (số nhà, tên đường)</label>
-                                            <input type="text" class="form-control" id="addressDetail" placeholder="Ví dụ: 123 Nguyễn Huệ, P.Bến Nghé, Q.1" />
-                                        </div>
-                                    </div>
+                                    <c:choose>
+                                        <c:when test="${not empty defaultAddress}">
+                                            <div class="col-12" id="defaultAddressContainer"
+                                                 data-district-id="${defaultAddress.districtId}"
+                                                 data-ward-code="${defaultAddress.wardCode}">
+                                                <div class="p-3 rounded border d-flex justify-content-between align-items-center shadow-sm border-warning bg-warning-subtle">
+                                                    <div>
+                                                        <div class="d-flex align-items-center mb-2">
+                                                            <span class="fw-bold me-2">${defaultAddress.fullname}</span>
+                                                            <span class="text-muted border-start ps-2">${defaultAddress.phone}</span>
+                                                        </div>
+                                                        <p class="mb-1 text-secondary small">${defaultAddress.addressDetail}</p>
+                                                        <p class="mb-2 text-secondary small">${defaultAddress.fullAddress}</p>
+                                                    </div>
+                                                    <a href="${pageContext.request.contextPath}/addressBook" class="btn btn-outline-warning btn-sm ms-3">
+                                                        Thay đổi
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <div class="col-12">
+                                                <div class="p-3 rounded border d-flex justify-content-between align-items-center shadow-sm border-secondary-subtle bg-light">
+                                                    <span class="text-secondary">Chưa chọn thông tin nhận hàng mặc định!</span>
+                                                    <a href="${pageContext.request.contextPath}/addressBook" class="btn btn-outline-primary btn-sm ms-3">
+                                                        Chọn địa chỉ
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </c:otherwise>
+                                    </c:choose>
 
                                     <div class="shipping-options" id="shippingOptions">
                                         <div class="shipping-options-title">

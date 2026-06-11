@@ -43,13 +43,17 @@ public class CreateAddressServlet extends HttpServlet {
             String districtName = request.getParameter("districtName");
             String wardName = request.getParameter("wardName");
             String detail = request.getParameter("detail");
+            int provinceId = Integer.parseInt(request.getParameter("provinceId"));
+            int districtId = Integer.parseInt(request.getParameter("districtId"));
+            String wardCode = request.getParameter("wardCode");
 
             if (fullname == null || fullname.trim().isEmpty() ||
                     phone == null || phone.trim().isEmpty() ||
                     provinceName == null || provinceName.trim().isEmpty() ||
                     districtName == null || districtName.trim().isEmpty() ||
                     wardName == null || wardName.trim().isEmpty() ||
-                    detail == null || detail.trim().isEmpty()) {
+                    detail == null || detail.trim().isEmpty() ||
+                    wardCode == null || wardCode.trim().isEmpty()){
 
                 response.sendRedirect(request.getContextPath() + "/addressBook?error=missing_fields");
                 return;
@@ -69,6 +73,9 @@ public class CreateAddressServlet extends HttpServlet {
             address.setDistrict(districtName.trim());
             address.setWard(wardName.trim());
             address.setAddressDetail(detail.trim());
+            address.setProvinceId(provinceId);
+            address.setDistrictId(districtId);
+            address.setWardCode(wardCode);
 
             if (!service.createAddress(address)) {
                 response.sendRedirect(request.getContextPath() + "/error");

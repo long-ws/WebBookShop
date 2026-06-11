@@ -1,9 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
-    loadProvinces();
     setupEventListeners();
     resetSubmitState();
-    checkCheckoutReady();
     initVoucherFeatures();
+    loadDefaultAddressShipping();
 });
 
 function resetSubmitState() {
@@ -16,119 +15,44 @@ function resetSubmitState() {
 }
 
 function setupEventListeners() {
-    document.getElementById('province').addEventListener('change', handleProvinceChange);
-    document.getElementById('district').addEventListener('change', handleDistrictChange);
-    document.getElementById('ward').addEventListener('change', handleWardChange);
-    document.getElementById('addressDetail').addEventListener('input', checkCheckoutReady);
-
     var checkboxes = document.querySelectorAll('input[name="selectedItems"]');
     for (var i = 0; i < checkboxes.length; i++) {
         checkboxes[i].addEventListener('change', updateSelectedCount);
     }
 }
+function loadDefaultAddressShipping() {
+    var container = document.getElementById('defaultAddressContainer');
 
-function loadProvinces() {
-    fetch(GHN_API + '/provinces')
-        .then(function(response) { return response.json(); })
-        .then(function(data) {
-            if ((data.code === 200 || data.success) && data.data) {
-                var select = document.getElementById('province');
-                data.data.forEach(function(province) {
-                    var option = document.createElement('option');
-                    option.value = province.ProvinceID;
-                    option.textContent = province.ProvinceName;
-                    select.appendChild(option);
-                });
-            } else {
-                console.error('GHN provinces error:', data);
-            }
-        })
-        .catch(function(error) { console.error('Error loading provinces:', error); });
-}
-
-function handleProvinceChange() {
-    var provinceId = this.value;
-    var districtSelect = document.getElementById('district');
-    var wardSelect = document.getElementById('ward');
-
-    districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
-    wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
-    wardSelect.disabled = true;
-
-    if (provinceId) {
-        loadDistricts(provinceId);
-        districtSelect.disabled = false;
-    } else {
-        districtSelect.disabled = true;
+    if (!container) {
+        showAddressMissing();
+        return;
     }
-    resetShippingOptions();
-    checkCheckoutReady();
-}
 
-function loadDistricts(provinceId) {
-    fetch(GHN_API + '/districts?province_id=' + provinceId)
-        .then(function(response) { return response.json(); })
-        .then(function(data) {
-            if ((data.code === 200 || data.success) && data.data) {
-                var select = document.getElementById('district');
-                data.data.forEach(function(district) {
-                    var option = document.createElement('option');
-                    option.value = district.DistrictID;
-                    option.textContent = district.DistrictName;
-                    select.appendChild(option);
-                });
-            } else {
-                console.error('GHN districts error:', data);
-            }
-        })
-        .catch(function(error) { console.error('Error loading districts:', error); });
-}
+    var districtId = container.dataset.districtId;
+    var wardCode = container.dataset.wardCode;
 
-function handleDistrictChange() {
-    var districtId = this.value;
-    var wardSelect = document.getElementById('ward');
-
-    wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
-
-    if (districtId) {
-        loadWards(districtId);
-        wardSelect.disabled = false;
-    } else {
-        wardSelect.disabled = true;
+    if (!districtId || !wardCode) {
+        showAddressMissing();
+        return;
     }
-    resetShippingOptions();
-    checkCheckoutReady();
+
+    document.getElementById('toDistrictId').value = districtId;
+    document.getElementById('toWardCode').value = wardCode;
+
+    loadShippingOptions(districtId, wardCode);
 }
+function showAddressMissing() {
+    var btn = document.getElementById('btnPlaceOrder');
 
-function loadWards(districtId) {
-    fetch(GHN_API + '/wards?district_id=' + districtId)
-        .then(function(response) { return response.json(); })
-        .then(function(data) {
-            if ((data.code === 200 || data.success) && data.data) {
-                var select = document.getElementById('ward');
-                data.data.forEach(function(ward) {
-                    var option = document.createElement('option');
-                    option.value = ward.WardCode;
-                    option.textContent = ward.WardName;
-                    select.appendChild(option);
-                });
-            } else {
-                console.error('GHN wards error:', data);
-            }
-        })
-        .catch(function(error) { console.error('Error loading wards:', error); });
-}
-
-function handleWardChange() {
-    var districtId = document.getElementById('district').value;
-    var wardCode = this.value;
-
-    if (districtId && wardCode) {
-        loadShippingOptions(districtId, wardCode);
-    } else {
-        resetShippingOptions();
+    if (btn) {
+        btn.disabled = true;
     }
-    checkCheckoutReady();
+
+    var alertBox = document.getElementById('shippingAlert');
+    var alertText = document.getElementById('shippingAlertText');
+
+    alertBox.classList.add('show');
+    alertText.textContent = 'Vui lòng chọn địa chỉ mặc định trước khi đặt hàng';
 }
 
 function loadShippingOptions(districtId, wardCode) {
@@ -197,10 +121,9 @@ function calculateMaxDimension() {
 function renderShippingOptions(options) {
     var container = document.getElementById('shippingOptionsList');
     container.innerHTML = '';
-
     options.forEach(function(option, index) {
         var isFast = option.service_type_id === 2;
-        var estimatedDate = calculateEstimatedDate(option.estimated_days);
+        var deliveryTime = option.estimated_days || '2-3';
 
         var div = document.createElement('div');
         div.className = 'shipping-option' + (index === 0 ? ' selected' : '');
@@ -221,8 +144,7 @@ function renderShippingOptions(options) {
                 '</div>' +
             '</div>' +
             '<div class="shipping-option-detail">' +
-                '<span><i class="bi bi-calendar-check"></i> Nhận hàng: <strong>' + estimatedDate + '</strong></span>' +
-                '<span><i class="bi bi-clock"></i> ' + (option.estimated_days || 2) + ' ngày</span>' +
+            '<span><i class="bi bi-calendar-check"></i> Nhận hàng: <strong>' + deliveryTime + ' ngày</strong></span>' +
             '</div>';
 
         div.addEventListener('click', (function(opt) {
@@ -290,9 +212,16 @@ function selectShippingOption(element, option) {
     document.getElementById('deliveryMethod').value = option.service_type_id || 2;
     document.getElementById('deliveryPrice').value = option.fee;
     document.getElementById('estimatedDays').value = option.estimated_days || 2;
-    document.getElementById('toDistrictId').value = document.getElementById('district').value;
-    document.getElementById('toWardCode').value = document.getElementById('ward').value;
 
+    var addressContainer = document.getElementById('defaultAddressContainer');
+
+    if (addressContainer) {
+        document.getElementById('toDistrictId').value =
+            addressContainer.dataset.districtId;
+
+        document.getElementById('toWardCode').value =
+            addressContainer.dataset.wardCode;
+    }
     updateShippingFee(option.fee);
     checkCheckoutReady();
 }
@@ -313,37 +242,15 @@ function calculateEstimatedDate(days) {
     return today.toLocaleDateString('vi-VN', opt);
 }
 
-function resetShippingOptions() {
-    var container = document.getElementById('shippingOptionsList');
-    container.innerHTML =
-        '<div class="alert-info">' +
-        '<i class="bi bi-info-circle"></i> ' +
-        'Vui lòng chọn địa chỉ giao hàng để xem các phương thức vận chuyển' +
-        '</div>';
-
-    document.getElementById('shippingFeeDisplay').textContent = '---';
-    document.getElementById('shippingFeeDisplay').style.color = '';
-    document.getElementById('shippingFeeDisplay').style.fontWeight = '';
-    document.getElementById('deliveryPrice').value = '0';
-    renderOrderSummary();
-}
-
 function checkCheckoutReady() {
-    var province = document.getElementById('province').value;
-    var district = document.getElementById('district').value;
-    var ward = document.getElementById('ward').value;
-    var addressDetail = document.getElementById('addressDetail').value.trim();
-    var deliveryPrice = parseInt(document.getElementById('deliveryPrice').value) || 0;
-    var provinceSelect = document.getElementById('province');
-    var provincesLoaded = provinceSelect && provinceSelect.options.length > 1;
+    var addressContainer = document.getElementById('defaultAddressContainer');
+    var deliveryPrice =
+        parseInt(document.getElementById('deliveryPrice').value) || 0;
 
-    var isAddressFilled = province && district && ward && addressDetail;
     var btn = document.getElementById('btnPlaceOrder');
 
-    if (isAddressFilled && provincesLoaded) {
+    if (addressContainer && deliveryPrice > 0) {
         btn.disabled = false;
-    } else if (isAddressFilled && !provincesLoaded) {
-        btn.disabled = true;
     } else {
         btn.disabled = true;
     }
@@ -351,24 +258,18 @@ function checkCheckoutReady() {
     var alertBox = document.getElementById('shippingAlert');
     var alertText = document.getElementById('shippingAlertText');
 
-    if (province && district && ward && !addressDetail) {
+    if (!addressContainer) {
         alertBox.classList.add('show');
-        alertText.textContent = 'Vui lòng nhập địa chỉ chi tiết (số nhà, tên đường)';
-    } else if (isAddressFilled && !provincesLoaded) {
+        alertText.textContent =
+            'Vui lòng chọn địa chỉ mặc định trước khi đặt hàng';
+    } else if (deliveryPrice <= 0) {
         alertBox.classList.add('show');
-        alertText.textContent = 'Đang tải danh sách tỉnh/thành phố...';
-    } else if (isAddressFilled && provincesLoaded && deliveryPrice === 0) {
-        alertBox.classList.add('show');
-        alertText.textContent = 'Đang tải phương thức vận chuyển...';
-    } else if (isAddressFilled && provincesLoaded && deliveryPrice > 0) {
-        alertBox.classList.remove('show');
+        alertText.textContent =
+            'Đang tải phương thức vận chuyển...';
     } else {
         alertBox.classList.remove('show');
     }
-
-    console.log('[CheckReady] addr:', isAddressFilled, 'provLoaded:', provincesLoaded, 'price:', deliveryPrice, 'btnEnabled:', !btn.disabled);
 }
-
 function updateSelectedCount() {
     var checked = document.querySelectorAll('input[name="selectedItems"]:checked').length;
     document.getElementById('selectedCount').textContent = checked;
@@ -418,52 +319,37 @@ var isSubmitting = false;
 function submitOrder() {
     if (isSubmitting) return;
 
-    var province = document.getElementById('province');
-    var district = document.getElementById('district');
-    var ward = document.getElementById('ward');
-    var addressDetail = document.getElementById('addressDetail').value.trim();
+    var addressContainer =
+        document.getElementById('defaultAddressContainer');
 
-    if (!province.value) {
-        alert('Vui lòng chọn Tỉnh/Thành phố!');
-        return;
-    }
-    if (!district.value) {
-        alert('Vui lòng chọn Quận/Huyện!');
-        return;
-    }
-    if (!ward.value) {
-        alert('Vui lòng chọn Phường/Xã!');
-        return;
-    }
-    if (!addressDetail) {
-        alert('Vui lòng nhập địa chỉ chi tiết!');
+    if (!addressContainer) {
+        alert('Vui lòng chọn địa chỉ mặc định!');
         return;
     }
 
-    document.getElementById('provinceName').value = province.options[province.selectedIndex].text;
-    document.getElementById('districtName').value = district.options[district.selectedIndex].text;
-    document.getElementById('wardName').value = ward.options[ward.selectedIndex].text;
-    document.getElementById('addressDetailHidden').value = addressDetail;
-    document.getElementById('toDistrictId').value = district.value;
-    document.getElementById('toWardCode').value = ward.value;
+    document.getElementById('toDistrictId').value =
+        addressContainer.dataset.districtId;
 
-    var deliveryPrice = parseInt(document.getElementById('deliveryPrice').value, 10) || 0;
-    if (deliveryPrice === 0) {
-        document.getElementById('deliveryPrice').value = '25000';
-    }
-    var serviceId = document.getElementById('selectedServiceId').value;
-    if (serviceId) {
-        document.getElementById('deliveryMethod').value = serviceId;
+    document.getElementById('toWardCode').value =
+        addressContainer.dataset.wardCode;
+
+    var deliveryPrice =
+        parseInt(document.getElementById('deliveryPrice').value) || 0;
+
+    if (deliveryPrice <= 0) {
+        alert('Chưa tải được phí vận chuyển!');
+        return;
     }
 
     isSubmitting = true;
+
     var btn = document.getElementById('btnPlaceOrder');
     btn.disabled = true;
-    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang xử lý...';
+    btn.innerHTML =
+        '<i class="bi bi-hourglass-split"></i> Đang xử lý...';
 
     document.getElementById('checkoutForm').submit();
 }
-
 function deleteCartItem(cartItemId) {
     if (!confirm('Bạn có muốn xóa sản phẩm này?')) return;
 
