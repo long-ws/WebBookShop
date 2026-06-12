@@ -1,3 +1,4 @@
+DROP DATABASE IF EXISTS bookshopdb;
 CREATE DATABASE bookshopdb;
 USE bookshopdb;
 
@@ -38,8 +39,8 @@ CREATE TABLE token_type (
 );
 
 CREATE TABLE token_status (
-    id INT AUTO_INCREMENT PRIMARY KEY, 
-    code VARCHAR(30) NOT NULL UNIQUE, -- Mã code cho trạng thái token 
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(30) NOT NULL UNIQUE, -- Mã code cho trạng thái token
     name VARCHAR(50) NOT NULL,
     description VARCHAR(255), -- Mô tả trạng thải token
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -91,33 +92,33 @@ CREATE TABLE role_permission_assignment (
     permission_id INT NOT NULL,
 	is_active TINYINT DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
+
     PRIMARY KEY (role_id, permission_id),
     CONSTRAINT fk_rp_role FOREIGN KEY (role_id) REFERENCES role_registry(id) ON DELETE CASCADE,
     CONSTRAINT fk_rp_permission FOREIGN KEY (permission_id) REFERENCES permission_registry(id) ON DELETE CASCADE,
-    
+
     INDEX idx_permission_role (permission_id, role_id)
 );
 
 CREATE TABLE user_account (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     status_id INT NOT NULL,
-    
+
     token_version INT NOT NULL DEFAULT 0,
     last_login_at TIMESTAMP NULL,
-    
+
     remember_token VARCHAR(255) NULL,
     remember_expires_at TIMESTAMP NULL,
-    
+
     deleted_at TIMESTAMP NULL,
     deleted_by BIGINT NULL,
     deletion_scheduled_at TIMESTAMP NULL,
-    
+
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
+
     CONSTRAINT fk_user_status FOREIGN KEY (status_id) REFERENCES user_account_status(id),
-    
+
     INDEX idx_status (status_id),
     INDEX idx_deleted (deleted_at)
 );
@@ -127,7 +128,7 @@ CREATE TABLE user_role_registry (
     role_id INT NOT NULL,
     assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     assigned_by BIGINT NULL,
-    
+
     PRIMARY KEY (user_id, role_id),
     CONSTRAINT fk_ur_user FOREIGN KEY (user_id) REFERENCES user_account(id) ON DELETE CASCADE,
     CONSTRAINT fk_ur_role FOREIGN KEY (role_id) REFERENCES role_registry(id) ON DELETE CASCADE,
@@ -140,10 +141,10 @@ CREATE TABLE user_local (
     password_hash VARCHAR(255) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     email_verify_status_id TINYINT NOT NULL DEFAULT 1,
-    
+
     failed_attempts INT NOT NULL DEFAULT 0,
     locked_until TIMESTAMP NULL,
-    
+
     CHECK (failed_attempts >= 0),
     CONSTRAINT fk_local_user FOREIGN KEY (user_id) REFERENCES user_account(id) ON DELETE CASCADE,
     CONSTRAINT fk_email_verify_status FOREIGN KEY (email_verify_status_id) REFERENCES email_verify_status(id)
@@ -154,38 +155,38 @@ CREATE TABLE user_oauth (
     user_id BIGINT NOT NULL,
     provider_id INT NOT NULL,
     provider_user_id VARCHAR(191) NOT NULL,
-    
+
     email VARCHAR(100) NOT NULL UNIQUE,
     display_name VARCHAR(100),
     avatar_url TEXT,
-    
+
     UNIQUE KEY uq_provider_user (provider_id, provider_user_id),
     UNIQUE KEY uq_user_provider (user_id, provider_id),
-    
+
     CONSTRAINT fk_oauth_user FOREIGN KEY (user_id) REFERENCES user_account(id) ON DELETE CASCADE,
     CONSTRAINT fk_oauth_provider FOREIGN KEY (provider_id) REFERENCES oauth_provider(id),
-    
+
     INDEX idx_provider (provider_id)
 );
 
 CREATE TABLE user_token (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL,
-    
+
     token_hash VARCHAR(191) NOT NULL UNIQUE,
     type_id INT NOT NULL,
     status_id INT NOT NULL,
-    
+
     used_at TIMESTAMP NULL,
     expires_at TIMESTAMP NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
+
     CONSTRAINT fk_token_user FOREIGN KEY (user_id) REFERENCES user_account(id) ON DELETE CASCADE,
     CONSTRAINT fk_token_type FOREIGN KEY (type_id) REFERENCES token_type(id),
     CONSTRAINT fk_token_status FOREIGN KEY (status_id) REFERENCES token_status(id),
-    
+
     CHECK (expires_at > created_at),
-    
+
     INDEX idx_user (user_id),
     INDEX idx_type (type_id),
     INDEX idx_status (status_id)
@@ -200,7 +201,7 @@ CREATE TABLE user_token (
 		avatar_url TEXT,
 		preferred_language_id INT NOT NULL DEFAULT 1,
 		updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-		
+
 		CONSTRAINT fk_profile_user FOREIGN KEY (user_id) REFERENCES user_account(id) ON DELETE CASCADE,
 		CONSTRAINT fk_gender FOREIGN KEY (gender_id) REFERENCES gender(id),
 		CONSTRAINT fk_profile_language FOREIGN KEY (preferred_language_id) REFERENCES language_registry(id)
@@ -315,7 +316,7 @@ CREATE TABLE orders (
     createdAt DATETIME NOT NULL,
     updatedAt DATETIME NULL,
     INDEX idx_orders_user (userId),
-    CONSTRAINT fk_orders_user FOREIGN KEY (userId) REFERENCES user_account(id) ON DELETE SET NULL ON UPDATE NO ACTION
+    CONSTRAINT fk_orders_user FOREIGN KEY (userId) REFERENCES user_account(id) ON DELETE SET NULL ON UPDATE NO ACTION,
     CONSTRAINT fk_orders_shipping_address FOREIGN KEY (shipping_address_id)
         REFERENCES user_shipping_addresses(id) ON DELETE SET NULL ON UPDATE NO ACTION
 );
@@ -519,7 +520,7 @@ CREATE TABLE payments (
     is_expired tinyint(1) NOT NULL DEFAULT 0,
     INDEX idx_payment_order (order_id),
     INDEX idx_payment_user (user_id),
-    INDEX idx_payment_txn_ref (vnp_txn_ref),
+    INDEX idx_payment_txn_ref (vnp_TxnRef),
     CONSTRAINT fk_payment_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_payment_user FOREIGN KEY (user_id) REFERENCES user_account(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -729,11 +730,11 @@ INSERT INTO role_permission_assignment (role_id, permission_id)
 SELECT 4, id FROM permission_registry WHERE code IN ('order.create');
 
 -- 15. USER ACCOUNTS (Tài khoản người dùng)
--- Thứ tự insert quan trọng: 
+-- Thứ tự insert quan trọng:
 -- 1. user_account (bảng cha) -> 2. user_profile -> 3. user_local -> 4. user_role_registry
 
 -- BƯỚC 1: Tạo tài khoản gốc trong user_account (TẤT CẢ users trước)
-INSERT INTO user_account (id, status_id) VALUES 
+INSERT INTO user_account (id, status_id) VALUES
 (1, 1),
 (2, 1), (3, 1), (4, 1), (5, 1), (6, 1);
 
@@ -1153,13 +1154,10 @@ INSERT INTO shipping_fees (shipping_method_id, zone_type, min_weight, max_weight
 (2, 'REMOTE', 5.00, 10.00, 35000, 22000, 4000, 5000, 6, 9),
 (2, 'REMOTE', 10.00, 30.00, 35000, 28000, 4000, 5000, 6, 9);
 
---Voucher
-INSERT INTO `vouchers` VALUES (1, 'WELCOME50', 'Giảm ngay 50k cho khách hàng mới', 'Áp dụng cho mọi đơn hàng', 1, 0, '2026-05-27 02:26:20', '2026-06-26 02:26:20', 50000, 0, 50000, 1000, 1, 4, 1);
-INSERT INTO `vouchers` VALUES (2, 'HELLOSUMMER', 'Đón hè rực rỡ giảm 10% đơn hàng', 'Áp dụng toàn sàn', 0, 0, '2026-05-27 02:26:20', '2026-06-11 02:26:20', 10, 5000, 30000, 500, 1, 0, 1);
-INSERT INTO `vouchers` VALUES (23, 'FREESHIP15K', 'Freeship 15k', 'Freeship 15k', 1, 3, '2026-06-04 07:41:00', '2026-06-30 07:41:00', 15000, 0, 15000, 100, 2, 5, 1);
+-- Voucher
+INSERT INTO vouchers (id, code, name, description, calculation_method, apply_to, start_date, end_date, value, min_purchase, max_discount, usage_limit, per_user_limit, used_count, is_active)
+VALUES
+    (1, 'WELCOME50', 'Giảm ngay 50k cho khách hàng mới', 'Áp dụng cho mọi đơn hàng', 1, 0, '2026-05-27 02:26:20', '2026-06-26 02:26:20', 50000.00, 0.00, 50000.00, 1000, 1, 4, 1),
+    (2, 'HELLOSUMMER', 'Đón hè rực rỡ giảm 10% đơn hàng', 'Áp dụng toàn sàn', 0, 0, '2026-05-27 02:26:20', '2026-07-11 02:26:20', 10.00, 5000.00, 30000.00, 500, 1, 0, 1),
+    (23, 'FREESHIP15K', 'Freeship 15k', 'Freeship 15k', 1, 3, '2026-06-04 07:41:00', '2026-06-30 07:41:00', 15000.00, 0.00, 15000.00, 100, 2, 5, 1);
 
-SELECT '========================================';
-SELECT '  DATABASE SETUP COMPLETE' AS status;
-SELECT '  Total Tables: 22' AS info;
-SELECT '  Compatible with MySQL 8.0 CE' AS version;
-SELECT '========================================';

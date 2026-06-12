@@ -224,7 +224,9 @@ public class Product {
 	public void setHeight(int height) {
 		this.height = height;
 	}
-
+    public double getFinalPrice(){
+        return this.price * (100 - this.discount)/100;
+    }
 	@Override
 	public String toString() {
 		return new StringJoiner(", ", Product.class.getSimpleName() + "[", "]").add("id=" + id)
