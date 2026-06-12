@@ -21,12 +21,12 @@ public class ImageServlet extends HttpServlet {
 
     @Override
     public void init() throws ServletException {
-        String configuredPath = ConstantUtils.IMAGE_ABSOLUTE_PATH;
+        String configuredPath = ConstantUtils.getImageStoragePath();
 
         if (configuredPath == null || configuredPath.trim().isEmpty()) {
             throw new ServletException(
-                "IMAGE_ABSOLUTE_PATH is not configured in ConstantUtils. "
-                + "Please set IMAGE_ABSOLUTE_PATH to your images directory.");
+                "Image storage path is not configured. "
+                + "Set BOOKSHOP_IMAGE_PATH env var or bookshop.image.path system property.");
         }
 
         this.imageBaseDir = configuredPath.trim();
@@ -43,7 +43,7 @@ public class ImageServlet extends HttpServlet {
             }
         }
 
-        System.out.println("[ImageServlet] Initialized with IMAGE_ABSOLUTE_PATH: " + this.imageBaseDir);
+        System.out.println("[ImageServlet] Initialized with storage path: " + this.imageBaseDir);
         System.out.println("[ImageServlet] Directory exists: " + Files.exists(imageDir));
         System.out.println("[ImageServlet] Is writable: " + Files.isWritable(imageDir));
     }
