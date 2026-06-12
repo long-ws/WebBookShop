@@ -64,7 +64,6 @@ CREATE TABLE language_registry (
     is_active TINYINT DEFAULT 1
 );
 
-
 CREATE TABLE role_registry (
     id INT AUTO_INCREMENT PRIMARY KEY,
     code VARCHAR(30) NOT NULL UNIQUE, -- Mã code cho role
@@ -154,7 +153,7 @@ CREATE TABLE user_oauth (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL,
     provider_id INT NOT NULL,
-    provider_user_id VARCHAR(255) NOT NULL,
+    provider_user_id VARCHAR(191) NOT NULL,
     
     email VARCHAR(100) NOT NULL UNIQUE,
     display_name VARCHAR(100),
@@ -173,7 +172,7 @@ CREATE TABLE user_token (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL,
     
-    token_hash VARCHAR(255) NOT NULL UNIQUE,
+    token_hash VARCHAR(191) NOT NULL UNIQUE,
     type_id INT NOT NULL,
     status_id INT NOT NULL,
     
@@ -301,16 +300,24 @@ CREATE TABLE wishlist_item (
     CONSTRAINT fk_wishlist_item_product FOREIGN KEY (productId) REFERENCES product(id) ON DELETE NO ACTION ON UPDATE NO ACTION
 );
 
+DROP TABLE IF EXISTS orders;
 CREATE TABLE orders (
     id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     userId BIGINT NULL,
     status TINYINT NOT NULL,
     deliveryMethod TINYINT NOT NULL,
-    deliveryPrice FLOAT NOT NULL,
+    deliveryPrice decimal(15, 2) NOT NULL,
+    shipDiscount decimal(15, 2) NULL DEFAULT NULL,
+    productDiscount decimal(15, 2) NULL DEFAULT NULL,
+    totalProductPrice decimal(15, 2) NULL DEFAULT NULL,
+    totalPrice decimal(15, 2) NULL DEFAULT NULL,
+    shipping_address_id bigint NULL DEFAULT NULL,
     createdAt DATETIME NOT NULL,
     updatedAt DATETIME NULL,
     INDEX idx_orders_user (userId),
     CONSTRAINT fk_orders_user FOREIGN KEY (userId) REFERENCES user_account(id) ON DELETE SET NULL ON UPDATE NO ACTION
+    CONSTRAINT fk_orders_shipping_address FOREIGN KEY (shipping_address_id)
+        REFERENCES user_shipping_addresses(id) ON DELETE SET NULL ON UPDATE NO ACTION
 );
 
 CREATE TABLE order_item (
@@ -354,7 +361,7 @@ CREATE TABLE shipping_methods (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_provider (provider_type),
     INDEX idx_status (status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+);
 
 CREATE TABLE shipping_zones (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -371,7 +378,7 @@ CREATE TABLE shipping_zones (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_zone_type (zone_type),
     INDEX idx_status (status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+);
 
 CREATE TABLE provinces (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -387,7 +394,7 @@ CREATE TABLE provinces (
     INDEX idx_province_region (region),
     INDEX idx_province_zone (shipping_zone_id),
     CONSTRAINT fk_province_zone FOREIGN KEY (shipping_zone_id) REFERENCES shipping_zones(id) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+);
 
 CREATE TABLE shipping_fees (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -408,7 +415,7 @@ CREATE TABLE shipping_fees (
     INDEX idx_fee_weight (min_weight, max_weight),
     CONSTRAINT fk_fee_method FOREIGN KEY (shipping_method_id) REFERENCES shipping_methods(id) ON DELETE CASCADE ON UPDATE CASCADE,
     UNIQUE KEY unique_method_zone_weight (shipping_method_id, zone_type, min_weight)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+);
 
 CREATE TABLE shipments (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -443,7 +450,7 @@ CREATE TABLE shipments (
     INDEX idx_shipment_status (shipping_status),
     CONSTRAINT fk_shipment_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_shipment_method FOREIGN KEY (shipping_method_id) REFERENCES shipping_methods(id) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+);
 
 CREATE TABLE shipment_tracking (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -456,9 +463,10 @@ CREATE TABLE shipment_tracking (
     INDEX idx_tracking_shipment (shipment_id),
     INDEX idx_tracking_status (status),
     CONSTRAINT fk_tracking_shipment FOREIGN KEY (shipment_id) REFERENCES shipments(id) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+);
 
-CREATE TABLE shipping_contacts (
+DROP TABLE IF EXISTS user_shipping_addresses;
+CREATE TABLE user_shipping_addresses (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL,
     fullname VARCHAR(200) NOT NULL,
@@ -466,6 +474,9 @@ CREATE TABLE shipping_contacts (
     province VARCHAR(100) NOT NULL,
     district VARCHAR(100) NOT NULL,
     ward VARCHAR(100) NOT NULL,
+    province_id int NULL DEFAULT NULL,
+    district_id int NULL DEFAULT NULL,
+    ward_code varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
     address_detail VARCHAR(500),
     is_default BOOLEAN DEFAULT FALSE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -473,9 +484,7 @@ CREATE TABLE shipping_contacts (
     INDEX idx_contact_user (user_id),
     INDEX idx_contact_default (user_id, is_default),
     CONSTRAINT fk_contact_user FOREIGN KEY (user_id) REFERENCES user_account(id) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-ALTER TABLE shipping_contacts RENAME TO user_shipping_addresses;
+);
 
 CREATE TABLE shipping_weight_fees (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -490,27 +499,30 @@ CREATE TABLE shipping_weight_fees (
     INDEX idx_weight_method (shipping_method_id),
     INDEX idx_weight_zone (zone_type),
     CONSTRAINT fk_weight_method FOREIGN KEY (shipping_method_id) REFERENCES shipping_methods(id) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+);
 
+DROP TABLE IF EXISTS payments;
 CREATE TABLE payments (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     order_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL,
     status INT NOT NULL DEFAULT 0 COMMENT '0=Pending, 1=Success, 2=Failed',
     amount DECIMAL(15,2) NOT NULL DEFAULT 0.00,
-    vnp_txn_ref VARCHAR(100),
-    vnp_transaction_no VARCHAR(100),
-    vnp_response_code VARCHAR(10),
+    vnp_TxnRef VARCHAR(100),
+    vnp_TransactionNo VARCHAR(100),
+    vnp_ResponseCode VARCHAR(10),
     bank_code VARCHAR(50),
     pay_date DATETIME,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at datetime NULL DEFAULT NULL,
+    expired_at datetime NULL DEFAULT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    is_expired tinyint(1) NOT NULL DEFAULT 0,
     INDEX idx_payment_order (order_id),
     INDEX idx_payment_user (user_id),
     INDEX idx_payment_txn_ref (vnp_txn_ref),
     CONSTRAINT fk_payment_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_payment_user FOREIGN KEY (user_id) REFERENCES user_account(id) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+);
 
 CREATE TABLE shipment_contacts (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -523,7 +535,58 @@ CREATE TABLE shipment_contacts (
     INDEX idx_shipment_contact_shipment (shipment_id),
     INDEX idx_shipment_contact_type (contact_type),
     CONSTRAINT fk_shipment_contact_shipment FOREIGN KEY (shipment_id) REFERENCES shipments(id) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+);
+
+DROP TABLE IF EXISTS `vouchers`;
+CREATE TABLE `vouchers`  (
+     `id` bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
+     `code` varchar(50) NOT NULL,
+     `name` varchar(255) NOT NULL,
+     `description` text NOT NULL,
+     `calculation_method` tinyint NOT NULL DEFAULT 0,
+     `apply_to` tinyint NOT NULL DEFAULT 0,
+     `start_date` datetime NOT NULL,
+     `end_date` datetime NOT NULL,
+     `value` DECIMAL(15, 2) NOT NULL DEFAULT 0,
+     `min_purchase` DECIMAL(15, 2) NOT NULL DEFAULT 0,
+     `max_discount` DECIMAL(15, 2) NOT NULL DEFAULT 0,
+     `usage_limit` int NOT NULL DEFAULT 0,
+     `per_user_limit` int NOT NULL DEFAULT 1,
+     `used_count` int NOT NULL DEFAULT 0,
+     `is_active` tinyint(1) NOT NULL DEFAULT 1,
+     UNIQUE INDEX `code`(`code`) USING BTREE
+);
+
+DROP TABLE IF EXISTS `voucher_products`;
+CREATE TABLE `voucher_products`  (
+     `id` bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
+     `voucher_id` bigint NOT NULL,
+     `product_id` bigint NOT NULL,
+     UNIQUE INDEX `uq_voucher_product`(`voucher_id`, `product_id`) USING BTREE
+);
+
+DROP TABLE IF EXISTS `voucher_categories`;
+CREATE TABLE `voucher_categories`  (
+   `id` bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
+   `voucher_id` bigint NOT NULL,
+   `category_id` bigint NOT NULL,
+   UNIQUE INDEX `uq_voucher_category`(`voucher_id`, `category_id`) USING BTREE
+);
+
+DROP TABLE IF EXISTS `voucher_usages`;
+CREATE TABLE `voucher_usages`  (
+   `id` bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
+   `order_id` bigint NOT NULL,
+   `voucher_id` bigint NOT NULL,
+   `user_id` bigint NOT NULL,
+   `discount_amount` decimal(15, 2) NULL DEFAULT 0.00,
+   `voucher_type` tinyint NULL DEFAULT NULL,
+   `applied_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+   UNIQUE INDEX `uq_order_voucher`(`order_id`, `voucher_id`) USING BTREE,
+   INDEX `fk_voucher_usages_vouchers`(`voucher_id`) USING BTREE,
+   INDEX `fk_voucher_usages_users`(`user_id`) USING BTREE
+);
+
 
 -- insert data
 
@@ -1090,65 +1153,10 @@ INSERT INTO shipping_fees (shipping_method_id, zone_type, min_weight, max_weight
 (2, 'REMOTE', 5.00, 10.00, 35000, 22000, 4000, 5000, 6, 9),
 (2, 'REMOTE', 10.00, 30.00, 35000, 28000, 4000, 5000, 6, 9);
 
--- PART 20: SEED DATA - Shipping Contacts
-
-INSERT INTO user_shipping_addresses (user_id, fullname, phone, province, district, ward, address_detail, is_default) VALUES
-(4, 'Juliette Mcdowell', '0911925643', 'TP HCM', 'Quan 1', 'Phuong 1', '123 Le Loi', 1),
-(5, 'Vilma Spencer', '0987509391', 'Ha Noi', 'Hoan Kiem', 'Phuong Hang Bac', '456 Tran Phu', 1);
-
--- PART 21: MIGRATE EXISTING ORDERS TO SHIPMENTS
-
-INSERT INTO shipments (
-    order_id,
-    shipping_method_id,
-    tracking_code,
-    receiver_name,
-    receiver_phone,
-    province,
-    district,
-    ward,
-    address_detail,
-    total_weight,
-    total_volume,
-    shipping_fee,
-    shipping_status,
-    created_at,
-    updated_at
-)
-SELECT
-    o.id AS order_id,
-    o.deliveryMethod AS shipping_method_id,
-    CONCAT('WEB', LPAD(o.id, 8, '0')) AS tracking_code,
-    COALESCE(up.fullname, 'Khách hàng') AS receiver_name,
-    COALESCE(up.phone_number, '') AS receiver_phone,
-    COALESCE(sc.province, '') AS province,
-    COALESCE(sc.district, '') AS district,
-    COALESCE(sc.ward, '') AS ward,
-    COALESCE(sc.address_detail, '') AS address_detail,
-    0.5 AS total_weight,
-    0 AS total_volume,
-    o.deliveryPrice AS shipping_fee,
-    CASE o.status
-        WHEN 1 THEN 'WAITING_PICKUP'
-        WHEN 2 THEN 'WAITING_PICKUP'
-        WHEN 3 THEN 'PICKED_UP'
-        WHEN 4 THEN 'IN_TRANSIT'
-        WHEN 5 THEN 'OUT_FOR_DELIVERY'
-        WHEN 6 THEN 'DELIVERED'
-        ELSE 'WAITING_PICKUP'
-    END AS shipping_status,
-    o.createdAt,
-    o.createdAt
-FROM orders o
-LEFT JOIN shipments s ON o.id = s.order_id
-LEFT JOIN user_profile up ON o.userId = up.user_id
-LEFT JOIN user_shipping_addresses sc ON o.userId = sc.user_id AND sc.is_default = TRUE
-WHERE s.id IS NULL
-    AND o.deliveryMethod IS NOT NULL
-    AND o.deliveryMethod > 0;
-
-UPDATE shipping_methods SET estimated_days = 2 WHERE id = 1 AND name LIKE '%nhanh%';
-UPDATE shipping_methods SET estimated_days = 4 WHERE id = 2 AND name LIKE '%tieu chuan%';
+--Voucher
+INSERT INTO `vouchers` VALUES (1, 'WELCOME50', 'Giảm ngay 50k cho khách hàng mới', 'Áp dụng cho mọi đơn hàng', 1, 0, '2026-05-27 02:26:20', '2026-06-26 02:26:20', 50000, 0, 50000, 1000, 1, 4, 1);
+INSERT INTO `vouchers` VALUES (2, 'HELLOSUMMER', 'Đón hè rực rỡ giảm 10% đơn hàng', 'Áp dụng toàn sàn', 0, 0, '2026-05-27 02:26:20', '2026-06-11 02:26:20', 10, 5000, 30000, 500, 1, 0, 1);
+INSERT INTO `vouchers` VALUES (23, 'FREESHIP15K', 'Freeship 15k', 'Freeship 15k', 1, 3, '2026-06-04 07:41:00', '2026-06-30 07:41:00', 15000, 0, 15000, 100, 2, 5, 1);
 
 SELECT '========================================';
 SELECT '  DATABASE SETUP COMPLETE' AS status;
