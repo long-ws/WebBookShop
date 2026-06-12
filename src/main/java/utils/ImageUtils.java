@@ -23,52 +23,25 @@ public class ImageUtils {
         if (cachedImageDir == null) {
             synchronized (ImageUtils.class) {
                 if (cachedImageDir == null) {
-                    String absolute = ConstantUtils.IMAGE_ABSOLUTE_PATH;
-                    if (absolute != null && !absolute.trim().isEmpty()) {
-                        cachedImageDir = absolute.trim();
-                        Path dir = Paths.get(cachedImageDir);
-                        if (!Files.exists(dir)) {
-                            try {
-                                Files.createDirectories(dir);
-                                System.out.println("ImageUtils: Created images directory at: " + dir.toAbsolutePath());
-                            } catch (IOException e) {
-                                System.err.println("ImageUtils: FAILED to create directory: " + dir.toAbsolutePath());
-                                e.printStackTrace();
-                            }
+                    cachedImageDir = ConstantUtils.getImageStoragePath();
+                    Path dir = Paths.get(cachedImageDir);
+                    if (!Files.exists(dir)) {
+                        try {
+                            Files.createDirectories(dir);
+                            System.out.println("ImageUtils: Created images directory at: " + dir.toAbsolutePath());
+                        } catch (IOException e) {
+                            System.err.println("ImageUtils: FAILED to create directory: " + dir.toAbsolutePath());
+                            e.printStackTrace();
                         }
-                        System.out.println("ImageUtils.init() -> Using IMAGE_ABSOLUTE_PATH: " + cachedImageDir);
-                    } else {
-                        String realPath = servletContext.getRealPath("/image");
-                        if (realPath != null && !realPath.trim().isEmpty()) {
-                            cachedImageDir = realPath.trim();
-                        } else {
-                            cachedImageDir = System.getProperty("user.dir")
-                                    + File.separator + "webapp" + File.separator + "image";
-                        }
-                        Path dir = Paths.get(cachedImageDir);
-                        if (!Files.exists(dir)) {
-                            try {
-                                Files.createDirectories(dir);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        System.out.println("ImageUtils.init() -> Using FALLBACK path: " + cachedImageDir);
                     }
+                    System.out.println("ImageUtils.init() -> Using getImageStoragePath(): " + cachedImageDir);
                 }
             }
         }
     }
 
     public static Path getImageDir() {
-        String path = ConstantUtils.IMAGE_ABSOLUTE_PATH;
-        if (path != null && !path.trim().isEmpty()) {
-            return Paths.get(path.trim());
-        }
-        if (cachedImageDir != null) {
-            return Paths.get(cachedImageDir);
-        }
-        return Paths.get(System.getProperty("user.dir"), "webapp", "image");
+        return Paths.get(ConstantUtils.getImageStoragePath());
     }
 
     public static String uploadSingle(HttpServletRequest request) {
